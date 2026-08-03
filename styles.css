@@ -262,23 +262,21 @@ button { font: inherit; }
 .detail-panel {
   position: fixed;
   z-index: 1000;
-  left: 10px;
-  right: 10px;
-  bottom: calc(10px + env(safe-area-inset-bottom));
-  padding: 9px 16px 15px;
+  top: calc(475px + env(safe-area-inset-top));
+  left: 16px;
+  width: min(190px, calc(100vw - 32px));
+  max-height: calc(100vh - 490px - env(safe-area-inset-top));
+  padding: 10px;
+  overflow-y: auto;
   border: 1px solid var(--line);
-  border-radius: 22px;
+  border-radius: 16px;
   background: var(--panel);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
   backdrop-filter: blur(20px);
 }
 
 .detail-handle {
-  width: 36px;
-  height: 4px;
-  margin: 0 auto 10px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.25);
+  display: none;
 }
 
 .detail-heading {
@@ -290,6 +288,19 @@ button { font: inherit; }
 
 .detail-heading h2 { font-size: 20px; }
 
+.detail-panel .detail-heading h2 {
+  max-width: 115px;
+  font-size: 15px;
+  line-height: 1.15;
+}
+
+.detail-panel .eyebrow { font-size: 8px; }
+
+.detail-panel .text-button {
+  padding: 5px 8px;
+  font-size: 10px;
+}
+
 .empty-detail, .data-age {
   color: var(--muted);
   font-size: 13px;
@@ -298,17 +309,27 @@ button { font: inherit; }
 
 .empty-detail { margin-top: 12px; }
 
+.detail-panel .empty-detail {
+  margin-top: 8px;
+  font-size: 11px;
+}
+
 .metrics {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 7px;
-  margin-top: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.metrics[hidden],
+.separation[hidden] {
+  display: none;
 }
 
 .metrics div {
   min-width: 0;
-  padding: 8px;
-  border-radius: 12px;
+  padding: 6px;
+  border-radius: 9px;
   background: rgba(255, 255, 255, 0.06);
 }
 
@@ -322,27 +343,27 @@ button { font: inherit; }
   display: block;
   margin-top: 3px;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .separation {
-  margin-top: 12px;
-  padding: 11px 13px;
-  border: 1px solid rgba(255, 209, 102, 0.3);
-  border-radius: 14px;
-  background: rgba(255, 209, 102, 0.08);
+  margin-top: 8px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .separation strong {
   display: block;
   margin: 2px 0;
-  color: var(--selected);
-  font-size: 24px;
+  color: #fff;
+  font-size: 17px;
 }
 
-.data-age { margin: 10px 0 0; font-size: 11px; }
+.data-age { margin: 8px 0 0; font-size: 9px; }
 
 .satellite-marker {
   background: transparent;
@@ -389,7 +410,7 @@ button { font: inherit; }
 }
 
 @media (max-width: 480px) {
-  .metrics { grid-template-columns: repeat(3, 1fr); }
+  .metrics { grid-template-columns: repeat(2, 1fr); }
   .satellite-label { font-size: 10px; }
   .summary-stat { padding-inline: 7px; }
   .summary-stat strong { font-size: 11px; }
