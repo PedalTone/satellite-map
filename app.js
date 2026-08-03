@@ -28,6 +28,7 @@ const elements = {
   latitude: document.querySelector("#detail-latitude"),
   longitude: document.querySelector("#detail-longitude"),
   inclination: document.querySelector("#detail-inclination"),
+  raan: document.querySelector("#detail-raan"),
   launchDate: document.querySelector("#detail-launch-date"),
   dataAge: document.querySelector("#data-age"),
   refreshButton: document.querySelector("#refresh-button"),
@@ -229,6 +230,8 @@ function updateDetailPanel() {
   elements.longitude.textContent = position ? formatCoordinate(position.longitude, "E", "W") : "—";
   const inclination = Number(primary.omm.INCLINATION);
   elements.inclination.textContent = Number.isFinite(inclination) ? `${inclination.toFixed(2)}°` : "—";
+  const raan = Number(primary.omm.RA_OF_ASC_NODE);
+  elements.raan.textContent = Number.isFinite(raan) ? `${raan.toFixed(2)}°` : "—";
   elements.launchDate.textContent = primary.catalog?.LAUNCH_DATE || "Unavailable";
   elements.dataAge.textContent = `NORAD ${primary.id} · Elements ${ageDescription(primary.omm.EPOCH)}`;
 
@@ -245,7 +248,7 @@ function updateDetailPanel() {
     separationLine = L.polyline([
       [first.position.latitude, first.position.longitude],
       [second.position.latitude, second.position.longitude],
-    ], { color: "#ffd166", weight: 2, dashArray: "6 7", opacity: 0.8 }).addTo(map);
+    ], { color: "#111111", weight: 3, dashArray: "6 7", opacity: 0.95 }).addTo(map);
   }
 }
 
