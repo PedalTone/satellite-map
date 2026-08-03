@@ -40,6 +40,8 @@ const elements = {
   refreshButton: document.querySelector("#refresh-button"),
   clearSelection: document.querySelector("#clear-selection"),
   groundTrackToggle: document.querySelector("#ground-track-toggle"),
+  speedSelect: document.querySelector("#speed-select"),
+  simulationTime: document.querySelector("#simulation-time"),
 };
 
 let trackedSatellites = [];
@@ -48,9 +50,40 @@ let updateTimer;
 let groundTrackTimer;
 let separationLine;
 let groundTracksVisible = localStorage.getItem("groundTracksVisible") !== "false";
+let simulationSpeed = 1;
+let simulationTimeMs = Date.now();
+let lastClockUpdateMs = Date.now();
 const trackColors = ["#66e0ff", "#ff7a90", "#a98bff", "#73e6a2", "#ffad5c", "#f3e56b"];
 
 elements.groundTrackToggle.checked = groundTracksVisible;
+
+function currentSimulationDate() {
+  const nowMs = Date.now();
+  simulationTimeMs += (nowMs - lastClockUpdateMs) * simulationSpeed;
+  lastClockUpdateMs = nowMs;
+  return new Date(simulationTimeMs);
+}
+
+function updateSimulationClock(date) {
+  elements.simulationTime.dateTime = date.toISOString();
+  elements.simulationTime.dataset.simulationTime = String(date.getTime());
+  elements.simulationTime.textContent = new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(date);
+}
+
+function setSimulationSpeed(speed) {
+  currentSimulationDate();
+  simulationSpeed = speed;
+  if (speed === 1) simulationTimeMs = Date.now();
+  lastClockUpdateMs = Date.now();
+  updatePositions();
+  updateGroundTracks();
+}
 
 function setStatus(message, isError = false) {
   elements.statusText.textContent = message;
@@ -95,7 +128,7 @@ function splitAtDateLine(points) {
 }
 
 function updateGroundTracks() {
-  const start = new Date();
+  const start = currentSimulationDate();
 
   for (const item of trackedSatellites) {
     for (const layer of item.trackLayers ?? []) layer.remove();
@@ -161,7 +194,8 @@ function calculatePosition(item, date) {
 }
 
 function updatePositions() {
-  const now = new Date();
+  const now = currentSimulationDate();
+  updateSimulationClock(now);
   for (const item of trackedSatellites) {
     item.position = calculatePosition(item, now);
     if (!item.position) continue;
@@ -336,8 +370,8 @@ async function loadSatellites() {
     updatePositions();
     updateSatelliteSummary();
     updateGroundTracks();
-    updateTimer = setInterval(updatePositions, 1000);
-    groundTrackTimer = setInterval(updateGroundTracks, 60_000);
+    updateTimer = setInterval(updatePositions, 250);
+    groundTrackTimer = setInterval(updateGroundTracks, 10_000);
     const missingCount = payload.missing?.length ?? 0;
     const suffix = missingCount ? ` · ${missingCount} unavailable` : "";
     setStatus(`${trackedSatellites.length} satellites · updated ${new Date(payload.generatedAt).toLocaleString()}${suffix}`);
@@ -348,6 +382,9 @@ async function loadSatellites() {
 }
 
 elements.refreshButton.addEventListener("click", loadSatellites);
+elements.speedSelect.addEventListener("change", (event) => {
+  setSimulationSpeed(Number(event.target.value));
+});
 elements.groundTrackToggle.addEventListener("change", (event) => {
   setGroundTrackVisibility(event.target.checked);
 });
