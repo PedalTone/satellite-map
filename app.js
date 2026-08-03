@@ -35,7 +35,9 @@ const elements = {
 let trackedSatellites = [];
 let selectedIds = [];
 let updateTimer;
+let groundTrackTimer;
 let separationLine;
+const trackColors = ["#66e0ff", "#ff7a90", "#a98bff", "#73e6a2", "#ffad5c", "#f3e56b"];
 
 function setStatus(message, isError = false) {
   elements.statusText.textContent = message;
@@ -53,12 +55,64 @@ function escapeHtml(value) {
 
 function markerIcon(item, selected = false) {
   const altitude = item.position ? `${Math.round(item.position.altitude)} km` : "—";
+  const markerColor = selected ? "#ffd166" : item.color;
   return L.divIcon({
     className: `satellite-marker${selected ? " selected" : ""}`,
-    html: `<div class="satellite-marker-inner"><span class="satellite-dot"></span><span class="satellite-label">${escapeHtml(item.label)} · ${altitude}</span></div>`,
+    html: `<div class="satellite-marker-inner" style="--sat-color:${markerColor}"><span class="satellite-dot"></span><span class="satellite-label">${escapeHtml(item.label)} · ${altitude}</span></div>`,
     iconSize: [180, 24],
     iconAnchor: [0, 0],
   });
+}
+
+function splitAtDateLine(points) {
+  const segments = [];
+  let segment = [];
+
+  for (const point of points) {
+    const previous = segment[segment.length - 1];
+    if (previous && Math.abs(point[1] - previous[1]) > 180) {
+      if (segment.length > 1) segments.push(segment);
+      segment = [];
+    }
+    segment.push(point);
+  }
+
+  if (segment.length > 1) segments.push(segment);
+  return segments;
+}
+
+function updateGroundTracks() {
+  const start = new Date();
+
+  for (const item of trackedSatellites) {
+    for (const layer of item.trackLayers ?? []) layer.remove();
+    item.trackLayers = [];
+
+    const meanMotion = Number(item.omm.MEAN_MOTION);
+    if (!Number.isFinite(meanMotion) || meanMotion <= 0) continue;
+
+    const orbitMinutes = 1440 / meanMotion;
+    const pointCount = 180;
+    const points = [];
+
+    for (let index = 0; index <= pointCount; index += 1) {
+      const date = new Date(start.getTime() + (orbitMinutes * 60_000 * index) / pointCount);
+      const position = calculatePosition(item, date);
+      if (position) points.push([position.latitude, position.longitude]);
+    }
+
+    item.trackLayers = splitAtDateLine(points).map((segment) =>
+      L.polyline(segment, {
+        color: item.color,
+        weight: 2,
+        opacity: 0.72,
+        dashArray: "5 6",
+        interactive: false,
+      }).addTo(map)
+    );
+
+    for (const layer of item.trackLayers) layer.bringToBack();
+  }
 }
 
 function calculatePosition(item, date) {
@@ -172,7 +226,11 @@ function updateDetailPanel() {
 
 async function loadSatellites() {
   clearInterval(updateTimer);
-  for (const item of trackedSatellites) item.marker?.remove();
+  clearInterval(groundTrackTimer);
+  for (const item of trackedSatellites) {
+    item.marker?.remove();
+    for (const layer of item.trackLayers ?? []) layer.remove();
+  }
   trackedSatellites = [];
   selectedIds = [];
   setStatus("Loading satellite data…");
@@ -182,16 +240,20 @@ async function loadSatellites() {
     if (!response.ok) throw new Error(`Data request returned ${response.status}`);
     const payload = await response.json();
 
-    trackedSatellites = payload.satellites.map((entry) => ({
+    trackedSatellites = payload.satellites.map((entry, index) => ({
       ...entry,
       id: String(entry.noradId),
+      color: trackColors[index % trackColors.length],
       satrec: satellite.json2satrec(entry.omm),
       marker: null,
       position: null,
+      trackLayers: [],
     }));
 
     updatePositions();
+    updateGroundTracks();
     updateTimer = setInterval(updatePositions, 1000);
+    groundTrackTimer = setInterval(updateGroundTracks, 60_000);
     const missingCount = payload.missing?.length ?? 0;
     const suffix = missingCount ? ` · ${missingCount} unavailable` : "";
     setStatus(`${trackedSatellites.length} satellites · updated ${new Date(payload.generatedAt).toLocaleString()}${suffix}`);

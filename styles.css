@@ -105,6 +105,29 @@ button { font: inherit; }
 
 .status-dot.error { background: #ff6b6b; box-shadow: 0 0 10px #ff6b6b; }
 
+.track-legend {
+  position: fixed;
+  z-index: 1000;
+  top: calc(118px + env(safe-area-inset-top));
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 11px;
+  backdrop-filter: blur(16px);
+}
+
+.track-sample {
+  width: 24px;
+  height: 0;
+  border-top: 2px dashed var(--accent);
+}
+
 .detail-panel {
   position: fixed;
   z-index: 1000;
@@ -210,8 +233,8 @@ button { font: inherit; }
   flex: none;
   border: 2px solid #fff;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
+  background: var(--sat-color, var(--accent));
+  box-shadow: 0 0 8px var(--sat-color, var(--accent));
 }
 
 .satellite-label {

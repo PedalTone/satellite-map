@@ -13,7 +13,7 @@ Edit `satellites.txt` with one satellite per line:
 41866,GOES-16
 ```
 
-Labels are optional. Blank lines and lines beginning with `#` are ignored.
+Labels are optional. Separate the number and label with a comma, tab, or spaces. Blank lines and lines beginning with `#` are ignored.
 
 ## First-time GitHub setup
 
@@ -72,6 +72,7 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 
 - The deployed workflow refreshes orbital data after list changes and every six hours.
 - The webpage recalculates current positions every second without repeatedly contacting CelesTrak.
+- Each satellite displays its predicted ground track for approximately the next complete orbit.
 - Failed downloads reuse previously generated data when available.
 - Selecting two satellites displays their straight-line separation in Earth-centered inertial space.
 - CelesTrak data is for visualization and is not appropriate for safety-critical operations.

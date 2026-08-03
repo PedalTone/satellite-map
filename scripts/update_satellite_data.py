@@ -22,7 +22,8 @@ def read_satellite_list():
         if not line or line.startswith("#"):
             continue
 
-        parts = [part.strip() for part in line.split(",", maxsplit=1)]
+        separator = "," if "," in line else None
+        parts = [part.strip() for part in line.split(separator, maxsplit=1)]
         catalog_number = parts[0]
         if not catalog_number.isdigit():
             raise ValueError(f"Line {line_number}: NORAD number must contain only digits")
