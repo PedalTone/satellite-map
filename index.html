@@ -30,10 +30,12 @@
         <span id="status-text">Loading satellites…</span>
       </section>
 
-      <section class="track-legend" aria-label="Map legend">
+      <label class="track-legend" for="ground-track-toggle">
         <span class="track-sample"></span>
-        <span>Ground track · next orbit</span>
-      </section>
+        <span>Ground paths</span>
+        <input id="ground-track-toggle" type="checkbox" checked>
+        <span class="toggle" aria-hidden="true"></span>
+      </label>
 
       <section id="detail-panel" class="detail-panel" aria-live="polite">
         <div class="detail-handle"></div>
@@ -52,6 +54,8 @@
           <div><span>Speed</span><strong id="detail-speed">—</strong></div>
           <div><span>Latitude</span><strong id="detail-latitude">—</strong></div>
           <div><span>Longitude</span><strong id="detail-longitude">—</strong></div>
+          <div><span>Inclination</span><strong id="detail-inclination">—</strong></div>
+          <div><span>Launch date</span><strong id="detail-launch-date">—</strong></div>
         </div>
         <div id="separation-detail" class="separation" hidden>
           <span id="separation-label">Separation</span>

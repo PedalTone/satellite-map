@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SATELLITE_LIST = ROOT / "satellites.txt"
 OUTPUT_FILE = ROOT / "data" / "satellite-data.json"
 CELESTRAK_URL = "https://celestrak.org/NORAD/elements/gp.php"
+SATCAT_URL = "https://celestrak.org/satcat/records.php"
 
 
 def read_satellite_list():
@@ -39,7 +40,7 @@ def read_satellite_list():
     return entries
 
 
-def fetch_omm(catalog_number):
+def fetch_json(base_url, catalog_number):
     query = urllib.parse.urlencode({"CATNR": catalog_number, "FORMAT": "JSON"})
     result = subprocess.run(
         [
@@ -51,7 +52,7 @@ def fetch_omm(catalog_number):
             "30",
             "--user-agent",
             "PersonalSatelliteMap/1.0",
-            f"{CELESTRAK_URL}?{query}",
+            f"{base_url}?{query}",
         ],
         check=True,
         capture_output=True,
@@ -60,8 +61,16 @@ def fetch_omm(catalog_number):
     response = json.loads(result.stdout)
 
     if not response:
-        raise RuntimeError("CelesTrak returned no orbital elements")
+        raise RuntimeError("CelesTrak returned no matching records")
     return response[0]
+
+
+def fetch_omm(catalog_number):
+    return fetch_json(CELESTRAK_URL, catalog_number)
+
+
+def fetch_satcat(catalog_number):
+    return fetch_json(SATCAT_URL, catalog_number)
 
 
 def load_previous_data():
@@ -80,12 +89,21 @@ def main():
 
     for index, entry in enumerate(entries):
         catalog_number = entry["noradId"]
+        previous = previous_data.get(catalog_number)
+        catalog = previous.get("catalog") if previous else None
+
+        if not catalog:
+            try:
+                catalog = fetch_satcat(catalog_number)
+                print(f"Fetched catalog metadata for {catalog_number}")
+            except (subprocess.CalledProcessError, RuntimeError, json.JSONDecodeError) as error:
+                print(f"Could not fetch catalog metadata for {catalog_number}: {error}", file=sys.stderr)
+
         try:
             omm = fetch_omm(catalog_number)
-            satellites.append({**entry, "omm": omm})
+            satellites.append({**entry, "omm": omm, "catalog": catalog})
             print(f"Fetched {catalog_number}: {entry['label']}")
         except (subprocess.CalledProcessError, RuntimeError, json.JSONDecodeError) as error:
-            previous = previous_data.get(catalog_number)
             if previous:
                 satellites.append({**previous, "label": entry["label"]})
                 print(f"Using cached data for {catalog_number}: {error}", file=sys.stderr)

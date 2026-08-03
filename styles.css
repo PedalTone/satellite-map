@@ -120,6 +120,7 @@ button { font: inherit; }
   color: var(--muted);
   font-size: 11px;
   backdrop-filter: blur(16px);
+  cursor: pointer;
 }
 
 .track-sample {
@@ -127,6 +128,39 @@ button { font: inherit; }
   height: 0;
   border-top: 2px dashed var(--accent);
 }
+
+.track-legend input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.toggle {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  margin-left: 3px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background 160ms ease;
+}
+
+.toggle::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  content: "";
+  transition: transform 160ms ease;
+}
+
+.track-legend input:checked + .toggle { background: #238aa5; }
+.track-legend input:checked + .toggle::after { transform: translateX(14px); }
+.track-legend input:focus-visible + .toggle { outline: 2px solid #fff; outline-offset: 2px; }
 
 .detail-panel {
   position: fixed;
@@ -258,6 +292,6 @@ button { font: inherit; }
 }
 
 @media (max-width: 480px) {
-  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .metrics { grid-template-columns: repeat(3, 1fr); }
   .satellite-label { font-size: 10px; }
 }

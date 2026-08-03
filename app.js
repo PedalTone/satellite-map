@@ -27,9 +27,12 @@ const elements = {
   speed: document.querySelector("#detail-speed"),
   latitude: document.querySelector("#detail-latitude"),
   longitude: document.querySelector("#detail-longitude"),
+  inclination: document.querySelector("#detail-inclination"),
+  launchDate: document.querySelector("#detail-launch-date"),
   dataAge: document.querySelector("#data-age"),
   refreshButton: document.querySelector("#refresh-button"),
   clearSelection: document.querySelector("#clear-selection"),
+  groundTrackToggle: document.querySelector("#ground-track-toggle"),
 };
 
 let trackedSatellites = [];
@@ -37,7 +40,10 @@ let selectedIds = [];
 let updateTimer;
 let groundTrackTimer;
 let separationLine;
+let groundTracksVisible = localStorage.getItem("groundTracksVisible") !== "false";
 const trackColors = ["#66e0ff", "#ff7a90", "#a98bff", "#73e6a2", "#ffad5c", "#f3e56b"];
+
+elements.groundTrackToggle.checked = groundTracksVisible;
 
 function setStatus(message, isError = false) {
   elements.statusText.textContent = message;
@@ -101,17 +107,33 @@ function updateGroundTracks() {
       if (position) points.push([position.latitude, position.longitude]);
     }
 
-    item.trackLayers = splitAtDateLine(points).map((segment) =>
-      L.polyline(segment, {
+    item.trackLayers = splitAtDateLine(points).map((segment) => {
+      const layer = L.polyline(segment, {
         color: item.color,
         weight: 2,
         opacity: 0.72,
         dashArray: "5 6",
         interactive: false,
-      }).addTo(map)
-    );
+      });
+      if (groundTracksVisible) layer.addTo(map);
+      return layer;
+    });
 
-    for (const layer of item.trackLayers) layer.bringToBack();
+    if (groundTracksVisible) {
+      for (const layer of item.trackLayers) layer.bringToBack();
+    }
+  }
+}
+
+function setGroundTrackVisibility(visible) {
+  groundTracksVisible = visible;
+  localStorage.setItem("groundTracksVisible", String(visible));
+
+  for (const item of trackedSatellites) {
+    for (const layer of item.trackLayers ?? []) {
+      if (visible && !map.hasLayer(layer)) layer.addTo(map).bringToBack();
+      if (!visible && map.hasLayer(layer)) layer.remove();
+    }
   }
 }
 
@@ -205,6 +227,9 @@ function updateDetailPanel() {
   elements.speed.textContent = position ? `${position.speed.toFixed(2)} km/s` : "Unavailable";
   elements.latitude.textContent = position ? formatCoordinate(position.latitude, "N", "S") : "—";
   elements.longitude.textContent = position ? formatCoordinate(position.longitude, "E", "W") : "—";
+  const inclination = Number(primary.omm.INCLINATION);
+  elements.inclination.textContent = Number.isFinite(inclination) ? `${inclination.toFixed(2)}°` : "—";
+  elements.launchDate.textContent = primary.catalog?.LAUNCH_DATE || "Unavailable";
   elements.dataAge.textContent = `NORAD ${primary.id} · Elements ${ageDescription(primary.omm.EPOCH)}`;
 
   if (selected.length === 2 && selected.every((item) => item.position)) {
@@ -264,6 +289,9 @@ async function loadSatellites() {
 }
 
 elements.refreshButton.addEventListener("click", loadSatellites);
+elements.groundTrackToggle.addEventListener("change", (event) => {
+  setGroundTrackVisibility(event.target.checked);
+});
 elements.clearSelection.addEventListener("click", () => {
   selectedIds = [];
   updatePositions();
