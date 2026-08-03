@@ -81,7 +81,7 @@ button { font: inherit; }
   z-index: 1000;
   top: calc(78px + env(safe-area-inset-top));
   left: 16px;
-  width: min(590px, calc(100vw - 32px));
+  width: min(300px, calc(100vw - 32px));
   padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -110,7 +110,7 @@ button { font: inherit; }
 
 .satellite-summary {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
   gap: 7px;
   margin-top: 9px;
   padding-top: 9px;
@@ -120,6 +120,10 @@ button { font: inherit; }
 .satellite-summary[hidden] { display: none; }
 
 .summary-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   min-width: 0;
   padding: 7px 9px;
   border-radius: 10px;
@@ -135,8 +139,7 @@ button { font: inherit; }
 }
 
 .summary-stat strong {
-  display: block;
-  margin-top: 3px;
+  margin: 0;
   overflow: hidden;
   color: #fff;
   font-size: 12px;
@@ -145,9 +148,7 @@ button { font: inherit; }
 }
 
 .launch-breakdown {
-  display: flex;
-  grid-column: 1 / -1;
-  flex-wrap: wrap;
+  display: grid;
   gap: 5px;
 }
 
@@ -163,7 +164,7 @@ button { font: inherit; }
 .track-legend {
   position: fixed;
   z-index: 1000;
-  top: calc(220px + env(safe-area-inset-top));
+  top: calc(325px + env(safe-area-inset-top));
   left: 16px;
   display: flex;
   align-items: center;
