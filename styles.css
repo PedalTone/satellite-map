@@ -164,7 +164,7 @@ button { font: inherit; }
 .track-legend {
   position: fixed;
   z-index: 1000;
-  top: calc(325px + env(safe-area-inset-top));
+  top: calc(365px + env(safe-area-inset-top));
   left: 16px;
   display: flex;
   align-items: center;

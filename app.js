@@ -21,6 +21,7 @@ const elements = {
   summaryLaunchCount: document.querySelector("#summary-launch-count"),
   summaryAltitude: document.querySelector("#summary-altitude"),
   summaryInclination: document.querySelector("#summary-inclination"),
+  summaryRaan: document.querySelector("#summary-raan"),
   launchBreakdown: document.querySelector("#launch-breakdown"),
   detailName: document.querySelector("#detail-name"),
   emptyDetail: document.querySelector("#empty-detail"),
@@ -225,6 +226,9 @@ function updateSatelliteSummary() {
   const inclinations = trackedSatellites
     .map((item) => Number(item.omm.INCLINATION))
     .filter(Number.isFinite);
+  const raanValues = trackedSatellites
+    .map((item) => Number(item.omm.RA_OF_ASC_NODE))
+    .filter(Number.isFinite);
   const launchGroups = new Map();
 
   for (const item of trackedSatellites) {
@@ -238,6 +242,9 @@ function updateSatelliteSummary() {
     : "Unavailable";
   elements.summaryInclination.textContent = inclinations.length
     ? `${Math.min(...inclinations).toFixed(2)}–${Math.max(...inclinations).toFixed(2)}°`
+    : "Unavailable";
+  elements.summaryRaan.textContent = raanValues.length
+    ? `${Math.min(...raanValues).toFixed(2)}–${Math.max(...raanValues).toFixed(2)}°`
     : "Unavailable";
   elements.launchBreakdown.replaceChildren(
     ...[...launchGroups.entries()]
