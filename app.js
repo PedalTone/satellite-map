@@ -17,6 +17,11 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
 const elements = {
   statusText: document.querySelector("#status-text"),
   statusDot: document.querySelector("#status-dot"),
+  satelliteSummary: document.querySelector("#satellite-summary"),
+  summaryLaunchCount: document.querySelector("#summary-launch-count"),
+  summaryAltitude: document.querySelector("#summary-altitude"),
+  summaryInclination: document.querySelector("#summary-inclination"),
+  launchBreakdown: document.querySelector("#launch-breakdown"),
   detailName: document.querySelector("#detail-name"),
   emptyDetail: document.querySelector("#empty-detail"),
   satelliteDetail: document.querySelector("#satellite-detail"),
@@ -204,6 +209,49 @@ function ageDescription(epoch) {
   return `${(ageHours / 24).toFixed(1)} days old`;
 }
 
+function formatLaunchDate(value) {
+  if (!value) return "Unknown date";
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00Z`));
+}
+
+function updateSatelliteSummary() {
+  const positions = trackedSatellites.map((item) => item.position).filter(Boolean);
+  const altitudes = positions.map((position) => position.altitude);
+  const inclinations = trackedSatellites
+    .map((item) => Number(item.omm.INCLINATION))
+    .filter(Number.isFinite);
+  const launchGroups = new Map();
+
+  for (const item of trackedSatellites) {
+    const launchDate = item.catalog?.LAUNCH_DATE || "Unknown";
+    launchGroups.set(launchDate, (launchGroups.get(launchDate) || 0) + 1);
+  }
+
+  elements.summaryLaunchCount.textContent = String(launchGroups.size);
+  elements.summaryAltitude.textContent = altitudes.length
+    ? `${Math.round(Math.min(...altitudes))}–${Math.round(Math.max(...altitudes))} km`
+    : "Unavailable";
+  elements.summaryInclination.textContent = inclinations.length
+    ? `${Math.min(...inclinations).toFixed(2)}–${Math.max(...inclinations).toFixed(2)}°`
+    : "Unavailable";
+  elements.launchBreakdown.replaceChildren(
+    ...[...launchGroups.entries()]
+      .sort(([firstDate], [secondDate]) => firstDate.localeCompare(secondDate))
+      .map(([date, count]) => {
+        const chip = document.createElement("span");
+        chip.className = "launch-chip";
+        chip.textContent = `${count} launched ${formatLaunchDate(date)}`;
+        return chip;
+      })
+  );
+  elements.satelliteSummary.hidden = false;
+}
+
 function updateDetailPanel() {
   const selected = selectedSatellites();
   elements.emptyDetail.hidden = selected.length > 0;
@@ -279,6 +327,7 @@ async function loadSatellites() {
     }));
 
     updatePositions();
+    updateSatelliteSummary();
     updateGroundTracks();
     updateTimer = setInterval(updatePositions, 1000);
     groundTrackTimer = setInterval(updateGroundTracks, 60_000);

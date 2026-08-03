@@ -26,8 +26,25 @@
       </header>
 
       <section id="status-panel" class="status-panel" aria-live="polite">
-        <span id="status-dot" class="status-dot"></span>
-        <span id="status-text">Loading satellites…</span>
+        <div class="status-line">
+          <span id="status-dot" class="status-dot"></span>
+          <span id="status-text">Loading satellites…</span>
+        </div>
+        <div id="satellite-summary" class="satellite-summary" hidden>
+          <div class="summary-stat">
+            <span>Launches</span>
+            <strong id="summary-launch-count">—</strong>
+          </div>
+          <div class="summary-stat">
+            <span>Altitude spread</span>
+            <strong id="summary-altitude">—</strong>
+          </div>
+          <div class="summary-stat">
+            <span>Inclination</span>
+            <strong id="summary-inclination">—</strong>
+          </div>
+          <div id="launch-breakdown" class="launch-breakdown"></div>
+        </div>
       </section>
 
       <label class="track-legend" for="ground-track-toggle">

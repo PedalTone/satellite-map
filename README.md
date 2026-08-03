@@ -75,6 +75,7 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 - Each satellite displays its predicted ground track for approximately the next complete orbit.
 - The ground-path switch remembers its setting on each device.
 - Satellite details include orbital inclination, RAAN, and the SATCAT launch date.
+- The status card summarizes launch groups, current altitude spread, and inclination spread.
 - Failed downloads reuse previously generated data when available.
 - Selecting two satellites displays their straight-line separation in Earth-centered inertial space.
 - CelesTrak data is for visualization and is not appropriate for safety-critical operations.
