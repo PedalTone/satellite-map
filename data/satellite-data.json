@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2026-08-03T01:57:58.867981Z",
+  "satellites": [
+    {
+      "noradId": "25544",
+      "label": "ISS",
+      "omm": {
+        "OBJECT_NAME": "ISS (ZARYA)",
+        "OBJECT_ID": "1998-067A",
+        "EPOCH": "2026-08-02T12:09:08.796384",
+        "MEAN_MOTION": 15.49313226,
+        "ECCENTRICITY": 0.00071721,
+        "INCLINATION": 51.6315,
+        "RA_OF_ASC_NODE": 70.8679,
+        "ARG_OF_PERICENTER": 4.7554,
+        "MEAN_ANOMALY": 355.3502,
+        "EPHEMERIS_TYPE": 0,
+        "CLASSIFICATION_TYPE": "U",
+        "NORAD_CAT_ID": 25544,
+        "ELEMENT_SET_NO": 999,
+        "REV_AT_EPOCH": 57893,
+        "BSTAR": 0.00012182638,
+        "MEAN_MOTION_DOT": 6.342e-05,
+        "MEAN_MOTION_DDOT": 0
+      }
+    },
+    {
+      "noradId": "48274",
+      "label": "Chinese Space Station",
+      "omm": {
+        "OBJECT_NAME": "CSS (TIANHE)",
+        "OBJECT_ID": "2021-035A",
+        "EPOCH": "2026-08-02T14:35:03.229728",
+        "MEAN_MOTION": 15.58713529,
+        "ECCENTRICITY": 0.00010036,
+        "INCLINATION": 41.4688,
+        "RA_OF_ASC_NODE": 40.1874,
+        "ARG_OF_PERICENTER": 283.4191,
+        "MEAN_ANOMALY": 76.6536,
+        "EPHEMERIS_TYPE": 0,
+        "CLASSIFICATION_TYPE": "U",
+        "NORAD_CAT_ID": 48274,
+        "ELEMENT_SET_NO": 999,
+        "REV_AT_EPOCH": 30041,
+        "BSTAR": 0.00021887602,
+        "MEAN_MOTION_DOT": 0.0001704,
+        "MEAN_MOTION_DDOT": 0
+      }
+    },
+    {
+      "noradId": "41866",
+      "label": "GOES-16",
+      "omm": {
+        "OBJECT_NAME": "GOES 16",
+        "OBJECT_ID": "2016-071A",
+        "EPOCH": "2026-08-02T14:26:43.765152",
+        "MEAN_MOTION": 1.00270985,
+        "ECCENTRICITY": 0.00010326,
+        "INCLINATION": 0.4456,
+        "RA_OF_ASC_NODE": 85.3005,
+        "ARG_OF_PERICENTER": 100.6034,
+        "MEAN_ANOMALY": 237.2654,
+        "EPHEMERIS_TYPE": 0,
+        "CLASSIFICATION_TYPE": "U",
+        "NORAD_CAT_ID": 41866,
+        "ELEMENT_SET_NO": 999,
+        "REV_AT_EPOCH": 3556,
+        "BSTAR": 0,
+        "MEAN_MOTION_DOT": -8.3e-07,
+        "MEAN_MOTION_DDOT": 0
+      }
+    }
+  ],
+  "missing": []
+}

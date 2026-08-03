@@ -1,0 +1,4 @@
+# One satellite per line: NORAD catalog number, label
+25544,ISS
+48274,Chinese Space Station
+41866,GOES-16
