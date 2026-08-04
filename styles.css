@@ -559,6 +559,55 @@ body.summary-expanded .detail-panel {
   font-size: 10px;
 }
 
+.scenario-range {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.scenario-range label {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.scenario-range label span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+  color: #dbe6f6;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.scenario-range input {
+  min-width: 0;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+  font: inherit;
+  font-size: 12px;
+}
+
+.scenario-range input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.scenario-range-error {
+  margin: -4px 0 10px;
+  color: #ff9c9c;
+  font-size: 10px;
+}
+
+.scenario-range-error[hidden] { display: none; }
+
 .run-button {
   width: 100%;
   padding: 11px 14px;

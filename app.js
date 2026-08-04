@@ -76,6 +76,9 @@ const elements = {
   scenarioPanel: document.querySelector("#scenario-panel"),
   scenarioClose: document.querySelector("#scenario-close"),
   scenarioRun: document.querySelector("#scenario-run"),
+  scenarioMinimumDistance: document.querySelector("#scenario-minimum-distance"),
+  scenarioMaximumDistance: document.querySelector("#scenario-maximum-distance"),
+  scenarioRangeError: document.querySelector("#scenario-range-error"),
   scenarioProgress: document.querySelector("#scenario-progress"),
   scenarioProgressLabel: document.querySelector("#scenario-progress-label"),
   scenarioProgressValue: document.querySelector("#scenario-progress-value"),
@@ -110,8 +113,6 @@ let lastClockUpdateMs = Date.now();
 let lastAccessPanelRenderMs = 0;
 const trackColors = ["#66e0ff", "#ff7a90", "#a98bff", "#73e6a2", "#ffad5c", "#f3e56b"];
 const earthRadiusKm = 6378.137;
-const scenarioMinimumDistanceKm = 1000;
-const scenarioDistanceKm = 5500;
 const scenarioStepMs = 2 * 60_000;
 const scenarioDurationMs = 30 * 24 * 60 * 60_000;
 
@@ -338,7 +339,7 @@ function calculatePosition(item, date) {
   };
 }
 
-function hasEarthClearLink(firstPosition, secondPosition) {
+function hasEarthClearLink(firstPosition, secondPosition, minimumDistanceKm, maximumDistanceKm) {
   const delta = {
     x: secondPosition.x - firstPosition.x,
     y: secondPosition.y - firstPosition.y,
@@ -346,8 +347,8 @@ function hasEarthClearLink(firstPosition, secondPosition) {
   };
   const distanceSquared = delta.x ** 2 + delta.y ** 2 + delta.z ** 2;
   if (
-    distanceSquared <= scenarioMinimumDistanceKm ** 2
-    || distanceSquared >= scenarioDistanceKm ** 2
+    distanceSquared <= minimumDistanceKm ** 2
+    || distanceSquared >= maximumDistanceKm ** 2
   ) return false;
 
   const projection = -(
@@ -390,14 +391,17 @@ function scenarioPositionsAt(date) {
   });
 }
 
-function qualifyingScenarioGroups(positions) {
+function qualifyingScenarioGroups(positions, minimumDistanceKm, maximumDistanceKm) {
   const satelliteCount = positions.length;
   const links = Array.from({ length: satelliteCount }, () => new Uint8Array(satelliteCount));
 
   for (let first = 0; first < satelliteCount; first += 1) {
     if (!positions[first]) continue;
     for (let second = first + 1; second < satelliteCount; second += 1) {
-      if (positions[second] && hasEarthClearLink(positions[first].eci, positions[second].eci)) {
+      if (
+        positions[second]
+        && hasEarthClearLink(positions[first].eci, positions[second].eci, minimumDistanceKm, maximumDistanceKm)
+      ) {
         links[first][second] = 1;
       }
     }
@@ -509,7 +513,7 @@ function renderScenarioResults(result) {
   elements.scenarioPercent.textContent = `${percent.toFixed(2)}%`;
   elements.scenarioWindowCount.textContent = result.windowCount.toLocaleString();
   elements.scenarioGroupCount.textContent = result.groups.length.toLocaleString();
-  elements.scenarioPeriod.textContent = `${result.start.toLocaleString()} through ${result.end.toLocaleString()} · Current element sets · ±2-minute boundary precision`;
+  elements.scenarioPeriod.textContent = `${result.start.toLocaleString()} through ${result.end.toLocaleString()} · ${result.minimumDistanceKm.toLocaleString()}–${result.maximumDistanceKm.toLocaleString()} km link range · Current element sets · ±2-minute boundary precision`;
   elements.scenarioRecommendations.replaceChildren(
     ...result.recommendedGroups.slice(0, 3).map(createRecommendationCard)
   );
@@ -544,7 +548,22 @@ function renderScenarioResults(result) {
 
 async function runScenarioAnalysis() {
   if (trackedSatellites.length < 3) return;
+  const minimumDistanceKm = Number(elements.scenarioMinimumDistance.value);
+  const maximumDistanceKm = Number(elements.scenarioMaximumDistance.value);
+  if (
+    !Number.isFinite(minimumDistanceKm)
+    || !Number.isFinite(maximumDistanceKm)
+    || minimumDistanceKm < 0
+    || maximumDistanceKm <= minimumDistanceKm
+  ) {
+    elements.scenarioRangeError.textContent = "Enter a lower bound of zero or greater and an upper bound greater than the lower bound.";
+    elements.scenarioRangeError.hidden = false;
+    return;
+  }
+  elements.scenarioRangeError.hidden = true;
   elements.scenarioRun.disabled = true;
+  elements.scenarioMinimumDistance.disabled = true;
+  elements.scenarioMaximumDistance.disabled = true;
   elements.scenarioRun.textContent = "Analyzing…";
   elements.scenarioProgress.hidden = false;
   elements.scenarioResults.hidden = true;
@@ -575,7 +594,11 @@ async function runScenarioAnalysis() {
   try {
     for (let step = 0; step < stepCount; step += 1) {
       const date = new Date(start.getTime() + step * scenarioStepMs);
-      const groupAccessCounts = qualifyingScenarioGroups(scenarioPositionsAt(date));
+      const groupAccessCounts = qualifyingScenarioGroups(
+        scenarioPositionsAt(date),
+        minimumDistanceKm,
+        maximumDistanceKm
+      );
       const currentGroups = new Set(groupAccessCounts.keys());
       const currentTwoGroundGroups = new Set(
         [...groupAccessCounts].filter(([, count]) => count >= 2).map(([key]) => key)
@@ -702,6 +725,8 @@ async function runScenarioAnalysis() {
       windows,
       groups,
       recommendedGroups,
+      minimumDistanceKm,
+      maximumDistanceKm,
       durationStats: {
         one: durationStatistics(completedDurations.one),
         two: durationStatistics(completedDurations.two),
@@ -715,6 +740,8 @@ async function runScenarioAnalysis() {
     elements.scenarioResults.hidden = false;
   } finally {
     elements.scenarioRun.disabled = false;
+    elements.scenarioMinimumDistance.disabled = false;
+    elements.scenarioMaximumDistance.disabled = false;
     elements.scenarioRun.textContent = "Run again with current elements";
   }
 }

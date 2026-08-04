@@ -131,6 +131,17 @@
           <span>Earth-clear links</span>
           <span>Non-operational estimate</span>
         </div>
+        <div class="scenario-range" aria-label="Inter-satellite distance range">
+          <label for="scenario-minimum-distance">
+            Lower bound
+            <span><input id="scenario-minimum-distance" type="number" min="0" step="100" value="500" inputmode="numeric"> km</span>
+          </label>
+          <label for="scenario-maximum-distance">
+            Upper bound
+            <span><input id="scenario-maximum-distance" type="number" min="1" step="100" value="10000" inputmode="numeric"> km</span>
+          </label>
+        </div>
+        <p id="scenario-range-error" class="scenario-range-error" role="alert" hidden></p>
         <button id="scenario-run" class="run-button" type="button" disabled>Run 30-day analysis</button>
         <div id="scenario-progress" class="scenario-progress" hidden>
           <div><span id="scenario-progress-label">Preparing…</span><strong id="scenario-progress-value">0%</strong></div>
@@ -169,6 +180,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=strict-hidden-link-range-2"></script>
+    <script type="module" src="app.js?v=configurable-link-range-1"></script>
   </body>
 </html>
