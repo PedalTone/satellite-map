@@ -1,32 +1,18 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
 
-const worldBounds = L.latLngBounds([[-85.0511, -180], [85.0511, 180]]);
 const map = L.map("map", {
   center: [18, 0],
   zoom: 2,
   minZoom: 2,
-  maxBounds: worldBounds,
-  maxBoundsViscosity: 1,
-  worldCopyJump: false,
+  worldCopyJump: true,
   zoomControl: false,
 });
 
 L.control.zoom({ position: "topright" }).addTo(map);
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 8,
-  noWrap: true,
-  bounds: worldBounds,
   attribution: "&copy; OpenStreetMap contributors",
 }).addTo(map);
-
-function updateMinimumZoom() {
-  const minimumZoom = Math.max(2, Math.ceil(Math.log2(map.getSize().x / 256)));
-  map.setMinZoom(minimumZoom);
-  if (map.getZoom() < minimumZoom) map.setZoom(minimumZoom);
-}
-
-map.whenReady(updateMinimumZoom);
-map.on("resize", updateMinimumZoom);
 
 const groundStation = {
   name: "Central Alaska",
@@ -40,18 +26,20 @@ const observerGeodetic = {
   height: 0,
 };
 
-L.circleMarker([groundStation.latitude, groundStation.longitude], {
-  radius: 6,
-  color: "#ffffff",
-  weight: 2,
-  fillColor: "#73e6a2",
-  fillOpacity: 1,
-}).addTo(map).bindTooltip("Central Alaska GS · 10° mask", {
-  permanent: true,
-  direction: "right",
-  className: "station-tooltip",
-  offset: [8, 0],
-});
+for (const longitudeOffset of [-360, 0, 360]) {
+  L.circleMarker([groundStation.latitude, groundStation.longitude + longitudeOffset], {
+    radius: 6,
+    color: "#ffffff",
+    weight: 2,
+    fillColor: "#73e6a2",
+    fillOpacity: 1,
+  }).addTo(map).bindTooltip("Central Alaska GS · 10° mask", {
+    permanent: true,
+    direction: "right",
+    className: "station-tooltip",
+    offset: [8, 0],
+  });
+}
 
 const elements = {
   statusText: document.querySelector("#status-text"),
@@ -357,14 +345,9 @@ function updatePositions() {
         [groundStation.latitude, groundStation.longitude],
         [item.position.latitude, satelliteLongitude],
       ];
-      const crossedDateLine = satelliteLongitude !== item.position.longitude;
-      const wrapOffset = satelliteLongitude < -180 ? 360 : -360;
-      const linkCoordinates = crossedDateLine
-        ? [
-            primaryLinkCoordinates,
-            primaryLinkCoordinates.map(([latitude, longitude]) => [latitude, longitude + wrapOffset]),
-          ]
-        : primaryLinkCoordinates;
+      const linkCoordinates = [-360, 0, 360].map((longitudeOffset) =>
+        primaryLinkCoordinates.map(([latitude, longitude]) => [latitude, longitude + longitudeOffset])
+      );
 
       if (!item.accessLine) {
         item.accessLineHalo = L.polyline(linkCoordinates, {
