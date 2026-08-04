@@ -22,7 +22,10 @@
           <p class="eyebrow">Live orbital view</p>
           <h1>Satellite Map</h1>
         </div>
-        <button id="refresh-button" class="icon-button" type="button" aria-label="Reload satellite list">↻</button>
+        <div class="topbar-actions">
+          <button id="scenario-button" class="scenario-button" type="button">Scenario Lab</button>
+          <button id="refresh-button" class="icon-button" type="button" aria-label="Reload satellite list">↻</button>
+        </div>
       </header>
 
       <section id="status-panel" class="status-panel" aria-live="polite">
@@ -110,9 +113,50 @@
         </div>
         <p id="data-age" class="data-age"></p>
       </section>
+
+      <section id="scenario-panel" class="scenario-panel" aria-labelledby="scenario-title" hidden>
+        <div class="scenario-header">
+          <div>
+            <p class="eyebrow">Feasibility analysis</p>
+            <h2 id="scenario-title">Three-Satellite Connectivity</h2>
+          </div>
+          <button id="scenario-close" class="icon-button scenario-close" type="button" aria-label="Close Scenario Lab">×</button>
+        </div>
+        <p class="scenario-question">
+          Over the next 30 days, when can three satellites maintain mutual space links under 5,500 km while at least one has Central Alaska access at 10° or higher?
+        </p>
+        <div class="scenario-assumptions">
+          <span>30 days</span>
+          <span>2-minute resolution</span>
+          <span>Earth-clear links</span>
+          <span>Non-operational estimate</span>
+        </div>
+        <button id="scenario-run" class="run-button" type="button" disabled>Run 30-day analysis</button>
+        <div id="scenario-progress" class="scenario-progress" hidden>
+          <div><span id="scenario-progress-label">Preparing…</span><strong id="scenario-progress-value">0%</strong></div>
+          <progress id="scenario-progress-bar" max="100" value="0"></progress>
+        </div>
+        <div id="scenario-results" class="scenario-results" hidden>
+          <p id="scenario-answer" class="scenario-answer"></p>
+          <div class="scenario-metrics">
+            <div><span>Total qualifying time</span><strong id="scenario-total-time">—</strong></div>
+            <div><span>Percent of month</span><strong id="scenario-percent">—</strong></div>
+            <div><span>Opportunity windows</span><strong id="scenario-window-count">—</strong></div>
+            <div><span>Qualifying groups</span><strong id="scenario-group-count">—</strong></div>
+          </div>
+          <p id="scenario-period" class="scenario-period"></p>
+          <details class="scenario-window-details">
+            <summary id="scenario-window-summary">All opportunity windows</summary>
+            <div id="scenario-window-list" class="scenario-window-list"></div>
+          </details>
+          <h3>Groups by total opportunity time</h3>
+          <div id="scenario-group-list" class="scenario-group-list"></div>
+          <p class="scenario-disclaimer">Approximate geometric feasibility based on the currently loaded orbital elements. Not for operational planning.</p>
+        </div>
+      </section>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=wrapped-stations-1"></script>
+    <script type="module" src="app.js?v=scenario-lab-1"></script>
   </body>
 </html>

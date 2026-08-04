@@ -72,6 +72,24 @@ const elements = {
   simulationTime: document.querySelector("#simulation-time"),
   accessList: document.querySelector("#access-list"),
   accessToggle: document.querySelector("#access-toggle"),
+  scenarioButton: document.querySelector("#scenario-button"),
+  scenarioPanel: document.querySelector("#scenario-panel"),
+  scenarioClose: document.querySelector("#scenario-close"),
+  scenarioRun: document.querySelector("#scenario-run"),
+  scenarioProgress: document.querySelector("#scenario-progress"),
+  scenarioProgressLabel: document.querySelector("#scenario-progress-label"),
+  scenarioProgressValue: document.querySelector("#scenario-progress-value"),
+  scenarioProgressBar: document.querySelector("#scenario-progress-bar"),
+  scenarioResults: document.querySelector("#scenario-results"),
+  scenarioAnswer: document.querySelector("#scenario-answer"),
+  scenarioTotalTime: document.querySelector("#scenario-total-time"),
+  scenarioPercent: document.querySelector("#scenario-percent"),
+  scenarioWindowCount: document.querySelector("#scenario-window-count"),
+  scenarioGroupCount: document.querySelector("#scenario-group-count"),
+  scenarioPeriod: document.querySelector("#scenario-period"),
+  scenarioWindowSummary: document.querySelector("#scenario-window-summary"),
+  scenarioWindowList: document.querySelector("#scenario-window-list"),
+  scenarioGroupList: document.querySelector("#scenario-group-list"),
 };
 
 let trackedSatellites = [];
@@ -85,6 +103,10 @@ let simulationTimeMs = Date.now();
 let lastClockUpdateMs = Date.now();
 let lastAccessPanelRenderMs = 0;
 const trackColors = ["#66e0ff", "#ff7a90", "#a98bff", "#73e6a2", "#ffad5c", "#f3e56b"];
+const earthRadiusKm = 6378.137;
+const scenarioDistanceKm = 5500;
+const scenarioStepMs = 2 * 60_000;
+const scenarioDurationMs = 30 * 24 * 60 * 60_000;
 
 elements.groundTrackToggle.checked = groundTracksVisible;
 
@@ -307,6 +329,201 @@ function calculatePosition(item, date) {
     groundElevation: satellite.radiansToDegrees(lookAngles.elevation),
     eci: result.position,
   };
+}
+
+function hasEarthClearLink(firstPosition, secondPosition) {
+  const delta = {
+    x: secondPosition.x - firstPosition.x,
+    y: secondPosition.y - firstPosition.y,
+    z: secondPosition.z - firstPosition.z,
+  };
+  const distanceSquared = delta.x ** 2 + delta.y ** 2 + delta.z ** 2;
+  if (distanceSquared > scenarioDistanceKm ** 2) return false;
+
+  const projection = -(
+    firstPosition.x * delta.x
+    + firstPosition.y * delta.y
+    + firstPosition.z * delta.z
+  ) / distanceSquared;
+  const segmentFraction = Math.max(0, Math.min(1, projection));
+  const closestPoint = {
+    x: firstPosition.x + segmentFraction * delta.x,
+    y: firstPosition.y + segmentFraction * delta.y,
+    z: firstPosition.z + segmentFraction * delta.z,
+  };
+  return Math.hypot(closestPoint.x, closestPoint.y, closestPoint.z) > earthRadiusKm;
+}
+
+function formatScenarioDuration(durationMs) {
+  const totalMinutes = Math.round(durationMs / 60_000);
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+  const parts = [];
+  if (days) parts.push(`${days}d`);
+  if (hours || days) parts.push(`${hours}h`);
+  parts.push(`${minutes}m`);
+  return parts.join(" ");
+}
+
+function scenarioPositionsAt(date) {
+  const gmst = satellite.gstime(date);
+  return trackedSatellites.map((item) => {
+    const result = satellite.propagate(item.satrec, date);
+    if (!result?.position) return null;
+    const ecfPosition = satellite.eciToEcf(result.position, gmst);
+    const lookAngles = satellite.ecfToLookAngles(observerGeodetic, ecfPosition);
+    return {
+      eci: result.position,
+      groundAccess: satellite.radiansToDegrees(lookAngles.elevation) >= groundStation.minimumElevation,
+    };
+  });
+}
+
+function qualifyingScenarioGroups(positions) {
+  const satelliteCount = positions.length;
+  const links = Array.from({ length: satelliteCount }, () => new Uint8Array(satelliteCount));
+
+  for (let first = 0; first < satelliteCount; first += 1) {
+    if (!positions[first]) continue;
+    for (let second = first + 1; second < satelliteCount; second += 1) {
+      if (positions[second] && hasEarthClearLink(positions[first].eci, positions[second].eci)) {
+        links[first][second] = 1;
+      }
+    }
+  }
+
+  const groups = [];
+  for (let first = 0; first < satelliteCount; first += 1) {
+    for (let second = first + 1; second < satelliteCount; second += 1) {
+      if (!links[first][second]) continue;
+      for (let third = second + 1; third < satelliteCount; third += 1) {
+        if (
+          links[first][third]
+          && links[second][third]
+          && (positions[first].groundAccess || positions[second].groundAccess || positions[third].groundAccess)
+        ) {
+          groups.push(`${first},${second},${third}`);
+        }
+      }
+    }
+  }
+  return groups;
+}
+
+function renderScenarioResults(result) {
+  const percent = (100 * result.totalDurationMs) / scenarioDurationMs;
+  elements.scenarioAnswer.textContent = result.totalDurationMs
+    ? `Yes. At least one qualifying three-satellite connection exists for approximately ${formatScenarioDuration(result.totalDurationMs)} during the next 30 days.`
+    : "No qualifying three-satellite connection was found during the next 30 days at this resolution.";
+  elements.scenarioTotalTime.textContent = formatScenarioDuration(result.totalDurationMs);
+  elements.scenarioPercent.textContent = `${percent.toFixed(2)}%`;
+  elements.scenarioWindowCount.textContent = result.windowCount.toLocaleString();
+  elements.scenarioGroupCount.textContent = result.groups.length.toLocaleString();
+  elements.scenarioPeriod.textContent = `${result.start.toLocaleString()} through ${result.end.toLocaleString()} · Current element sets · ±2-minute boundary precision`;
+
+  elements.scenarioWindowSummary.textContent = `All opportunity windows (${result.windows.length.toLocaleString()})`;
+  const windowRows = result.windows.map((window) => {
+    const row = document.createElement("div");
+    const timing = document.createElement("strong");
+    const duration = document.createElement("span");
+    row.className = "scenario-window-row";
+    timing.textContent = `${window.start.toLocaleString()} – ${window.end.toLocaleString()}`;
+    duration.textContent = formatScenarioDuration(window.end - window.start);
+    row.append(timing, duration);
+    return row;
+  });
+  elements.scenarioWindowList.replaceChildren(...windowRows);
+
+  const rows = result.groups.map((group) => {
+    const row = document.createElement("div");
+    const names = document.createElement("strong");
+    const metrics = document.createElement("span");
+    row.className = "scenario-group-row";
+    names.textContent = group.indices.map((index) => trackedSatellites[index].label).join(" · ");
+    metrics.textContent = `${formatScenarioDuration(group.durationMs)} · ${group.eventCount} window${group.eventCount === 1 ? "" : "s"}`;
+    row.append(names, metrics);
+    return row;
+  });
+  elements.scenarioGroupList.replaceChildren(...rows);
+  elements.scenarioResults.hidden = false;
+}
+
+async function runScenarioAnalysis() {
+  if (trackedSatellites.length < 3) return;
+  elements.scenarioRun.disabled = true;
+  elements.scenarioRun.textContent = "Analyzing…";
+  elements.scenarioProgress.hidden = false;
+  elements.scenarioResults.hidden = true;
+
+  const start = new Date();
+  const end = new Date(start.getTime() + scenarioDurationMs);
+  const stepCount = Math.ceil(scenarioDurationMs / scenarioStepMs);
+  const groupStats = new Map();
+  let previousGroups = new Set();
+  let totalDurationMs = 0;
+  let windowCount = 0;
+  let previouslyQualifying = false;
+  let windowStart = null;
+  const windows = [];
+
+  try {
+    for (let step = 0; step < stepCount; step += 1) {
+      const date = new Date(start.getTime() + step * scenarioStepMs);
+      const currentGroups = new Set(qualifyingScenarioGroups(scenarioPositionsAt(date)));
+      const qualifying = currentGroups.size > 0;
+
+      if (qualifying) {
+        totalDurationMs += scenarioStepMs;
+        if (!previouslyQualifying) {
+          windowCount += 1;
+          windowStart = date;
+        }
+      } else if (previouslyQualifying && windowStart) {
+        windows.push({ start: windowStart, end: date });
+        windowStart = null;
+      }
+
+      for (const key of currentGroups) {
+        let stats = groupStats.get(key);
+        if (!stats) {
+          stats = { durationMs: 0, eventCount: 0 };
+          groupStats.set(key, stats);
+        }
+        stats.durationMs += scenarioStepMs;
+        if (!previousGroups.has(key)) stats.eventCount += 1;
+      }
+
+      previousGroups = currentGroups;
+      previouslyQualifying = qualifying;
+
+      if (step % 100 === 0 || step === stepCount - 1) {
+        const progress = Math.round((100 * (step + 1)) / stepCount);
+        elements.scenarioProgressLabel.textContent = `Scanning day ${Math.min(30, Math.floor((step * scenarioStepMs) / 86_400_000) + 1)} of 30…`;
+        elements.scenarioProgressValue.textContent = `${progress}%`;
+        elements.scenarioProgressBar.value = progress;
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    }
+
+    if (windowStart) windows.push({ start: windowStart, end });
+
+    const groups = [...groupStats.entries()]
+      .map(([key, stats]) => ({
+        indices: key.split(",").map(Number),
+        ...stats,
+      }))
+      .sort((first, second) => second.durationMs - first.durationMs);
+    renderScenarioResults({ start, end, totalDurationMs, windowCount, windows, groups });
+  } catch (error) {
+    console.error(error);
+    elements.scenarioProgressLabel.textContent = "Analysis failed";
+    elements.scenarioAnswer.textContent = "The analysis could not be completed. Reload the satellite data and try again.";
+    elements.scenarioResults.hidden = false;
+  } finally {
+    elements.scenarioRun.disabled = false;
+    elements.scenarioRun.textContent = "Run again with current elements";
+  }
 }
 
 function updatePositions() {
@@ -540,6 +757,7 @@ async function loadSatellites() {
     updateSatelliteSummary();
     updateGroundTracks();
     updateAccessWindows();
+    elements.scenarioRun.disabled = trackedSatellites.length < 3;
     updateTimer = setInterval(updatePositions, 250);
     groundTrackTimer = setInterval(() => {
       updateGroundTracks();
@@ -555,6 +773,13 @@ async function loadSatellites() {
 }
 
 elements.refreshButton.addEventListener("click", loadSatellites);
+elements.scenarioButton.addEventListener("click", () => {
+  elements.scenarioPanel.hidden = false;
+});
+elements.scenarioClose.addEventListener("click", () => {
+  elements.scenarioPanel.hidden = true;
+});
+elements.scenarioRun.addEventListener("click", runScenarioAnalysis);
 elements.summaryToggle.addEventListener("click", () => {
   const expanded = elements.summaryToggle.getAttribute("aria-expanded") !== "true";
   setPanelExpanded(elements.summaryToggle, elements.satelliteSummary, expanded, "summary-expanded");

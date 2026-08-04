@@ -56,11 +56,25 @@ button { font: inherit; }
   text-transform: uppercase;
 }
 
-.icon-button, .text-button {
+.icon-button, .text-button, .scenario-button {
   pointer-events: auto;
   border: 1px solid var(--line);
   color: #fff;
   background: rgba(12, 27, 47, 0.86);
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.scenario-button {
+  border-radius: 20px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .icon-button {
@@ -490,6 +504,179 @@ body.summary-expanded .detail-panel {
 }
 
 .data-age { margin: 8px 0 0; font-size: 9px; }
+
+.scenario-panel {
+  position: fixed;
+  z-index: 2000;
+  top: 0;
+  right: 0;
+  width: min(430px, 100vw);
+  height: 100%;
+  padding: calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  border-left: 1px solid var(--line);
+  background: rgba(7, 17, 31, 0.98);
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(22px);
+}
+
+.scenario-panel[hidden] { display: none; }
+
+.scenario-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.scenario-header h2 {
+  margin: 3px 0 0;
+  font-size: 22px;
+}
+
+.scenario-close { flex: none; }
+
+.scenario-question {
+  margin: 18px 0 12px;
+  color: #dbe6f6;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.scenario-assumptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.scenario-assumptions span {
+  padding: 5px 8px;
+  border: 1px solid rgba(102, 224, 255, 0.22);
+  border-radius: 12px;
+  color: #d9f8ff;
+  background: rgba(102, 224, 255, 0.07);
+  font-size: 10px;
+}
+
+.run-button {
+  width: 100%;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 12px;
+  color: #041018;
+  background: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.run-button:disabled { cursor: wait; opacity: 0.55; }
+
+.scenario-progress { margin-top: 16px; }
+.scenario-progress[hidden], .scenario-results[hidden] { display: none; }
+
+.scenario-progress div {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.scenario-progress progress {
+  width: 100%;
+  height: 8px;
+  margin-top: 7px;
+  accent-color: var(--accent);
+}
+
+.scenario-results { margin-top: 18px; }
+
+.scenario-answer {
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid rgba(115, 230, 162, 0.35);
+  border-radius: 12px;
+  color: #dfffea;
+  background: rgba(115, 230, 162, 0.1);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.scenario-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+}
+
+.scenario-metrics div {
+  padding: 9px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.scenario-metrics span, .scenario-period, .scenario-disclaimer {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.scenario-metrics span, .scenario-metrics strong { display: block; }
+.scenario-metrics strong { margin-top: 4px; font-size: 15px; }
+.scenario-period { margin: 10px 0 18px; }
+.scenario-results h3 { margin: 0 0 8px; font-size: 12px; }
+
+.scenario-window-details {
+  margin: 0 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.scenario-window-details summary {
+  padding: 10px;
+  color: #dbe6f6;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.scenario-window-list {
+  display: grid;
+  gap: 1px;
+  max-height: 280px;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+}
+
+.scenario-window-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 9px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 9px;
+}
+
+.scenario-window-row strong { color: #fff; font-size: 10px; }
+
+.scenario-group-list { display: grid; gap: 6px; }
+
+.scenario-group-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 9px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.scenario-group-row strong { font-size: 11px; }
+.scenario-group-row span { color: var(--muted); font-size: 10px; text-align: right; }
+.scenario-disclaimer { margin: 14px 0 0; }
 
 .satellite-marker {
   background: transparent;
