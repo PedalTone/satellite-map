@@ -76,6 +76,7 @@ const elements = {
   scenarioPanel: document.querySelector("#scenario-panel"),
   scenarioClose: document.querySelector("#scenario-close"),
   scenarioRun: document.querySelector("#scenario-run"),
+  scenarioAnalysisDays: document.querySelector("#scenario-analysis-days"),
   scenarioMinimumDistance: document.querySelector("#scenario-minimum-distance"),
   scenarioMaximumDistance: document.querySelector("#scenario-maximum-distance"),
   scenarioRangeError: document.querySelector("#scenario-range-error"),
@@ -114,7 +115,6 @@ let lastAccessPanelRenderMs = 0;
 const trackColors = ["#66e0ff", "#ff7a90", "#a98bff", "#73e6a2", "#ffad5c", "#f3e56b"];
 const earthRadiusKm = 6378.137;
 const scenarioStepMs = 2 * 60_000;
-const scenarioDurationMs = 30 * 24 * 60 * 60_000;
 
 elements.groundTrackToggle.checked = groundTracksVisible;
 
@@ -162,7 +162,7 @@ function invalidateScenarioResults() {
   elements.scenarioResults.hidden = true;
   elements.scenarioProgress.hidden = true;
   elements.scenarioRangeError.hidden = true;
-  elements.scenarioRun.textContent = "Run 30-day analysis";
+  elements.scenarioRun.textContent = "Run feasibility analysis";
 }
 
 function escapeHtml(value) {
@@ -518,7 +518,7 @@ function createRecommendationCard(group, index) {
   rank.className = "recommendation-rank";
   rank.textContent = index === 0 ? "Recommended" : `Runner-up ${index}`;
   heading.textContent = group.indices.map((satelliteIndex) => trackedSatellites[satelliteIndex].label).join(" · ");
-  metrics.textContent = `${formatScenarioDuration(group.durationMs)} total connectivity across ${group.eventCount.toLocaleString()} qualifying windows · ${group.coveredDayCount}/30 analysis days · ${formatScenarioDuration(group.twoGroundDurationMs)} with 2+ ground links`;
+  metrics.textContent = `${formatScenarioDuration(group.durationMs)} total connectivity across ${group.eventCount.toLocaleString()} qualifying windows · ${group.coveredDayCount}/${group.analysisDays} analysis days · ${formatScenarioDuration(group.twoGroundDurationMs)} with 2+ ground links`;
   durations.className = "recommendation-durations";
   for (const [label, duration] of [
     ["Min connectivity", group.minimumEventDurationMs],
@@ -555,10 +555,10 @@ function createRecommendationCard(group, index) {
 }
 
 function renderScenarioResults(result) {
-  const percent = (100 * result.totalDurationMs) / scenarioDurationMs;
+  const percent = (100 * result.totalDurationMs) / result.analysisDurationMs;
   elements.scenarioAnswer.textContent = result.totalDurationMs
-    ? `Yes. At least one qualifying three-satellite connection exists for approximately ${formatScenarioDuration(result.totalDurationMs)} during the next 30 days.`
-    : "No qualifying three-satellite connection was found during the next 30 days at this resolution.";
+    ? `Yes. At least one qualifying three-satellite connection exists for approximately ${formatScenarioDuration(result.totalDurationMs)} during the next ${result.analysisDays} days.`
+    : `No qualifying three-satellite connection was found during the next ${result.analysisDays} days at this resolution.`;
   elements.scenarioTotalTime.textContent = formatScenarioDuration(result.totalDurationMs);
   elements.scenarioPercent.textContent = `${percent.toFixed(2)}%`;
   elements.scenarioWindowCount.textContent = result.windowCount.toLocaleString();
@@ -598,20 +598,25 @@ function renderScenarioResults(result) {
 
 async function runScenarioAnalysis() {
   if (trackedSatellites.length < 3) return;
+  const analysisDays = Number(elements.scenarioAnalysisDays.value);
   const minimumDistanceKm = Number(elements.scenarioMinimumDistance.value);
   const maximumDistanceKm = Number(elements.scenarioMaximumDistance.value);
   if (
-    !Number.isFinite(minimumDistanceKm)
+    !Number.isInteger(analysisDays)
+    || analysisDays < 1
+    || analysisDays > 60
+    || !Number.isFinite(minimumDistanceKm)
     || !Number.isFinite(maximumDistanceKm)
     || minimumDistanceKm < 0
     || maximumDistanceKm <= minimumDistanceKm
   ) {
-    elements.scenarioRangeError.textContent = "Enter a lower bound of zero or greater and an upper bound greater than the lower bound.";
+    elements.scenarioRangeError.textContent = "Enter 1–60 whole analysis days, a lower bound of zero or greater, and an upper bound greater than the lower bound.";
     elements.scenarioRangeError.hidden = false;
     return;
   }
   elements.scenarioRangeError.hidden = true;
   elements.scenarioRun.disabled = true;
+  elements.scenarioAnalysisDays.disabled = true;
   elements.scenarioMinimumDistance.disabled = true;
   elements.scenarioMaximumDistance.disabled = true;
   elements.scenarioRun.textContent = "Analyzing…";
@@ -619,8 +624,9 @@ async function runScenarioAnalysis() {
   elements.scenarioResults.hidden = true;
 
   const start = new Date();
-  const end = new Date(start.getTime() + scenarioDurationMs);
-  const stepCount = Math.ceil(scenarioDurationMs / scenarioStepMs);
+  const analysisDurationMs = analysisDays * 24 * 60 * 60_000;
+  const end = new Date(start.getTime() + analysisDurationMs);
+  const stepCount = Math.ceil(analysisDurationMs / scenarioStepMs);
   const groupStats = new Map();
   let previousGroups = new Set();
   let previousTwoGroundGroups = new Set();
@@ -738,7 +744,7 @@ async function runScenarioAnalysis() {
 
       if (step % 100 === 0 || step === stepCount - 1) {
         const progress = Math.round((100 * (step + 1)) / stepCount);
-        elements.scenarioProgressLabel.textContent = `Scanning day ${Math.min(30, Math.floor((step * scenarioStepMs) / 86_400_000) + 1)} of 30…`;
+        elements.scenarioProgressLabel.textContent = `Scanning day ${Math.min(analysisDays, Math.floor((step * scenarioStepMs) / 86_400_000) + 1)} of ${analysisDays}…`;
         elements.scenarioProgressValue.textContent = `${progress}%`;
         elements.scenarioProgressBar.value = progress;
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -778,6 +784,7 @@ async function runScenarioAnalysis() {
         firstOpportunityMs: stats.firstOpportunityMs,
         pairMinimumDistances: stats.pairMinimumDistances,
         pairMaximumDistances: stats.pairMaximumDistances,
+        analysisDays,
       }))
       .sort((first, second) => second.durationMs - first.durationMs);
     const recommendedGroups = [...groups].sort(robustnessComparator);
@@ -791,6 +798,8 @@ async function runScenarioAnalysis() {
       recommendedGroups,
       minimumDistanceKm,
       maximumDistanceKm,
+      analysisDays,
+      analysisDurationMs,
       durationStats: {
         one: durationStatistics(completedDurations.one),
         two: durationStatistics(completedDurations.two),
@@ -804,6 +813,7 @@ async function runScenarioAnalysis() {
     elements.scenarioResults.hidden = false;
   } finally {
     elements.scenarioRun.disabled = false;
+    elements.scenarioAnalysisDays.disabled = false;
     elements.scenarioMinimumDistance.disabled = false;
     elements.scenarioMaximumDistance.disabled = false;
     elements.scenarioRun.textContent = "Run again with current settings";
@@ -1064,6 +1074,7 @@ elements.scenarioClose.addEventListener("click", () => {
   elements.scenarioPanel.hidden = true;
 });
 elements.scenarioRun.addEventListener("click", runScenarioAnalysis);
+elements.scenarioAnalysisDays.addEventListener("input", invalidateScenarioResults);
 elements.scenarioMinimumDistance.addEventListener("input", invalidateScenarioResults);
 elements.scenarioMaximumDistance.addEventListener("input", invalidateScenarioResults);
 elements.summaryToggle.addEventListener("click", () => {
