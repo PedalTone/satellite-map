@@ -551,6 +551,30 @@ function createRecommendationCard(group, index) {
     evidence.append(pair);
   }
   card.append(rank, heading, metrics, durations, evidence);
+  if (index === 0) {
+    const executive = document.createElement("section");
+    const introduction = document.createElement("strong");
+    const reasons = document.createElement("ul");
+    const averageCadenceMs = (group.analysisDays * 86_400_000) / group.eventCount;
+    const multiGroundPercent = group.durationMs
+      ? Math.round((100 * group.twoGroundDurationMs) / group.durationMs)
+      : 0;
+    executive.className = "recommendation-executive";
+    introduction.textContent = "This is recommended because of the following reasons:";
+    for (const reason of [
+      `It provides the most accumulated connectivity: ${formatScenarioDuration(group.durationMs)} across ${group.eventCount.toLocaleString()} qualifying windows.`,
+      `It averages ${formatScenarioDuration(group.averageEventDurationMs)} of connectivity approximately every ${formatScenarioDuration(averageCadenceMs)}.`,
+      `It produces at least one qualifying opportunity on ${group.coveredDayCount} of ${group.analysisDays} analysis days.`,
+      `Two or more satellites have simultaneous ground access for ${formatScenarioDuration(group.twoGroundDurationMs)}, about ${multiGroundPercent}% of its connected time.`,
+      `Every counted window keeps all three Earth-clear pair links inside the selected distance range.`,
+    ]) {
+      const item = document.createElement("li");
+      item.textContent = reason;
+      reasons.append(item);
+    }
+    executive.append(introduction, reasons);
+    card.append(executive);
+  }
   return card;
 }
 
