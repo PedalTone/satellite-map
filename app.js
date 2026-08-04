@@ -79,6 +79,8 @@ const elements = {
   scenarioAnalysisDays: document.querySelector("#scenario-analysis-days"),
   scenarioMinimumDistance: document.querySelector("#scenario-minimum-distance"),
   scenarioMaximumDistance: document.querySelector("#scenario-maximum-distance"),
+  scenarioSamePlaneOnly: document.querySelector("#scenario-same-plane-only"),
+  scenarioRaanTolerance: document.querySelector("#scenario-raan-tolerance"),
   scenarioRangeError: document.querySelector("#scenario-range-error"),
   scenarioProgress: document.querySelector("#scenario-progress"),
   scenarioProgressLabel: document.querySelector("#scenario-progress-label"),
@@ -372,6 +374,11 @@ function hasEarthClearLink(firstPosition, secondPosition, minimumDistanceKm, max
   return Math.hypot(closestPoint.x, closestPoint.y, closestPoint.z) > earthRadiusKm;
 }
 
+function raanSeparationDegrees(firstRaan, secondRaan) {
+  const difference = Math.abs(firstRaan - secondRaan) % 360;
+  return Math.min(difference, 360 - difference);
+}
+
 function formatScenarioDuration(durationMs) {
   const totalMinutes = Math.round(durationMs / 60_000);
   const days = Math.floor(totalMinutes / 1440);
@@ -398,13 +405,29 @@ function scenarioPositionsAt(date) {
   });
 }
 
-function qualifyingScenarioGroups(positions, minimumDistanceKm, maximumDistanceKm) {
+function qualifyingScenarioGroups(
+  positions,
+  minimumDistanceKm,
+  maximumDistanceKm,
+  samePlaneOnly,
+  raanToleranceDegrees
+) {
   const satelliteCount = positions.length;
   const links = Array.from({ length: satelliteCount }, () => new Float64Array(satelliteCount));
 
   for (let first = 0; first < satelliteCount; first += 1) {
     if (!positions[first]) continue;
     for (let second = first + 1; second < satelliteCount; second += 1) {
+      const firstRaan = Number(trackedSatellites[first].omm.RA_OF_ASC_NODE);
+      const secondRaan = Number(trackedSatellites[second].omm.RA_OF_ASC_NODE);
+      if (
+        samePlaneOnly
+        && (
+          !Number.isFinite(firstRaan)
+          || !Number.isFinite(secondRaan)
+          || raanSeparationDegrees(firstRaan, secondRaan) > raanToleranceDegrees
+        )
+      ) continue;
       if (
         positions[second]
         && hasEarthClearLink(positions[first].eci, positions[second].eci, minimumDistanceKm, maximumDistanceKm)
@@ -567,7 +590,7 @@ function createRecommendationCard(group, index) {
       `Each qualifying connectivity window lasts ${formatScenarioDuration(group.averageEventDurationMs)} on average.`,
       `It produces at least one qualifying opportunity on ${group.coveredDayCount} of ${group.analysisDays} analysis days.`,
       `Two or more satellites have simultaneous ground access for ${formatScenarioDuration(group.twoGroundDurationMs)}, about ${multiGroundPercent}% of its connected time.`,
-      `Every counted window keeps all three Earth-clear pair links inside the selected distance range.`,
+      `Every counted window keeps all three pair links inside the selected distance range${group.samePlaneOnly ? ` and within ${group.raanToleranceDegrees}° RAAN` : ""}, with Earth-clear line of sight.`,
     ]) {
       const item = document.createElement("li");
       item.textContent = reason;
@@ -588,7 +611,10 @@ function renderScenarioResults(result) {
   elements.scenarioPercent.textContent = `${percent.toFixed(2)}%`;
   elements.scenarioWindowCount.textContent = result.windowCount.toLocaleString();
   elements.scenarioGroupCount.textContent = result.groups.length.toLocaleString();
-  elements.scenarioPeriod.textContent = `${result.start.toLocaleString()} through ${result.end.toLocaleString()} · ${result.minimumDistanceKm.toLocaleString()}–${result.maximumDistanceKm.toLocaleString()} km link range · Current element sets · ±2-minute boundary precision`;
+  const planeRule = result.samePlaneOnly
+    ? `Same-plane links within ${result.raanToleranceDegrees}° RAAN`
+    : "Cross-plane links allowed";
+  elements.scenarioPeriod.textContent = `${result.start.toLocaleString()} through ${result.end.toLocaleString()} · ${result.minimumDistanceKm.toLocaleString()}–${result.maximumDistanceKm.toLocaleString()} km link range · ${planeRule} · Current element sets · ±2-minute boundary precision`;
   elements.scenarioRecommendations.replaceChildren(
     ...result.recommendedGroups.slice(0, 3).map(createRecommendationCard)
   );
@@ -626,6 +652,8 @@ async function runScenarioAnalysis() {
   const analysisDays = Number(elements.scenarioAnalysisDays.value);
   const minimumDistanceKm = Number(elements.scenarioMinimumDistance.value);
   const maximumDistanceKm = Number(elements.scenarioMaximumDistance.value);
+  const samePlaneOnly = elements.scenarioSamePlaneOnly.checked;
+  const raanToleranceDegrees = Number(elements.scenarioRaanTolerance.value);
   if (
     !Number.isInteger(analysisDays)
     || analysisDays < 1
@@ -634,8 +662,9 @@ async function runScenarioAnalysis() {
     || !Number.isFinite(maximumDistanceKm)
     || minimumDistanceKm < 0
     || maximumDistanceKm <= minimumDistanceKm
+    || (samePlaneOnly && (!Number.isFinite(raanToleranceDegrees) || raanToleranceDegrees < 0 || raanToleranceDegrees > 180))
   ) {
-    elements.scenarioRangeError.textContent = "Enter 1–60 whole analysis days, a lower bound of zero or greater, and an upper bound greater than the lower bound.";
+    elements.scenarioRangeError.textContent = "Enter 1–60 whole analysis days, valid distance bounds, and a RAAN tolerance from 0° to 180°.";
     elements.scenarioRangeError.hidden = false;
     return;
   }
@@ -644,6 +673,8 @@ async function runScenarioAnalysis() {
   elements.scenarioAnalysisDays.disabled = true;
   elements.scenarioMinimumDistance.disabled = true;
   elements.scenarioMaximumDistance.disabled = true;
+  elements.scenarioSamePlaneOnly.disabled = true;
+  elements.scenarioRaanTolerance.disabled = true;
   elements.scenarioRun.textContent = "Analyzing…";
   elements.scenarioProgress.hidden = false;
   elements.scenarioResults.hidden = true;
@@ -678,7 +709,9 @@ async function runScenarioAnalysis() {
       const groupAccessCounts = qualifyingScenarioGroups(
         scenarioPositionsAt(date),
         minimumDistanceKm,
-        maximumDistanceKm
+        maximumDistanceKm,
+        samePlaneOnly,
+        raanToleranceDegrees
       );
       const currentGroups = new Set(groupAccessCounts.keys());
       const currentTwoGroundGroups = new Set(
@@ -810,6 +843,8 @@ async function runScenarioAnalysis() {
         pairMinimumDistances: stats.pairMinimumDistances,
         pairMaximumDistances: stats.pairMaximumDistances,
         analysisDays,
+        samePlaneOnly,
+        raanToleranceDegrees,
       }))
       .sort((first, second) => second.durationMs - first.durationMs);
     const recommendedGroups = [...groups].sort(robustnessComparator);
@@ -825,6 +860,8 @@ async function runScenarioAnalysis() {
       maximumDistanceKm,
       analysisDays,
       analysisDurationMs,
+      samePlaneOnly,
+      raanToleranceDegrees,
       durationStats: {
         one: durationStatistics(completedDurations.one),
         two: durationStatistics(completedDurations.two),
@@ -841,6 +878,8 @@ async function runScenarioAnalysis() {
     elements.scenarioAnalysisDays.disabled = false;
     elements.scenarioMinimumDistance.disabled = false;
     elements.scenarioMaximumDistance.disabled = false;
+    elements.scenarioSamePlaneOnly.disabled = false;
+    elements.scenarioRaanTolerance.disabled = !elements.scenarioSamePlaneOnly.checked;
     elements.scenarioRun.textContent = "Run again with current settings";
   }
 }
@@ -1102,6 +1141,11 @@ elements.scenarioRun.addEventListener("click", runScenarioAnalysis);
 elements.scenarioAnalysisDays.addEventListener("input", invalidateScenarioResults);
 elements.scenarioMinimumDistance.addEventListener("input", invalidateScenarioResults);
 elements.scenarioMaximumDistance.addEventListener("input", invalidateScenarioResults);
+elements.scenarioSamePlaneOnly.addEventListener("change", () => {
+  elements.scenarioRaanTolerance.disabled = !elements.scenarioSamePlaneOnly.checked;
+  invalidateScenarioResults();
+});
+elements.scenarioRaanTolerance.addEventListener("input", invalidateScenarioResults);
 elements.summaryToggle.addEventListener("click", () => {
   const expanded = elements.summaryToggle.getAttribute("aria-expanded") !== "true";
   setPanelExpanded(elements.summaryToggle, elements.satelliteSummary, expanded, "summary-expanded");

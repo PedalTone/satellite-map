@@ -144,6 +144,16 @@
             <span><input id="scenario-maximum-distance" type="number" min="1" step="100" value="10000" inputmode="numeric"> km</span>
           </label>
         </div>
+        <div class="scenario-plane-filter">
+          <label class="scenario-check" for="scenario-same-plane-only">
+            <input id="scenario-same-plane-only" type="checkbox">
+            <span>Same-plane links only</span>
+          </label>
+          <label for="scenario-raan-tolerance">
+            RAAN tolerance
+            <span><input id="scenario-raan-tolerance" type="number" min="0" max="180" step="0.5" value="2" inputmode="decimal" disabled> °</span>
+          </label>
+        </div>
         <p id="scenario-range-error" class="scenario-range-error" role="alert" hidden></p>
         <button id="scenario-run" class="run-button" type="button" disabled>Run feasibility analysis</button>
         <div id="scenario-progress" class="scenario-progress" hidden>
@@ -184,6 +194,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=clarified-window-cadence-1"></script>
+    <script type="module" src="app.js?v=same-plane-filter-1"></script>
   </body>
 </html>

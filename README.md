@@ -84,6 +84,7 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 - Selecting two satellites displays their straight-line separation in Earth-centered inertial space.
 - Scenario Lab performs a user-selected 1–60 day geometric feasibility scan for mutually connected three-satellite groups with simultaneous Central Alaska access and a configurable inter-satellite distance range; the default horizon is seven days.
 - Changing either distance bound invalidates the previous analysis so recommendations always correspond to the displayed settings.
+- An optional same-plane filter excludes links whose satellites differ by more than a user-selected RAAN tolerance.
 - Scenario results use two-minute sampling, account for Earth blocking inter-satellite links, and report union duration, opportunity windows, and totals by satellite group.
 - Scenario Lab compares combination-window duration statistics for one, two, or all three satellites having simultaneous ground access and identifies the groups reaching each tier.
 - Scenario Lab recommends a fixed three-satellite combination using transparent priorities: total qualifying connectivity, average/minimum/maximum connectivity-window duration, time with multiple simultaneous ground links, and covered days.
