@@ -518,7 +518,7 @@ function createRecommendationCard(group, index) {
   rank.className = "recommendation-rank";
   rank.textContent = index === 0 ? "Recommended" : `Runner-up ${index}`;
   heading.textContent = group.indices.map((satelliteIndex) => trackedSatellites[satelliteIndex].label).join(" · ");
-  metrics.textContent = `${formatScenarioDuration(group.durationMs)} total connectivity · ${group.coveredDayCount}/30 analysis days · ${formatScenarioDuration(group.twoGroundDurationMs)} with 2+ ground links`;
+  metrics.textContent = `${formatScenarioDuration(group.durationMs)} total connectivity across ${group.eventCount.toLocaleString()} qualifying windows · ${group.coveredDayCount}/30 analysis days · ${formatScenarioDuration(group.twoGroundDurationMs)} with 2+ ground links`;
   durations.className = "recommendation-durations";
   for (const [label, duration] of [
     ["Min connectivity", group.minimumEventDurationMs],

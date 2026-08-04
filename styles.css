@@ -683,6 +683,13 @@ body.summary-expanded .detail-panel {
   margin-bottom: 18px;
 }
 
+.recommendation-method {
+  margin: -2px 0 9px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
 .recommendation-card {
   padding: 10px;
   border: 1px solid var(--line);
