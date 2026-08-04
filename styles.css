@@ -291,6 +291,12 @@ button { font: inherit; }
 
 .station-tooltip::before { display: none; }
 
+.access-link,
+.access-link-halo {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .track-legend {
   position: fixed;
   z-index: 1000;
@@ -496,6 +502,18 @@ button { font: inherit; }
 .satellite-marker.selected .satellite-label {
   border-color: rgba(255, 209, 102, 0.65);
   color: var(--selected);
+}
+
+.satellite-marker.in-access .satellite-dot {
+  border-color: #fff;
+  background: #050505;
+  box-shadow: 0 0 0 3px #73e6a2, 0 0 12px 5px rgba(115, 230, 162, 0.85);
+}
+
+.satellite-marker.in-access .satellite-label {
+  border-color: #73e6a2;
+  color: #dfffea;
+  background: rgba(0, 0, 0, 0.9);
 }
 
 @media (max-width: 480px) {

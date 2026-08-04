@@ -318,6 +318,45 @@ function updatePositions() {
       item.marker.setLatLng(latLng);
       item.marker.setIcon(markerIcon(item, selectedIds.includes(item.id)));
     }
+
+    const hasAccess = item.position.groundElevation >= groundStation.minimumElevation;
+    if (hasAccess) {
+      let satelliteLongitude = item.position.longitude;
+      const longitudeDelta = satelliteLongitude - groundStation.longitude;
+      if (longitudeDelta > 180) satelliteLongitude -= 360;
+      if (longitudeDelta < -180) satelliteLongitude += 360;
+      const linkCoordinates = [
+        [groundStation.latitude, groundStation.longitude],
+        [item.position.latitude, satelliteLongitude],
+      ];
+
+      if (!item.accessLine) {
+        item.accessLineHalo = L.polyline(linkCoordinates, {
+          className: "access-link-halo",
+          color: "#73e6a2",
+          weight: 7,
+          opacity: 0.7,
+          interactive: false,
+        }).addTo(map);
+        item.accessLine = L.polyline(linkCoordinates, {
+          className: "access-link",
+          color: "#050505",
+          weight: 3.5,
+          opacity: 1,
+          interactive: false,
+        }).addTo(map);
+      } else {
+        item.accessLineHalo.setLatLngs(linkCoordinates);
+        item.accessLine.setLatLngs(linkCoordinates);
+      }
+      item.accessLineHalo.bringToFront();
+      item.accessLine.bringToFront();
+    } else if (item.accessLine) {
+      item.accessLineHalo.remove();
+      item.accessLineHalo = null;
+      item.accessLine.remove();
+      item.accessLine = null;
+    }
   }
   if (Date.now() - lastAccessPanelRenderMs >= 1000) updateAccessPanel(now);
   updateDetailPanel();
@@ -453,6 +492,8 @@ async function loadSatellites() {
   clearInterval(groundTrackTimer);
   for (const item of trackedSatellites) {
     item.marker?.remove();
+    item.accessLineHalo?.remove();
+    item.accessLine?.remove();
     for (const layer of item.trackLayers ?? []) layer.remove();
   }
   trackedSatellites = [];
@@ -472,6 +513,8 @@ async function loadSatellites() {
       marker: null,
       position: null,
       trackLayers: [],
+      accessLineHalo: null,
+      accessLine: null,
       nextAccess: null,
     }));
 
