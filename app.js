@@ -573,7 +573,7 @@ function createRecommendationCard(group, index) {
       reasons.append(item);
     }
     executive.append(introduction, reasons);
-    card.append(executive);
+    card.insertBefore(executive, durations);
   }
   return card;
 }
