@@ -158,6 +158,13 @@ function setPanelExpanded(toggle, panel, expanded, bodyClass) {
   if (bodyClass) document.body.classList.toggle(bodyClass, expanded);
 }
 
+function invalidateScenarioResults() {
+  elements.scenarioResults.hidden = true;
+  elements.scenarioProgress.hidden = true;
+  elements.scenarioRangeError.hidden = true;
+  elements.scenarioRun.textContent = "Run 30-day analysis";
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -756,7 +763,7 @@ async function runScenarioAnalysis() {
     elements.scenarioRun.disabled = false;
     elements.scenarioMinimumDistance.disabled = false;
     elements.scenarioMaximumDistance.disabled = false;
-    elements.scenarioRun.textContent = "Run again with current elements";
+    elements.scenarioRun.textContent = "Run again with current settings";
   }
 }
 
@@ -1014,6 +1021,8 @@ elements.scenarioClose.addEventListener("click", () => {
   elements.scenarioPanel.hidden = true;
 });
 elements.scenarioRun.addEventListener("click", runScenarioAnalysis);
+elements.scenarioMinimumDistance.addEventListener("input", invalidateScenarioResults);
+elements.scenarioMaximumDistance.addEventListener("input", invalidateScenarioResults);
 elements.summaryToggle.addEventListener("click", () => {
   const expanded = elements.summaryToggle.getAttribute("aria-expanded") !== "true";
   setPanelExpanded(elements.summaryToggle, elements.satelliteSummary, expanded, "summary-expanded");
