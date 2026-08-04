@@ -14,6 +14,31 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap contributors",
 }).addTo(map);
 
+const groundStation = {
+  name: "Central Alaska",
+  latitude: 64.2,
+  longitude: -152.5,
+  minimumElevation: 10,
+};
+const observerGeodetic = {
+  latitude: satellite.degreesToRadians(groundStation.latitude),
+  longitude: satellite.degreesToRadians(groundStation.longitude),
+  height: 0,
+};
+
+L.circleMarker([groundStation.latitude, groundStation.longitude], {
+  radius: 6,
+  color: "#ffffff",
+  weight: 2,
+  fillColor: "#73e6a2",
+  fillOpacity: 1,
+}).addTo(map).bindTooltip("Central Alaska GS · 10° mask", {
+  permanent: true,
+  direction: "right",
+  className: "station-tooltip",
+  offset: [8, 0],
+});
+
 const elements = {
   statusText: document.querySelector("#status-text"),
   statusDot: document.querySelector("#status-dot"),
@@ -42,6 +67,7 @@ const elements = {
   groundTrackToggle: document.querySelector("#ground-track-toggle"),
   speedSelect: document.querySelector("#speed-select"),
   simulationTime: document.querySelector("#simulation-time"),
+  accessList: document.querySelector("#access-list"),
 };
 
 let trackedSatellites = [];
@@ -53,6 +79,7 @@ let groundTracksVisible = localStorage.getItem("groundTracksVisible") !== "false
 let simulationSpeed = 1;
 let simulationTimeMs = Date.now();
 let lastClockUpdateMs = Date.now();
+let lastAccessPanelRenderMs = 0;
 const trackColors = ["#66e0ff", "#ff7a90", "#a98bff", "#73e6a2", "#ffad5c", "#f3e56b"];
 
 elements.groundTrackToggle.checked = groundTracksVisible;
@@ -83,6 +110,7 @@ function setSimulationSpeed(speed) {
   lastClockUpdateMs = Date.now();
   updatePositions();
   updateGroundTracks();
+  updateAccessWindows();
 }
 
 function setStatus(message, isError = false) {
@@ -101,9 +129,10 @@ function escapeHtml(value) {
 
 function markerIcon(item, selected = false) {
   const altitude = item.position ? `${Math.round(item.position.altitude)} km` : "—";
-  const markerColor = selected ? "#ffd166" : item.color;
+  const hasAccess = item.position?.groundElevation >= groundStation.minimumElevation;
+  const markerColor = selected ? "#ffd166" : hasAccess ? "#73e6a2" : item.color;
   return L.divIcon({
-    className: `satellite-marker${selected ? " selected" : ""}`,
+    className: `satellite-marker${selected ? " selected" : ""}${hasAccess ? " in-access" : ""}`,
     html: `<div class="satellite-marker-inner" style="--sat-color:${markerColor}"><span class="satellite-dot"></span><span class="satellite-label">${escapeHtml(item.label)} · ${altitude}</span></div>`,
     iconSize: [180, 24],
     iconAnchor: [0, 0],
@@ -177,6 +206,80 @@ function setGroundTrackVisibility(visible) {
   }
 }
 
+function formatAccessTime(date, referenceDate) {
+  if (!date) return "—";
+  const sameDay = date.toDateString() === referenceDate.toDateString();
+  return new Intl.DateTimeFormat(undefined, sameDay
+    ? { hour: "numeric", minute: "2-digit" }
+    : { weekday: "short", hour: "numeric", minute: "2-digit" }
+  ).format(date);
+}
+
+function calculateAccessWindow(item, startDate) {
+  const stepMs = 60_000;
+  const steps = 12 * 60;
+  let previousDate = startDate;
+  let previousElevation = calculatePosition(item, previousDate)?.groundElevation ?? -90;
+  let accessStart = previousElevation >= groundStation.minimumElevation ? startDate : null;
+
+  for (let index = 1; index <= steps; index += 1) {
+    const date = new Date(startDate.getTime() + index * stepMs);
+    const elevation = calculatePosition(item, date)?.groundElevation ?? -90;
+
+    if (!accessStart && previousElevation < groundStation.minimumElevation && elevation >= groundStation.minimumElevation) {
+      accessStart = date;
+    }
+    if (accessStart && previousElevation >= groundStation.minimumElevation && elevation < groundStation.minimumElevation) {
+      return { start: accessStart, end: date };
+    }
+
+    previousDate = date;
+    previousElevation = elevation;
+  }
+
+  return accessStart ? { start: accessStart, end: previousDate } : null;
+}
+
+function updateAccessWindows(startDate = currentSimulationDate()) {
+  for (const item of trackedSatellites) {
+    item.nextAccess = calculateAccessWindow(item, startDate);
+  }
+  updateAccessPanel(startDate);
+}
+
+function updateAccessPanel(date) {
+  const rows = [...trackedSatellites].sort((first, second) => {
+    const firstActive = first.position?.groundElevation >= groundStation.minimumElevation;
+    const secondActive = second.position?.groundElevation >= groundStation.minimumElevation;
+    if (firstActive !== secondActive) return firstActive ? -1 : 1;
+    return (first.nextAccess?.start?.getTime() ?? Infinity) - (second.nextAccess?.start?.getTime() ?? Infinity);
+  }).map((item) => {
+    const row = document.createElement("div");
+    const name = document.createElement("strong");
+    const timing = document.createElement("span");
+    const active = item.position?.groundElevation >= groundStation.minimumElevation;
+    row.className = `access-row${active ? " active" : ""}`;
+    name.textContent = item.label;
+
+    if (active) {
+      const until = formatAccessTime(item.nextAccess?.end, date);
+      timing.textContent = `NOW · ${item.position.groundElevation.toFixed(1)}° · until ${until}`;
+    } else if (item.nextAccess) {
+      const start = formatAccessTime(item.nextAccess.start, date);
+      const end = formatAccessTime(item.nextAccess.end, date);
+      timing.textContent = `${start}–${end}`;
+    } else {
+      timing.textContent = "No pass in 12 hr";
+    }
+
+    row.append(name, timing);
+    return row;
+  });
+
+  elements.accessList.replaceChildren(...rows);
+  lastAccessPanelRenderMs = Date.now();
+}
+
 function calculatePosition(item, date) {
   const result = satellite.propagate(item.satrec, date);
   if (!result?.position || !result?.velocity) return null;
@@ -184,11 +287,14 @@ function calculatePosition(item, date) {
   const gmst = satellite.gstime(date);
   const geodetic = satellite.eciToGeodetic(result.position, gmst);
   const velocity = result.velocity;
+  const ecfPosition = satellite.eciToEcf(result.position, gmst);
+  const lookAngles = satellite.ecfToLookAngles(observerGeodetic, ecfPosition);
   return {
     latitude: satellite.degreesLat(geodetic.latitude),
     longitude: satellite.degreesLong(geodetic.longitude),
     altitude: geodetic.height,
     speed: Math.hypot(velocity.x, velocity.y, velocity.z),
+    groundElevation: satellite.radiansToDegrees(lookAngles.elevation),
     eci: result.position,
   };
 }
@@ -213,6 +319,7 @@ function updatePositions() {
       item.marker.setIcon(markerIcon(item, selectedIds.includes(item.id)));
     }
   }
+  if (Date.now() - lastAccessPanelRenderMs >= 1000) updateAccessPanel(now);
   updateDetailPanel();
 }
 
@@ -365,13 +472,18 @@ async function loadSatellites() {
       marker: null,
       position: null,
       trackLayers: [],
+      nextAccess: null,
     }));
 
     updatePositions();
     updateSatelliteSummary();
     updateGroundTracks();
+    updateAccessWindows();
     updateTimer = setInterval(updatePositions, 250);
-    groundTrackTimer = setInterval(updateGroundTracks, 10_000);
+    groundTrackTimer = setInterval(() => {
+      updateGroundTracks();
+      updateAccessWindows();
+    }, 10_000);
     const missingCount = payload.missing?.length ?? 0;
     const suffix = missingCount ? ` · ${missingCount} unavailable` : "";
     setStatus(`${trackedSatellites.length} satellites · updated ${new Date(payload.generatedAt).toLocaleString()}${suffix}`);

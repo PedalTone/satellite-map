@@ -73,6 +73,7 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 - The deployed workflow refreshes orbital data after list changes and every six hours.
 - The webpage recalculates current positions continuously without repeatedly contacting CelesTrak.
 - Simulation speeds of real time, 10×, 50×, and 100× make orbital motion easier to compare.
+- A central-Alaska ground station shows current and upcoming access using a 10° minimum elevation mask.
 - Each satellite displays its predicted ground track for approximately the next complete orbit.
 - The ground-path switch remembers its setting on each device.
 - Satellite details include orbital inclination, RAAN, and the SATCAT launch date.
