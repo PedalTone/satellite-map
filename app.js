@@ -312,7 +312,13 @@ function updatePositions() {
   updateSimulationClock(now);
   for (const item of trackedSatellites) {
     item.position = calculatePosition(item, now);
-    if (!item.position) continue;
+    if (!item.position) {
+      item.accessLineHalo?.remove();
+      item.accessLineHalo = null;
+      item.accessLine?.remove();
+      item.accessLine = null;
+      continue;
+    }
 
     const latLng = [item.position.latitude, item.position.longitude];
     if (!item.marker) {
@@ -359,10 +365,10 @@ function updatePositions() {
       }
       item.accessLineHalo.bringToFront();
       item.accessLine.bringToFront();
-    } else if (item.accessLine) {
-      item.accessLineHalo.remove();
+    } else {
+      item.accessLineHalo?.remove();
       item.accessLineHalo = null;
-      item.accessLine.remove();
+      item.accessLine?.remove();
       item.accessLine = null;
     }
   }
