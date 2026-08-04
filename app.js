@@ -339,10 +339,18 @@ function updatePositions() {
       const longitudeDelta = satelliteLongitude - groundStation.longitude;
       if (longitudeDelta > 180) satelliteLongitude -= 360;
       if (longitudeDelta < -180) satelliteLongitude += 360;
-      const linkCoordinates = [
+      const primaryLinkCoordinates = [
         [groundStation.latitude, groundStation.longitude],
         [item.position.latitude, satelliteLongitude],
       ];
+      const crossedDateLine = satelliteLongitude !== item.position.longitude;
+      const wrapOffset = satelliteLongitude < -180 ? 360 : -360;
+      const linkCoordinates = crossedDateLine
+        ? [
+            primaryLinkCoordinates,
+            primaryLinkCoordinates.map(([latitude, longitude]) => [latitude, longitude + wrapOffset]),
+          ]
+        : primaryLinkCoordinates;
 
       if (!item.accessLine) {
         item.accessLineHalo = L.polyline(linkCoordinates, {
