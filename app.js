@@ -484,10 +484,11 @@ function createScenarioGroupRows(groups, durationKey = "durationMs", eventKey = 
 
 function robustnessComparator(first, second) {
   return second.durationMs - first.durationMs
-    || first.maxGapMs - second.maxGapMs
-    || second.coveredDayCount - first.coveredDayCount
+    || second.averageEventDurationMs - first.averageEventDurationMs
+    || second.minimumEventDurationMs - first.minimumEventDurationMs
+    || second.maximumEventDurationMs - first.maximumEventDurationMs
     || second.twoGroundDurationMs - first.twoGroundDurationMs
-    || second.averageEventDurationMs - first.averageEventDurationMs;
+    || second.coveredDayCount - first.coveredDayCount;
 }
 
 function createRecommendationCard(group, index) {
@@ -500,12 +501,12 @@ function createRecommendationCard(group, index) {
   rank.className = "recommendation-rank";
   rank.textContent = index === 0 ? "Recommended" : `Runner-up ${index}`;
   heading.textContent = group.indices.map((satelliteIndex) => trackedSatellites[satelliteIndex].label).join(" · ");
-  metrics.textContent = `${formatScenarioDuration(group.durationMs)} total · ${group.coveredDayCount}/30 analysis days · ${formatScenarioDuration(group.maxGapMs)} maximum gap · ${formatScenarioDuration(group.twoGroundDurationMs)} with 2+ ground links`;
+  metrics.textContent = `${formatScenarioDuration(group.durationMs)} total connectivity · ${group.coveredDayCount}/30 analysis days · ${formatScenarioDuration(group.twoGroundDurationMs)} with 2+ ground links`;
   durations.className = "recommendation-durations";
   for (const [label, duration] of [
-    ["Minimum", group.minimumEventDurationMs],
-    ["Maximum", group.maximumEventDurationMs],
-    ["Average", group.averageEventDurationMs],
+    ["Min connectivity", group.minimumEventDurationMs],
+    ["Max connectivity", group.maximumEventDurationMs],
+    ["Avg connectivity", group.averageEventDurationMs],
   ]) {
     const item = document.createElement("span");
     const value = document.createElement("strong");

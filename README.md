@@ -85,7 +85,7 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 - Scenario Lab performs a 30-day geometric feasibility scan for mutually connected three-satellite groups with simultaneous Central Alaska access and a user-selected inter-satellite distance range.
 - Scenario results use two-minute sampling, account for Earth blocking inter-satellite links, and report union duration, opportunity windows, and totals by satellite group.
 - Scenario Lab compares combination-window duration statistics for one, two, or all three satellites having simultaneous ground access and identifies the groups reaching each tier.
-- Scenario Lab recommends a fixed three-satellite combination using transparent priorities: total qualifying coverage, maximum outage gap, covered days, and time with multiple simultaneous ground links.
+- Scenario Lab recommends a fixed three-satellite combination using transparent priorities: total qualifying connectivity, average/minimum/maximum connectivity-window duration, time with multiple simultaneous ground links, and covered days.
 - CelesTrak data is for visualization and is not appropriate for safety-critical operations.
 
 ## Third-party services
