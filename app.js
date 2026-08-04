@@ -102,6 +102,10 @@ const elements = {
   scenarioTripleSummary: document.querySelector("#scenario-triple-summary"),
   scenarioTripleList: document.querySelector("#scenario-triple-list"),
   scenarioGroupList: document.querySelector("#scenario-group-list"),
+  recommendationMapBanner: document.querySelector("#recommendation-map-banner"),
+  recommendationMapLabel: document.querySelector("#recommendation-map-label"),
+  recommendationMapTime: document.querySelector("#recommendation-map-time"),
+  recommendationMapClear: document.querySelector("#recommendation-map-clear"),
 };
 
 let trackedSatellites = [];
@@ -114,6 +118,8 @@ let simulationSpeed = 1;
 let simulationTimeMs = Date.now();
 let lastClockUpdateMs = Date.now();
 let lastAccessPanelRenderMs = 0;
+let visualizedRecommendationIds = [];
+let recommendationCrosslinkLayers = [];
 const trackColors = ["#66e0ff", "#ff7a90", "#a98bff", "#73e6a2", "#ffad5c", "#f3e56b"];
 const earthRadiusKm = 6378.137;
 const scenarioStepMs = 2 * 60_000;
@@ -186,6 +192,86 @@ function markerIcon(item, selected = false) {
     iconSize: [180, 24],
     iconAnchor: [0, 0],
   });
+}
+
+function wrappedPairCoordinates(firstPosition, secondPosition) {
+  let secondLongitude = secondPosition.longitude;
+  const longitudeDelta = secondLongitude - firstPosition.longitude;
+  if (longitudeDelta > 180) secondLongitude -= 360;
+  if (longitudeDelta < -180) secondLongitude += 360;
+  const primary = [
+    [firstPosition.latitude, firstPosition.longitude],
+    [secondPosition.latitude, secondLongitude],
+  ];
+  return [-360, 0, 360].map((longitudeOffset) =>
+    primary.map(([latitude, longitude]) => [latitude, longitude + longitudeOffset])
+  );
+}
+
+function clearRecommendationVisualization(update = true) {
+  for (const layers of recommendationCrosslinkLayers) {
+    layers.halo.remove();
+    layers.line.remove();
+  }
+  recommendationCrosslinkLayers = [];
+  visualizedRecommendationIds = [];
+  elements.recommendationMapBanner.hidden = true;
+  if (update) updatePositions();
+}
+
+function updateRecommendationCrosslinks() {
+  if (visualizedRecommendationIds.length !== 3) return;
+  const items = visualizedRecommendationIds
+    .map((id) => trackedSatellites.find((item) => item.id === id))
+    .filter((item) => item?.position);
+  if (items.length !== 3) return;
+  const pairs = [[0, 1], [0, 2], [1, 2]];
+
+  pairs.forEach(([firstIndex, secondIndex], pairIndex) => {
+    const coordinates = wrappedPairCoordinates(items[firstIndex].position, items[secondIndex].position);
+    let layers = recommendationCrosslinkLayers[pairIndex];
+    if (!layers) {
+      layers = {
+        halo: L.polyline(coordinates, {
+          color: "#050505",
+          weight: 7,
+          opacity: 0.8,
+          interactive: false,
+        }).addTo(map),
+        line: L.polyline(coordinates, {
+          color: "#66e0ff",
+          weight: 3,
+          opacity: 1,
+          interactive: false,
+        }).addTo(map),
+      };
+      recommendationCrosslinkLayers[pairIndex] = layers;
+    } else {
+      layers.halo.setLatLngs(coordinates);
+      layers.line.setLatLngs(coordinates);
+    }
+    layers.halo.bringToFront();
+    layers.line.bringToFront();
+  });
+}
+
+function visualizeRecommendation(group) {
+  clearRecommendationVisualization(false);
+  visualizedRecommendationIds = group.indices.map((index) => trackedSatellites[index].id);
+  simulationSpeed = 1;
+  elements.speedSelect.value = "1";
+  simulationTimeMs = group.firstOpportunityMs;
+  lastClockUpdateMs = Date.now();
+  elements.scenarioPanel.hidden = true;
+  elements.recommendationMapLabel.textContent = group.indices
+    .map((index) => trackedSatellites[index].label)
+    .join(" · ");
+  elements.recommendationMapTime.textContent = new Date(group.firstOpportunityMs).toLocaleString();
+  elements.recommendationMapTime.dateTime = new Date(group.firstOpportunityMs).toISOString();
+  elements.recommendationMapBanner.hidden = false;
+  updatePositions();
+  updateGroundTracks();
+  updateAccessWindows(new Date(group.firstOpportunityMs));
 }
 
 function splitAtDateLine(points) {
@@ -537,6 +623,7 @@ function createRecommendationCard(group, index) {
   const metrics = document.createElement("p");
   const durations = document.createElement("div");
   const evidence = document.createElement("div");
+  const viewButton = document.createElement("button");
   card.className = `recommendation-card${index === 0 ? " primary" : ""}`;
   rank.className = "recommendation-rank";
   rank.textContent = index === 0 ? "Recommended" : `Runner-up ${index}`;
@@ -573,7 +660,11 @@ function createRecommendationCard(group, index) {
     pair.textContent = `${trackedSatellites[group.indices[first]].label}–${trackedSatellites[group.indices[second]].label}: ${minimum}–${maximum} km`;
     evidence.append(pair);
   }
-  card.append(rank, heading, metrics, durations, evidence);
+  viewButton.className = "recommendation-map-button";
+  viewButton.type = "button";
+  viewButton.textContent = "View first opportunity on map";
+  viewButton.addEventListener("click", () => visualizeRecommendation(group));
+  card.append(rank, heading, metrics, durations, evidence, viewButton);
   if (index === 0) {
     const executive = document.createElement("section");
     const introduction = document.createElement("strong");
@@ -898,16 +989,17 @@ function updatePositions() {
     }
 
     const latLng = [item.position.latitude, item.position.longitude];
+    const highlighted = selectedIds.includes(item.id) || visualizedRecommendationIds.includes(item.id);
     if (!item.marker) {
       item.marker = L.marker(latLng, {
-        icon: markerIcon(item),
+        icon: markerIcon(item, highlighted),
         title: item.label,
         riseOnHover: true,
       }).addTo(map);
       item.marker.on("click", () => toggleSelection(item.id));
     } else {
       item.marker.setLatLng(latLng);
-      item.marker.setIcon(markerIcon(item, selectedIds.includes(item.id)));
+      item.marker.setIcon(markerIcon(item, highlighted));
     }
 
     const hasAccess = item.position.groundElevation >= groundStation.minimumElevation;
@@ -952,6 +1044,7 @@ function updatePositions() {
       item.accessLine = null;
     }
   }
+  updateRecommendationCrosslinks();
   if (Date.now() - lastAccessPanelRenderMs >= 1000) updateAccessPanel(now);
   updateDetailPanel();
 }
@@ -1083,6 +1176,7 @@ function updateDetailPanel() {
 async function loadSatellites() {
   clearInterval(updateTimer);
   clearInterval(groundTrackTimer);
+  clearRecommendationVisualization(false);
   for (const item of trackedSatellites) {
     item.marker?.remove();
     item.accessLineHalo?.remove();
@@ -1146,6 +1240,7 @@ elements.scenarioSamePlaneOnly.addEventListener("change", () => {
   invalidateScenarioResults();
 });
 elements.scenarioRaanTolerance.addEventListener("input", invalidateScenarioResults);
+elements.recommendationMapClear.addEventListener("click", () => clearRecommendationVisualization());
 elements.summaryToggle.addEventListener("click", () => {
   const expanded = elements.summaryToggle.getAttribute("aria-expanded") !== "true";
   setPanelExpanded(elements.summaryToggle, elements.satelliteSummary, expanded, "summary-expanded");

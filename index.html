@@ -191,9 +191,18 @@
           <p class="scenario-disclaimer">Approximate geometric feasibility based on the currently loaded orbital elements. Not for operational planning.</p>
         </div>
       </section>
+
+      <section id="recommendation-map-banner" class="recommendation-map-banner" hidden>
+        <div>
+          <span>Scenario recommendation</span>
+          <strong id="recommendation-map-label">—</strong>
+          <time id="recommendation-map-time">—</time>
+        </div>
+        <button id="recommendation-map-clear" class="text-button" type="button">Clear crosslinks</button>
+      </section>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=same-plane-filter-1"></script>
+    <script type="module" src="app.js?v=recommendation-crosslinks-1"></script>
   </body>
 </html>
