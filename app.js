@@ -1,18 +1,32 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
 
+const worldBounds = L.latLngBounds([[-85.0511, -180], [85.0511, 180]]);
 const map = L.map("map", {
   center: [18, 0],
   zoom: 2,
   minZoom: 2,
-  worldCopyJump: true,
+  maxBounds: worldBounds,
+  maxBoundsViscosity: 1,
+  worldCopyJump: false,
   zoomControl: false,
 });
 
 L.control.zoom({ position: "topright" }).addTo(map);
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 8,
+  noWrap: true,
+  bounds: worldBounds,
   attribution: "&copy; OpenStreetMap contributors",
 }).addTo(map);
+
+function updateMinimumZoom() {
+  const minimumZoom = Math.max(2, Math.ceil(Math.log2(map.getSize().x / 256)));
+  map.setMinZoom(minimumZoom);
+  if (map.getZoom() < minimumZoom) map.setZoom(minimumZoom);
+}
+
+map.whenReady(updateMinimumZoom);
+map.on("resize", updateMinimumZoom);
 
 const groundStation = {
   name: "Central Alaska",
