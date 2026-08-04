@@ -87,6 +87,7 @@ const elements = {
   scenarioWindowCount: document.querySelector("#scenario-window-count"),
   scenarioGroupCount: document.querySelector("#scenario-group-count"),
   scenarioPeriod: document.querySelector("#scenario-period"),
+  scenarioRecommendations: document.querySelector("#scenario-recommendations"),
   scenarioDurationTiers: document.querySelector("#scenario-duration-tiers"),
   scenarioWindowSummary: document.querySelector("#scenario-window-summary"),
   scenarioWindowList: document.querySelector("#scenario-window-list"),
@@ -473,6 +474,28 @@ function createScenarioGroupRows(groups, durationKey = "durationMs", eventKey = 
   });
 }
 
+function robustnessComparator(first, second) {
+  return second.durationMs - first.durationMs
+    || first.maxGapMs - second.maxGapMs
+    || second.coveredDayCount - first.coveredDayCount
+    || second.twoGroundDurationMs - first.twoGroundDurationMs
+    || second.averageEventDurationMs - first.averageEventDurationMs;
+}
+
+function createRecommendationCard(group, index) {
+  const card = document.createElement("article");
+  const rank = document.createElement("span");
+  const heading = document.createElement("h4");
+  const metrics = document.createElement("p");
+  card.className = `recommendation-card${index === 0 ? " primary" : ""}`;
+  rank.className = "recommendation-rank";
+  rank.textContent = index === 0 ? "Recommended" : `Runner-up ${index}`;
+  heading.textContent = group.indices.map((satelliteIndex) => trackedSatellites[satelliteIndex].label).join(" · ");
+  metrics.textContent = `${formatScenarioDuration(group.durationMs)} total · ${group.coveredDayCount}/30 analysis days · ${formatScenarioDuration(group.maxGapMs)} maximum gap · ${formatScenarioDuration(group.twoGroundDurationMs)} with 2+ ground links`;
+  card.append(rank, heading, metrics);
+  return card;
+}
+
 function renderScenarioResults(result) {
   const percent = (100 * result.totalDurationMs) / scenarioDurationMs;
   elements.scenarioAnswer.textContent = result.totalDurationMs
@@ -483,6 +506,9 @@ function renderScenarioResults(result) {
   elements.scenarioWindowCount.textContent = result.windowCount.toLocaleString();
   elements.scenarioGroupCount.textContent = result.groups.length.toLocaleString();
   elements.scenarioPeriod.textContent = `${result.start.toLocaleString()} through ${result.end.toLocaleString()} · Current element sets · ±2-minute boundary precision`;
+  elements.scenarioRecommendations.replaceChildren(
+    ...result.recommendedGroups.slice(0, 3).map(createRecommendationCard)
+  );
   elements.scenarioDurationTiers.replaceChildren(
     createDurationTier("1+ ground satellite", result.durationStats.one),
     createDurationTier("2+ ground satellites", result.durationStats.two),
@@ -572,6 +598,12 @@ async function runScenarioAnalysis() {
           stats = {
             durationMs: 0,
             eventCount: 0,
+            eventStartMs: null,
+            lastEndMs: start.getTime(),
+            maximumEventDurationMs: 0,
+            minimumEventDurationMs: Infinity,
+            maxGapMs: 0,
+            coveredDays: new Set(),
             twoGroundDurationMs: 0,
             twoGroundEventCount: 0,
             threeGroundDurationMs: 0,
@@ -580,7 +612,12 @@ async function runScenarioAnalysis() {
           groupStats.set(key, stats);
         }
         stats.durationMs += scenarioStepMs;
-        if (!previousGroups.has(key)) stats.eventCount += 1;
+        stats.coveredDays.add(Math.floor((date.getTime() - start.getTime()) / 86_400_000));
+        if (!previousGroups.has(key)) {
+          stats.eventCount += 1;
+          stats.eventStartMs = date.getTime();
+          stats.maxGapMs = Math.max(stats.maxGapMs, date.getTime() - stats.lastEndMs);
+        }
         const groundAccessCount = groupAccessCounts.get(key);
         if (groundAccessCount >= 2) {
           stats.twoGroundDurationMs += scenarioStepMs;
@@ -590,6 +627,16 @@ async function runScenarioAnalysis() {
           stats.threeGroundDurationMs += scenarioStepMs;
           if (!previousThreeGroundGroups.has(key)) stats.threeGroundEventCount += 1;
         }
+      }
+
+      for (const key of previousGroups) {
+        if (currentGroups.has(key)) continue;
+        const stats = groupStats.get(key);
+        const eventDurationMs = date.getTime() - stats.eventStartMs;
+        stats.minimumEventDurationMs = Math.min(stats.minimumEventDurationMs, eventDurationMs);
+        stats.maximumEventDurationMs = Math.max(stats.maximumEventDurationMs, eventDurationMs);
+        stats.eventStartMs = null;
+        stats.lastEndMs = date.getTime();
       }
 
       updateActiveRuns(currentGroups, activeRuns.one, date.getTime(), completedDurations.one);
@@ -615,12 +662,34 @@ async function runScenarioAnalysis() {
     updateActiveRuns(new Set(), activeRuns.two, end.getTime(), completedDurations.two);
     updateActiveRuns(new Set(), activeRuns.three, end.getTime(), completedDurations.three);
 
+    for (const stats of groupStats.values()) {
+      if (stats.eventStartMs !== null) {
+        const eventDurationMs = end.getTime() - stats.eventStartMs;
+        stats.minimumEventDurationMs = Math.min(stats.minimumEventDurationMs, eventDurationMs);
+        stats.maximumEventDurationMs = Math.max(stats.maximumEventDurationMs, eventDurationMs);
+        stats.eventStartMs = null;
+        stats.lastEndMs = end.getTime();
+      }
+      stats.maxGapMs = Math.max(stats.maxGapMs, end.getTime() - stats.lastEndMs);
+    }
+
     const groups = [...groupStats.entries()]
       .map(([key, stats]) => ({
         indices: key.split(",").map(Number),
-        ...stats,
+        durationMs: stats.durationMs,
+        eventCount: stats.eventCount,
+        twoGroundDurationMs: stats.twoGroundDurationMs,
+        twoGroundEventCount: stats.twoGroundEventCount,
+        threeGroundDurationMs: stats.threeGroundDurationMs,
+        threeGroundEventCount: stats.threeGroundEventCount,
+        minimumEventDurationMs: stats.minimumEventDurationMs,
+        maximumEventDurationMs: stats.maximumEventDurationMs,
+        averageEventDurationMs: stats.durationMs / stats.eventCount,
+        maxGapMs: stats.maxGapMs,
+        coveredDayCount: stats.coveredDays.size,
       }))
       .sort((first, second) => second.durationMs - first.durationMs);
+    const recommendedGroups = [...groups].sort(robustnessComparator);
     renderScenarioResults({
       start,
       end,
@@ -628,6 +697,7 @@ async function runScenarioAnalysis() {
       windowCount,
       windows,
       groups,
+      recommendedGroups,
       durationStats: {
         one: durationStatistics(completedDurations.one),
         two: durationStatistics(completedDurations.two),

@@ -628,6 +628,45 @@ body.summary-expanded .detail-panel {
 .scenario-period { margin: 10px 0 18px; }
 .scenario-results h3 { margin: 0 0 8px; font-size: 12px; }
 
+.scenario-recommendations {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.recommendation-card {
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.recommendation-card.primary {
+  border-color: rgba(115, 230, 162, 0.4);
+  background: rgba(115, 230, 162, 0.09);
+}
+
+.recommendation-rank {
+  color: var(--accent);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.recommendation-card h4 {
+  margin: 4px 0 7px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.recommendation-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
 .scenario-window-details {
   margin: 0 0 18px;
   border: 1px solid var(--line);
