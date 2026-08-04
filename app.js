@@ -87,8 +87,13 @@ const elements = {
   scenarioWindowCount: document.querySelector("#scenario-window-count"),
   scenarioGroupCount: document.querySelector("#scenario-group-count"),
   scenarioPeriod: document.querySelector("#scenario-period"),
+  scenarioDurationTiers: document.querySelector("#scenario-duration-tiers"),
   scenarioWindowSummary: document.querySelector("#scenario-window-summary"),
   scenarioWindowList: document.querySelector("#scenario-window-list"),
+  scenarioMultiSummary: document.querySelector("#scenario-multi-summary"),
+  scenarioMultiList: document.querySelector("#scenario-multi-list"),
+  scenarioTripleSummary: document.querySelector("#scenario-triple-summary"),
+  scenarioTripleList: document.querySelector("#scenario-triple-list"),
   scenarioGroupList: document.querySelector("#scenario-group-list"),
 };
 
@@ -393,7 +398,7 @@ function qualifyingScenarioGroups(positions) {
     }
   }
 
-  const groups = [];
+  const groups = new Map();
   for (let first = 0; first < satelliteCount; first += 1) {
     for (let second = first + 1; second < satelliteCount; second += 1) {
       if (!links[first][second]) continue;
@@ -401,14 +406,71 @@ function qualifyingScenarioGroups(positions) {
         if (
           links[first][third]
           && links[second][third]
-          && (positions[first].groundAccess || positions[second].groundAccess || positions[third].groundAccess)
         ) {
-          groups.push(`${first},${second},${third}`);
+          const groundAccessCount = Number(positions[first].groundAccess)
+            + Number(positions[second].groundAccess)
+            + Number(positions[third].groundAccess);
+          if (groundAccessCount > 0) groups.set(`${first},${second},${third}`, groundAccessCount);
         }
       }
     }
   }
   return groups;
+}
+
+function durationStatistics(durations) {
+  if (!durations.length) return { minimum: 0, maximum: 0, average: 0, count: 0 };
+  return {
+    minimum: Math.min(...durations),
+    maximum: Math.max(...durations),
+    average: durations.reduce((sum, duration) => sum + duration, 0) / durations.length,
+    count: durations.length,
+  };
+}
+
+function updateActiveRuns(currentKeys, activeStarts, dateMs, completedDurations) {
+  for (const key of currentKeys) {
+    if (!activeStarts.has(key)) activeStarts.set(key, dateMs);
+  }
+  for (const [key, startMs] of activeStarts) {
+    if (!currentKeys.has(key)) {
+      completedDurations.push(dateMs - startMs);
+      activeStarts.delete(key);
+    }
+  }
+}
+
+function createDurationTier(label, statistics) {
+  const row = document.createElement("div");
+  const heading = document.createElement("strong");
+  row.className = "scenario-duration-tier";
+  heading.textContent = label;
+  row.append(heading);
+  for (const [name, value] of [
+    ["Min", statistics.minimum],
+    ["Max", statistics.maximum],
+    ["Average", statistics.average],
+  ]) {
+    const metric = document.createElement("span");
+    const strong = document.createElement("strong");
+    metric.append(name, strong);
+    strong.textContent = formatScenarioDuration(value);
+    row.append(metric);
+  }
+  return row;
+}
+
+function createScenarioGroupRows(groups, durationKey = "durationMs", eventKey = "eventCount") {
+  return groups.map((group) => {
+    const row = document.createElement("div");
+    const names = document.createElement("strong");
+    const metrics = document.createElement("span");
+    row.className = "scenario-group-row";
+    names.textContent = group.indices.map((index) => trackedSatellites[index].label).join(" · ");
+    metrics.textContent = `${formatScenarioDuration(group[durationKey])} · ${group[eventKey]} window${group[eventKey] === 1 ? "" : "s"}`;
+    row.append(names, metrics);
+    return row;
+  });
 }
 
 function renderScenarioResults(result) {
@@ -421,6 +483,11 @@ function renderScenarioResults(result) {
   elements.scenarioWindowCount.textContent = result.windowCount.toLocaleString();
   elements.scenarioGroupCount.textContent = result.groups.length.toLocaleString();
   elements.scenarioPeriod.textContent = `${result.start.toLocaleString()} through ${result.end.toLocaleString()} · Current element sets · ±2-minute boundary precision`;
+  elements.scenarioDurationTiers.replaceChildren(
+    createDurationTier("1+ ground satellite", result.durationStats.one),
+    createDurationTier("2+ ground satellites", result.durationStats.two),
+    createDurationTier("All 3 ground satellites", result.durationStats.three)
+  );
 
   elements.scenarioWindowSummary.textContent = `All opportunity windows (${result.windows.length.toLocaleString()})`;
   const windowRows = result.windows.map((window) => {
@@ -435,17 +502,13 @@ function renderScenarioResults(result) {
   });
   elements.scenarioWindowList.replaceChildren(...windowRows);
 
-  const rows = result.groups.map((group) => {
-    const row = document.createElement("div");
-    const names = document.createElement("strong");
-    const metrics = document.createElement("span");
-    row.className = "scenario-group-row";
-    names.textContent = group.indices.map((index) => trackedSatellites[index].label).join(" · ");
-    metrics.textContent = `${formatScenarioDuration(group.durationMs)} · ${group.eventCount} window${group.eventCount === 1 ? "" : "s"}`;
-    row.append(names, metrics);
-    return row;
-  });
-  elements.scenarioGroupList.replaceChildren(...rows);
+  const multiGroundGroups = result.groups.filter((group) => group.twoGroundDurationMs > 0);
+  const tripleGroundGroups = result.groups.filter((group) => group.threeGroundDurationMs > 0);
+  elements.scenarioMultiSummary.textContent = `Groups with 2+ satellites in ground access (${multiGroundGroups.length.toLocaleString()})`;
+  elements.scenarioMultiList.replaceChildren(...createScenarioGroupRows(multiGroundGroups, "twoGroundDurationMs", "twoGroundEventCount"));
+  elements.scenarioTripleSummary.textContent = `Groups with all 3 satellites in ground access (${tripleGroundGroups.length.toLocaleString()})`;
+  elements.scenarioTripleList.replaceChildren(...createScenarioGroupRows(tripleGroundGroups, "threeGroundDurationMs", "threeGroundEventCount"));
+  elements.scenarioGroupList.replaceChildren(...createScenarioGroupRows(result.groups));
   elements.scenarioResults.hidden = false;
 }
 
@@ -461,6 +524,18 @@ async function runScenarioAnalysis() {
   const stepCount = Math.ceil(scenarioDurationMs / scenarioStepMs);
   const groupStats = new Map();
   let previousGroups = new Set();
+  let previousTwoGroundGroups = new Set();
+  let previousThreeGroundGroups = new Set();
+  const activeRuns = {
+    one: new Map(),
+    two: new Map(),
+    three: new Map(),
+  };
+  const completedDurations = {
+    one: [],
+    two: [],
+    three: [],
+  };
   let totalDurationMs = 0;
   let windowCount = 0;
   let previouslyQualifying = false;
@@ -470,7 +545,14 @@ async function runScenarioAnalysis() {
   try {
     for (let step = 0; step < stepCount; step += 1) {
       const date = new Date(start.getTime() + step * scenarioStepMs);
-      const currentGroups = new Set(qualifyingScenarioGroups(scenarioPositionsAt(date)));
+      const groupAccessCounts = qualifyingScenarioGroups(scenarioPositionsAt(date));
+      const currentGroups = new Set(groupAccessCounts.keys());
+      const currentTwoGroundGroups = new Set(
+        [...groupAccessCounts].filter(([, count]) => count >= 2).map(([key]) => key)
+      );
+      const currentThreeGroundGroups = new Set(
+        [...groupAccessCounts].filter(([, count]) => count === 3).map(([key]) => key)
+      );
       const qualifying = currentGroups.size > 0;
 
       if (qualifying) {
@@ -487,14 +569,36 @@ async function runScenarioAnalysis() {
       for (const key of currentGroups) {
         let stats = groupStats.get(key);
         if (!stats) {
-          stats = { durationMs: 0, eventCount: 0 };
+          stats = {
+            durationMs: 0,
+            eventCount: 0,
+            twoGroundDurationMs: 0,
+            twoGroundEventCount: 0,
+            threeGroundDurationMs: 0,
+            threeGroundEventCount: 0,
+          };
           groupStats.set(key, stats);
         }
         stats.durationMs += scenarioStepMs;
         if (!previousGroups.has(key)) stats.eventCount += 1;
+        const groundAccessCount = groupAccessCounts.get(key);
+        if (groundAccessCount >= 2) {
+          stats.twoGroundDurationMs += scenarioStepMs;
+          if (!previousTwoGroundGroups.has(key)) stats.twoGroundEventCount += 1;
+        }
+        if (groundAccessCount === 3) {
+          stats.threeGroundDurationMs += scenarioStepMs;
+          if (!previousThreeGroundGroups.has(key)) stats.threeGroundEventCount += 1;
+        }
       }
 
+      updateActiveRuns(currentGroups, activeRuns.one, date.getTime(), completedDurations.one);
+      updateActiveRuns(currentTwoGroundGroups, activeRuns.two, date.getTime(), completedDurations.two);
+      updateActiveRuns(currentThreeGroundGroups, activeRuns.three, date.getTime(), completedDurations.three);
+
       previousGroups = currentGroups;
+      previousTwoGroundGroups = currentTwoGroundGroups;
+      previousThreeGroundGroups = currentThreeGroundGroups;
       previouslyQualifying = qualifying;
 
       if (step % 100 === 0 || step === stepCount - 1) {
@@ -507,6 +611,9 @@ async function runScenarioAnalysis() {
     }
 
     if (windowStart) windows.push({ start: windowStart, end });
+    updateActiveRuns(new Set(), activeRuns.one, end.getTime(), completedDurations.one);
+    updateActiveRuns(new Set(), activeRuns.two, end.getTime(), completedDurations.two);
+    updateActiveRuns(new Set(), activeRuns.three, end.getTime(), completedDurations.three);
 
     const groups = [...groupStats.entries()]
       .map(([key, stats]) => ({
@@ -514,7 +621,19 @@ async function runScenarioAnalysis() {
         ...stats,
       }))
       .sort((first, second) => second.durationMs - first.durationMs);
-    renderScenarioResults({ start, end, totalDurationMs, windowCount, windows, groups });
+    renderScenarioResults({
+      start,
+      end,
+      totalDurationMs,
+      windowCount,
+      windows,
+      groups,
+      durationStats: {
+        one: durationStatistics(completedDurations.one),
+        two: durationStatistics(completedDurations.two),
+        three: durationStatistics(completedDurations.three),
+      },
+    });
   } catch (error) {
     console.error(error);
     elements.scenarioProgressLabel.textContent = "Analysis failed";

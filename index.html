@@ -145,9 +145,19 @@
             <div><span>Qualifying groups</span><strong id="scenario-group-count">—</strong></div>
           </div>
           <p id="scenario-period" class="scenario-period"></p>
+          <h3>Opportunity duration statistics</h3>
+          <div id="scenario-duration-tiers" class="scenario-duration-tiers"></div>
           <details class="scenario-window-details">
             <summary id="scenario-window-summary">All opportunity windows</summary>
             <div id="scenario-window-list" class="scenario-window-list"></div>
+          </details>
+          <details class="scenario-window-details">
+            <summary id="scenario-multi-summary">Groups with 2+ satellites in ground access</summary>
+            <div id="scenario-multi-list" class="scenario-group-list scenario-tier-list"></div>
+          </details>
+          <details class="scenario-window-details">
+            <summary id="scenario-triple-summary">Groups with all 3 satellites in ground access</summary>
+            <div id="scenario-triple-list" class="scenario-group-list scenario-tier-list"></div>
           </details>
           <h3>Groups by total opportunity time</h3>
           <div id="scenario-group-list" class="scenario-group-list"></div>
@@ -157,6 +167,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=scenario-lab-1"></script>
+    <script type="module" src="app.js?v=scenario-access-tiers-1"></script>
   </body>
 </html>

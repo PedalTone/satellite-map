@@ -84,6 +84,7 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 - Selecting two satellites displays their straight-line separation in Earth-centered inertial space.
 - Scenario Lab performs a 30-day geometric feasibility scan for mutually connected three-satellite groups under 5,500 km with simultaneous Central Alaska access.
 - Scenario results use two-minute sampling, account for Earth blocking inter-satellite links, and report union duration, opportunity windows, and totals by satellite group.
+- Scenario Lab compares combination-window duration statistics for one, two, or all three satellites having simultaneous ground access and identifies the groups reaching each tier.
 - CelesTrak data is for visualization and is not appropriate for safety-critical operations.
 
 ## Third-party services

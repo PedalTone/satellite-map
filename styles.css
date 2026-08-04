@@ -663,6 +663,44 @@ body.summary-expanded .detail-panel {
 
 .scenario-window-row strong { color: #fff; font-size: 10px; }
 
+.scenario-duration-tiers {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+
+.scenario-duration-tier {
+  display: grid;
+  grid-template-columns: 1.35fr repeat(3, 1fr);
+  gap: 5px;
+  align-items: center;
+  padding: 9px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.scenario-duration-tier > strong { font-size: 10px; }
+
+.scenario-duration-tier span {
+  color: var(--muted);
+  font-size: 8px;
+  text-align: right;
+}
+
+.scenario-duration-tier span strong {
+  display: block;
+  margin-top: 2px;
+  color: #fff;
+  font-size: 10px;
+}
+
+.scenario-tier-list {
+  max-height: 280px;
+  padding: 6px;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+}
+
 .scenario-group-list { display: grid; gap: 6px; }
 
 .scenario-group-row {
