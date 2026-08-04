@@ -664,7 +664,7 @@ function createRecommendationCard(group, index) {
   viewButton.type = "button";
   viewButton.textContent = "View first opportunity on map";
   viewButton.addEventListener("click", () => visualizeRecommendation(group));
-  card.append(rank, heading, metrics, durations, evidence, viewButton);
+  card.append(rank, heading, metrics, viewButton, durations, evidence);
   if (index === 0) {
     const executive = document.createElement("section");
     const introduction = document.createElement("strong");
@@ -688,7 +688,7 @@ function createRecommendationCard(group, index) {
       reasons.append(item);
     }
     executive.append(introduction, reasons);
-    card.insertBefore(executive, durations);
+    card.insertBefore(executive, viewButton);
   }
   return card;
 }
