@@ -400,7 +400,7 @@ function scenarioPositionsAt(date) {
 
 function qualifyingScenarioGroups(positions, minimumDistanceKm, maximumDistanceKm) {
   const satelliteCount = positions.length;
-  const links = Array.from({ length: satelliteCount }, () => new Uint8Array(satelliteCount));
+  const links = Array.from({ length: satelliteCount }, () => new Float64Array(satelliteCount));
 
   for (let first = 0; first < satelliteCount; first += 1) {
     if (!positions[first]) continue;
@@ -409,7 +409,11 @@ function qualifyingScenarioGroups(positions, minimumDistanceKm, maximumDistanceK
         positions[second]
         && hasEarthClearLink(positions[first].eci, positions[second].eci, minimumDistanceKm, maximumDistanceKm)
       ) {
-        links[first][second] = 1;
+        links[first][second] = Math.hypot(
+          positions[first].eci.x - positions[second].eci.x,
+          positions[first].eci.y - positions[second].eci.y,
+          positions[first].eci.z - positions[second].eci.z
+        );
       }
     }
   }
@@ -426,7 +430,12 @@ function qualifyingScenarioGroups(positions, minimumDistanceKm, maximumDistanceK
           const groundAccessCount = Number(positions[first].groundAccess)
             + Number(positions[second].groundAccess)
             + Number(positions[third].groundAccess);
-          if (groundAccessCount > 0) groups.set(`${first},${second},${third}`, groundAccessCount);
+          if (groundAccessCount > 0) {
+            groups.set(`${first},${second},${third}`, {
+              groundAccessCount,
+              pairDistances: [links[first][second], links[first][third], links[second][third]],
+            });
+          }
         }
       }
     }
@@ -504,6 +513,7 @@ function createRecommendationCard(group, index) {
   const heading = document.createElement("h4");
   const metrics = document.createElement("p");
   const durations = document.createElement("div");
+  const evidence = document.createElement("div");
   card.className = `recommendation-card${index === 0 ? " primary" : ""}`;
   rank.className = "recommendation-rank";
   rank.textContent = index === 0 ? "Recommended" : `Runner-up ${index}`;
@@ -521,7 +531,26 @@ function createRecommendationCard(group, index) {
     value.textContent = formatScenarioDuration(duration);
     durations.append(item);
   }
-  card.append(rank, heading, metrics, durations);
+  evidence.className = "recommendation-evidence";
+  const firstOpportunity = document.createElement("p");
+  firstOpportunity.textContent = `First qualifying opportunity: ${new Date(group.firstOpportunityMs).toLocaleString()}`;
+  evidence.append(firstOpportunity);
+  const pairIndices = [[0, 1], [0, 2], [1, 2]];
+  for (let pairIndex = 0; pairIndex < pairIndices.length; pairIndex += 1) {
+    const [first, second] = pairIndices[pairIndex];
+    const pair = document.createElement("span");
+    const minimum = group.pairMinimumDistances[pairIndex].toLocaleString(undefined, {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    });
+    const maximum = group.pairMaximumDistances[pairIndex].toLocaleString(undefined, {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    });
+    pair.textContent = `${trackedSatellites[group.indices[first]].label}–${trackedSatellites[group.indices[second]].label}: ${minimum}–${maximum} km`;
+    evidence.append(pair);
+  }
+  card.append(rank, heading, metrics, durations, evidence);
   return card;
 }
 
@@ -622,10 +651,10 @@ async function runScenarioAnalysis() {
       );
       const currentGroups = new Set(groupAccessCounts.keys());
       const currentTwoGroundGroups = new Set(
-        [...groupAccessCounts].filter(([, count]) => count >= 2).map(([key]) => key)
+        [...groupAccessCounts].filter(([, details]) => details.groundAccessCount >= 2).map(([key]) => key)
       );
       const currentThreeGroundGroups = new Set(
-        [...groupAccessCounts].filter(([, count]) => count === 3).map(([key]) => key)
+        [...groupAccessCounts].filter(([, details]) => details.groundAccessCount === 3).map(([key]) => key)
       );
       const qualifying = currentGroups.size > 0;
 
@@ -652,6 +681,9 @@ async function runScenarioAnalysis() {
             minimumEventDurationMs: Infinity,
             maxGapMs: 0,
             coveredDays: new Set(),
+            firstOpportunityMs: date.getTime(),
+            pairMinimumDistances: [Infinity, Infinity, Infinity],
+            pairMaximumDistances: [0, 0, 0],
             twoGroundDurationMs: 0,
             twoGroundEventCount: 0,
             threeGroundDurationMs: 0,
@@ -666,7 +698,15 @@ async function runScenarioAnalysis() {
           stats.eventStartMs = date.getTime();
           stats.maxGapMs = Math.max(stats.maxGapMs, date.getTime() - stats.lastEndMs);
         }
-        const groundAccessCount = groupAccessCounts.get(key);
+        const groupDetails = groupAccessCounts.get(key);
+        const groundAccessCount = groupDetails.groundAccessCount;
+        groupDetails.pairDistances.forEach((distance, pairIndex) => {
+          if (!(distance > minimumDistanceKm && distance < maximumDistanceKm)) {
+            throw new Error(`Scenario distance invariant failed for ${key}: ${distance} km`);
+          }
+          stats.pairMinimumDistances[pairIndex] = Math.min(stats.pairMinimumDistances[pairIndex], distance);
+          stats.pairMaximumDistances[pairIndex] = Math.max(stats.pairMaximumDistances[pairIndex], distance);
+        });
         if (groundAccessCount >= 2) {
           stats.twoGroundDurationMs += scenarioStepMs;
           if (!previousTwoGroundGroups.has(key)) stats.twoGroundEventCount += 1;
@@ -735,6 +775,9 @@ async function runScenarioAnalysis() {
         averageEventDurationMs: stats.durationMs / stats.eventCount,
         maxGapMs: stats.maxGapMs,
         coveredDayCount: stats.coveredDays.size,
+        firstOpportunityMs: stats.firstOpportunityMs,
+        pairMinimumDistances: stats.pairMinimumDistances,
+        pairMaximumDistances: stats.pairMaximumDistances,
       }))
       .sort((first, second) => second.durationMs - first.durationMs);
     const recommendedGroups = [...groups].sort(robustnessComparator);
