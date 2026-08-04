@@ -42,6 +42,7 @@ L.circleMarker([groundStation.latitude, groundStation.longitude], {
 const elements = {
   statusText: document.querySelector("#status-text"),
   statusDot: document.querySelector("#status-dot"),
+  summaryToggle: document.querySelector("#summary-toggle"),
   satelliteSummary: document.querySelector("#satellite-summary"),
   summaryLaunchCount: document.querySelector("#summary-launch-count"),
   summaryAltitude: document.querySelector("#summary-altitude"),
@@ -68,6 +69,7 @@ const elements = {
   speedSelect: document.querySelector("#speed-select"),
   simulationTime: document.querySelector("#simulation-time"),
   accessList: document.querySelector("#access-list"),
+  accessToggle: document.querySelector("#access-toggle"),
 };
 
 let trackedSatellites = [];
@@ -116,6 +118,12 @@ function setSimulationSpeed(speed) {
 function setStatus(message, isError = false) {
   elements.statusText.textContent = message;
   elements.statusDot.classList.toggle("error", isError);
+}
+
+function setPanelExpanded(toggle, panel, expanded, bodyClass) {
+  toggle.setAttribute("aria-expanded", String(expanded));
+  panel.hidden = !expanded;
+  if (bodyClass) document.body.classList.toggle(bodyClass, expanded);
 }
 
 function escapeHtml(value) {
@@ -436,7 +444,6 @@ function updateSatelliteSummary() {
         return chip;
       })
   );
-  elements.satelliteSummary.hidden = false;
 }
 
 function updateDetailPanel() {
@@ -537,6 +544,14 @@ async function loadSatellites() {
 }
 
 elements.refreshButton.addEventListener("click", loadSatellites);
+elements.summaryToggle.addEventListener("click", () => {
+  const expanded = elements.summaryToggle.getAttribute("aria-expanded") !== "true";
+  setPanelExpanded(elements.summaryToggle, elements.satelliteSummary, expanded, "summary-expanded");
+});
+elements.accessToggle.addEventListener("click", () => {
+  const expanded = elements.accessToggle.getAttribute("aria-expanded") !== "true";
+  setPanelExpanded(elements.accessToggle, elements.accessList, expanded);
+});
 elements.speedSelect.addEventListener("change", (event) => {
   setSimulationSpeed(Number(event.target.value));
 });

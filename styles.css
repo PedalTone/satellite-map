@@ -95,8 +95,29 @@ button { font: inherit; }
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
+  padding: 0;
   line-height: 1.35;
+  text-align: left;
 }
+
+.panel-toggle {
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.panel-chevron {
+  margin-left: auto;
+  color: var(--accent);
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 160ms ease;
+}
+
+.panel-toggle[aria-expanded="true"] .panel-chevron { transform: rotate(180deg); }
 
 .status-dot {
   width: 7px;
@@ -229,6 +250,7 @@ button { font: inherit; }
   padding: 10px;
   border-bottom: 1px solid var(--line);
   background: rgba(7, 17, 31, 0.97);
+  text-align: left;
 }
 
 .access-heading h2 {
@@ -251,6 +273,8 @@ button { font: inherit; }
   color: var(--muted);
   font-size: 10px;
 }
+
+.access-list[hidden] { display: none; }
 
 .access-row {
   display: grid;
@@ -300,7 +324,7 @@ button { font: inherit; }
 .track-legend {
   position: fixed;
   z-index: 1000;
-  top: calc(430px + env(safe-area-inset-top));
+  top: calc(175px + env(safe-area-inset-top));
   left: 16px;
   display: flex;
   align-items: center;
@@ -357,10 +381,10 @@ button { font: inherit; }
 .detail-panel {
   position: fixed;
   z-index: 1000;
-  top: calc(475px + env(safe-area-inset-top));
+  top: calc(220px + env(safe-area-inset-top));
   left: 16px;
   width: min(190px, calc(100vw - 32px));
-  max-height: calc(100vh - 490px - env(safe-area-inset-top));
+  max-height: calc(100vh - 235px - env(safe-area-inset-top));
   padding: 10px;
   overflow-y: auto;
   border: 1px solid var(--line);
@@ -368,6 +392,13 @@ button { font: inherit; }
   background: var(--panel);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
   backdrop-filter: blur(20px);
+}
+
+body.summary-expanded .track-legend { top: calc(430px + env(safe-area-inset-top)); }
+
+body.summary-expanded .detail-panel {
+  top: calc(475px + env(safe-area-inset-top));
+  max-height: calc(100vh - 490px - env(safe-area-inset-top));
 }
 
 .detail-handle {

@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <link rel="stylesheet" href="styles.css?v=access-links-2">
+    <link rel="stylesheet" href="styles.css?v=minimized-panels-1">
   </head>
   <body>
     <main>
@@ -26,10 +26,11 @@
       </header>
 
       <section id="status-panel" class="status-panel" aria-live="polite">
-        <div class="status-line">
+        <button id="summary-toggle" class="status-line panel-toggle" type="button" aria-expanded="false" aria-controls="satellite-summary">
           <span id="status-dot" class="status-dot"></span>
           <span id="status-text">Loading satellites…</span>
-        </div>
+          <span class="panel-chevron" aria-hidden="true">⌄</span>
+        </button>
         <div id="satellite-summary" class="satellite-summary" hidden>
           <div class="summary-stat">
             <span>Launches</span>
@@ -63,14 +64,15 @@
       </section>
 
       <section class="access-panel" aria-label="Central Alaska ground station access">
-        <div class="access-heading">
+        <button id="access-toggle" class="access-heading panel-toggle" type="button" aria-expanded="false" aria-controls="access-list">
           <div>
             <p class="eyebrow">Central Alaska</p>
             <h2>Ground Access</h2>
           </div>
           <span class="elevation-mask">≥10°</span>
-        </div>
-        <div id="access-list" class="access-list">Calculating passes…</div>
+          <span class="panel-chevron" aria-hidden="true">⌄</span>
+        </button>
+        <div id="access-list" class="access-list" hidden>Calculating passes…</div>
       </section>
 
       <label class="track-legend" for="ground-track-toggle">
@@ -111,6 +113,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=access-links-2"></script>
+    <script type="module" src="app.js?v=minimized-panels-1"></script>
   </body>
 </html>
