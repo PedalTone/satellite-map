@@ -346,8 +346,8 @@ function hasEarthClearLink(firstPosition, secondPosition) {
   };
   const distanceSquared = delta.x ** 2 + delta.y ** 2 + delta.z ** 2;
   if (
-    distanceSquared < scenarioMinimumDistanceKm ** 2
-    || distanceSquared > scenarioDistanceKm ** 2
+    distanceSquared <= scenarioMinimumDistanceKm ** 2
+    || distanceSquared >= scenarioDistanceKm ** 2
   ) return false;
 
   const projection = -(
