@@ -110,6 +110,7 @@ let lastClockUpdateMs = Date.now();
 let lastAccessPanelRenderMs = 0;
 const trackColors = ["#66e0ff", "#ff7a90", "#a98bff", "#73e6a2", "#ffad5c", "#f3e56b"];
 const earthRadiusKm = 6378.137;
+const scenarioMinimumDistanceKm = 1000;
 const scenarioDistanceKm = 5500;
 const scenarioStepMs = 2 * 60_000;
 const scenarioDurationMs = 30 * 24 * 60 * 60_000;
@@ -344,7 +345,10 @@ function hasEarthClearLink(firstPosition, secondPosition) {
     z: secondPosition.z - firstPosition.z,
   };
   const distanceSquared = delta.x ** 2 + delta.y ** 2 + delta.z ** 2;
-  if (distanceSquared > scenarioDistanceKm ** 2) return false;
+  if (
+    distanceSquared < scenarioMinimumDistanceKm ** 2
+    || distanceSquared > scenarioDistanceKm ** 2
+  ) return false;
 
   const projection = -(
     firstPosition.x * delta.x

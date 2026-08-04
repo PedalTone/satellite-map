@@ -82,7 +82,7 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 - The status card summarizes launch groups plus current altitude, inclination, and RAAN spreads.
 - Failed downloads reuse previously generated data when available.
 - Selecting two satellites displays their straight-line separation in Earth-centered inertial space.
-- Scenario Lab performs a 30-day geometric feasibility scan for mutually connected three-satellite groups under 5,500 km with simultaneous Central Alaska access.
+- Scenario Lab performs a 30-day geometric feasibility scan for mutually connected three-satellite groups with simultaneous Central Alaska access.
 - Scenario results use two-minute sampling, account for Earth blocking inter-satellite links, and report union duration, opportunity windows, and totals by satellite group.
 - Scenario Lab compares combination-window duration statistics for one, two, or all three satellites having simultaneous ground access and identifies the groups reaching each tier.
 - Scenario Lab recommends a fixed three-satellite combination using transparent priorities: total qualifying coverage, maximum outage gap, covered days, and time with multiple simultaneous ground links.
