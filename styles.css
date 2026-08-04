@@ -716,6 +716,30 @@ body.summary-expanded .detail-panel {
   line-height: 1.5;
 }
 
+.recommendation-durations {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.recommendation-durations span {
+  padding: 6px;
+  border-radius: 8px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 8px;
+  text-transform: uppercase;
+}
+
+.recommendation-durations strong {
+  display: block;
+  margin-top: 3px;
+  color: #fff;
+  font-size: 11px;
+  text-transform: none;
+}
+
 .scenario-window-details {
   margin: 0 0 18px;
   border: 1px solid var(--line);

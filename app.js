@@ -495,12 +495,25 @@ function createRecommendationCard(group, index) {
   const rank = document.createElement("span");
   const heading = document.createElement("h4");
   const metrics = document.createElement("p");
+  const durations = document.createElement("div");
   card.className = `recommendation-card${index === 0 ? " primary" : ""}`;
   rank.className = "recommendation-rank";
   rank.textContent = index === 0 ? "Recommended" : `Runner-up ${index}`;
   heading.textContent = group.indices.map((satelliteIndex) => trackedSatellites[satelliteIndex].label).join(" · ");
   metrics.textContent = `${formatScenarioDuration(group.durationMs)} total · ${group.coveredDayCount}/30 analysis days · ${formatScenarioDuration(group.maxGapMs)} maximum gap · ${formatScenarioDuration(group.twoGroundDurationMs)} with 2+ ground links`;
-  card.append(rank, heading, metrics);
+  durations.className = "recommendation-durations";
+  for (const [label, duration] of [
+    ["Minimum", group.minimumEventDurationMs],
+    ["Maximum", group.maximumEventDurationMs],
+    ["Average", group.averageEventDurationMs],
+  ]) {
+    const item = document.createElement("span");
+    const value = document.createElement("strong");
+    item.append(label, value);
+    value.textContent = formatScenarioDuration(duration);
+    durations.append(item);
+  }
+  card.append(rank, heading, metrics, durations);
   return card;
 }
 
