@@ -335,11 +335,17 @@ button { font: inherit; }
   stroke-linejoin: round;
 }
 
-.track-legend {
+.map-overlays {
   position: fixed;
   z-index: 1000;
   top: calc(175px + env(safe-area-inset-top));
   left: 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.track-legend,
+.footprint-control {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -353,13 +359,50 @@ button { font: inherit; }
   cursor: pointer;
 }
 
+.footprint-control {
+  display: grid;
+  gap: 6px;
+  cursor: default;
+}
+
+.footprint-toggle,
+.footprint-diameter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footprint-toggle { cursor: pointer; }
+
+.footprint-sample {
+  width: 20px;
+  height: 12px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: rgba(102, 224, 255, 0.12);
+}
+
+.footprint-diameter input {
+  width: 62px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+}
+
+.footprint-diameter span { color: var(--muted); }
+
 .track-sample {
   width: 24px;
   height: 0;
   border-top: 2px dashed var(--accent);
 }
 
-.track-legend input {
+.track-legend > input,
+.footprint-toggle > input {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -388,17 +431,20 @@ button { font: inherit; }
   transition: transform 160ms ease;
 }
 
-.track-legend input:checked + .toggle { background: #238aa5; }
-.track-legend input:checked + .toggle::after { transform: translateX(14px); }
-.track-legend input:focus-visible + .toggle { outline: 2px solid #fff; outline-offset: 2px; }
+.track-legend input:checked + .toggle,
+.footprint-toggle input:checked + .toggle { background: #238aa5; }
+.track-legend input:checked + .toggle::after,
+.footprint-toggle input:checked + .toggle::after { transform: translateX(14px); }
+.track-legend input:focus-visible + .toggle,
+.footprint-toggle input:focus-visible + .toggle { outline: 2px solid #fff; outline-offset: 2px; }
 
 .detail-panel {
   position: fixed;
   z-index: 1000;
-  top: calc(220px + env(safe-area-inset-top));
+  top: calc(300px + env(safe-area-inset-top));
   left: 16px;
   width: min(190px, calc(100vw - 32px));
-  max-height: calc(100vh - 235px - env(safe-area-inset-top));
+  max-height: calc(100vh - 315px - env(safe-area-inset-top));
   padding: 10px;
   overflow-y: auto;
   border: 1px solid var(--line);
@@ -408,11 +454,11 @@ button { font: inherit; }
   backdrop-filter: blur(20px);
 }
 
-body.summary-expanded .track-legend { top: calc(430px + env(safe-area-inset-top)); }
+body.summary-expanded .map-overlays { top: calc(430px + env(safe-area-inset-top)); }
 
 body.summary-expanded .detail-panel {
-  top: calc(475px + env(safe-area-inset-top));
-  max-height: calc(100vh - 490px - env(safe-area-inset-top));
+  top: calc(555px + env(safe-area-inset-top));
+  max-height: calc(100vh - 570px - env(safe-area-inset-top));
 }
 
 .detail-handle {

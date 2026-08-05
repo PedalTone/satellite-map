@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <link rel="stylesheet" href="styles.css?v=pair-earth-occlusion-1">
+    <link rel="stylesheet" href="styles.css?v=coverage-footprints-1">
   </head>
   <body>
     <main>
@@ -78,12 +78,26 @@
         <div id="access-list" class="access-list" hidden>Calculating passes…</div>
       </section>
 
-      <label class="track-legend" for="ground-track-toggle">
-        <span class="track-sample"></span>
-        <span>Ground paths</span>
-        <input id="ground-track-toggle" type="checkbox" checked>
-        <span class="toggle" aria-hidden="true"></span>
-      </label>
+      <section class="map-overlays" aria-label="Map overlays">
+        <label class="track-legend" for="ground-track-toggle">
+          <span class="track-sample"></span>
+          <span>Ground paths</span>
+          <input id="ground-track-toggle" type="checkbox" checked>
+          <span class="toggle" aria-hidden="true"></span>
+        </label>
+        <div class="footprint-control">
+          <label class="footprint-toggle" for="footprint-toggle">
+            <span class="footprint-sample"></span>
+            <span>Coverage</span>
+            <input id="footprint-toggle" type="checkbox">
+            <span class="toggle" aria-hidden="true"></span>
+          </label>
+          <label class="footprint-diameter" for="footprint-diameter">
+            <input id="footprint-diameter" type="number" min="1" max="20000" step="100" value="1000" inputmode="numeric">
+            <span>km diameter</span>
+          </label>
+        </div>
+      </section>
 
       <section id="detail-panel" class="detail-panel" aria-live="polite">
         <div class="detail-handle"></div>
@@ -204,6 +218,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=wgs84-occlusion-1"></script>
+    <script type="module" src="app.js?v=coverage-footprints-1"></script>
   </body>
 </html>

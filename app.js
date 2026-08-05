@@ -69,6 +69,8 @@ const elements = {
   refreshButton: document.querySelector("#refresh-button"),
   clearSelection: document.querySelector("#clear-selection"),
   groundTrackToggle: document.querySelector("#ground-track-toggle"),
+  footprintToggle: document.querySelector("#footprint-toggle"),
+  footprintDiameter: document.querySelector("#footprint-diameter"),
   speedSelect: document.querySelector("#speed-select"),
   simulationTime: document.querySelector("#simulation-time"),
   accessList: document.querySelector("#access-list"),
@@ -115,6 +117,8 @@ let updateTimer;
 let groundTrackTimer;
 let separationLine;
 let groundTracksVisible = localStorage.getItem("groundTracksVisible") !== "false";
+let footprintsVisible = localStorage.getItem("footprintsVisible") === "true";
+let footprintDiameterKm = Math.max(1, Math.min(20_000, Number(localStorage.getItem("footprintDiameterKm")) || 1000));
 let simulationSpeed = 1;
 let simulationTimeMs = Date.now();
 let lastClockUpdateMs = Date.now();
@@ -128,6 +132,8 @@ const earthPolarRadiusKm = earthEquatorialRadiusKm * (1 - earthFlattening);
 const scenarioStepMs = 2 * 60_000;
 
 elements.groundTrackToggle.checked = groundTracksVisible;
+elements.footprintToggle.checked = footprintsVisible;
+elements.footprintDiameter.value = String(footprintDiameterKm);
 
 function currentSimulationDate() {
   const nowMs = Date.now();
@@ -195,6 +201,46 @@ function markerIcon(item, selected = false) {
     iconSize: [180, 24],
     iconAnchor: [0, 0],
   });
+}
+
+function removeFootprintLayers(item) {
+  for (const layer of item.footprintLayers ?? []) layer.remove();
+  item.footprintLayers = [];
+}
+
+function updateFootprintLayers(item) {
+  if (!footprintsVisible || !item.position) {
+    removeFootprintLayers(item);
+    return;
+  }
+
+  const centers = [-360, 0, 360].map((longitudeOffset) => [
+    item.position.latitude,
+    item.position.longitude + longitudeOffset,
+  ]);
+  const radiusMeters = footprintDiameterKm * 500;
+  if (item.footprintLayers.length !== centers.length) {
+    removeFootprintLayers(item);
+    item.footprintLayers = centers.map((center) => L.circle(center, {
+      radius: radiusMeters,
+      color: item.color,
+      weight: 1.5,
+      opacity: 0.8,
+      fillColor: item.color,
+      fillOpacity: 0.1,
+      interactive: false,
+    }).addTo(map));
+    return;
+  }
+
+  item.footprintLayers.forEach((layer, index) => {
+    layer.setLatLng(centers[index]);
+    layer.setRadius(radiusMeters);
+  });
+}
+
+function refreshFootprints() {
+  for (const item of trackedSatellites) updateFootprintLayers(item);
 }
 
 function wrappedPairCoordinates(firstPosition, secondPosition) {
@@ -1006,6 +1052,7 @@ function updatePositions() {
   for (const item of trackedSatellites) {
     item.position = calculatePosition(item, now);
     if (!item.position) {
+      removeFootprintLayers(item);
       item.accessLineHalo?.remove();
       item.accessLineHalo = null;
       item.accessLine?.remove();
@@ -1026,6 +1073,8 @@ function updatePositions() {
       item.marker.setLatLng(latLng);
       item.marker.setIcon(markerIcon(item, highlighted));
     }
+
+    updateFootprintLayers(item);
 
     const hasAccess = item.position.groundElevation >= groundStation.minimumElevation;
     if (hasAccess) {
@@ -1214,6 +1263,7 @@ async function loadSatellites() {
   clearRecommendationVisualization(false);
   for (const item of trackedSatellites) {
     item.marker?.remove();
+    removeFootprintLayers(item);
     item.accessLineHalo?.remove();
     item.accessLine?.remove();
     for (const layer of item.trackLayers ?? []) layer.remove();
@@ -1235,6 +1285,7 @@ async function loadSatellites() {
       marker: null,
       position: null,
       trackLayers: [],
+      footprintLayers: [],
       accessLineHalo: null,
       accessLine: null,
       nextAccess: null,
@@ -1289,6 +1340,18 @@ elements.speedSelect.addEventListener("change", (event) => {
 });
 elements.groundTrackToggle.addEventListener("change", (event) => {
   setGroundTrackVisibility(event.target.checked);
+});
+elements.footprintToggle.addEventListener("change", (event) => {
+  footprintsVisible = event.target.checked;
+  localStorage.setItem("footprintsVisible", String(footprintsVisible));
+  refreshFootprints();
+});
+elements.footprintDiameter.addEventListener("input", (event) => {
+  const diameter = Number(event.target.value);
+  if (!Number.isFinite(diameter) || diameter < 1 || diameter > 20_000) return;
+  footprintDiameterKm = diameter;
+  localStorage.setItem("footprintDiameterKm", String(footprintDiameterKm));
+  refreshFootprints();
 });
 elements.clearSelection.addEventListener("click", () => {
   selectedIds = [];
