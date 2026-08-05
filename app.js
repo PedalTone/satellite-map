@@ -1,4 +1,5 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
+import { initializeLearningLab } from "./learning-lab.js";
 
 const map = L.map("map", {
   center: [18, 0],
@@ -77,6 +78,8 @@ const elements = {
   accessList: document.querySelector("#access-list"),
   accessToggle: document.querySelector("#access-toggle"),
   scenarioButton: document.querySelector("#scenario-button"),
+  learningButton: document.querySelector("#learning-button"),
+  mapButton: document.querySelector('[data-tab="map"]'),
   scenarioPanel: document.querySelector("#scenario-panel"),
   scenarioClose: document.querySelector("#scenario-close"),
   scenarioRun: document.querySelector("#scenario-run"),
@@ -112,6 +115,22 @@ const elements = {
   recommendationMapLabel: document.querySelector("#recommendation-map-label"),
   recommendationMapTime: document.querySelector("#recommendation-map-time"),
   recommendationMapClear: document.querySelector("#recommendation-map-clear"),
+  learningPanel: document.querySelector("#learning-panel"),
+  learningClose: document.querySelector("#learning-close"),
+};
+
+const learningElements = {
+  altitude: document.querySelector("#learning-altitude"),
+  altitudeValue: document.querySelector("#learning-altitude-value"),
+  inclination: document.querySelector("#learning-inclination"),
+  inclinationValue: document.querySelector("#learning-inclination-value"),
+  raan: document.querySelector("#learning-raan"),
+  raanValue: document.querySelector("#learning-raan-value"),
+  days: document.querySelector("#learning-days"),
+  groundTrack: document.querySelector("#learning-ground-track"),
+  insight: document.querySelector("#learning-insight"),
+  metrics: document.querySelector("#learning-metrics"),
+  explanation: document.querySelector("#learning-explanation"),
 };
 
 let trackedSatellites = [];
@@ -144,6 +163,14 @@ function currentSimulationDate() {
   simulationTimeMs += (nowMs - lastClockUpdateMs) * simulationSpeed;
   lastClockUpdateMs = nowMs;
   return new Date(simulationTimeMs);
+}
+
+function showAppTab(tab) {
+  elements.scenarioPanel.hidden = tab !== "analysis";
+  elements.learningPanel.hidden = tab !== "learning";
+  document.querySelectorAll(".app-tab").forEach((button) => {
+    button.classList.toggle("active", button.dataset.tab === tab);
+  });
 }
 
 function updateSimulationClock(date) {
@@ -330,7 +357,7 @@ function visualizeRecommendation(group) {
   elements.speedSelect.value = "0";
   simulationTimeMs = group.displayOpportunityMs;
   lastClockUpdateMs = Date.now();
-  elements.scenarioPanel.hidden = true;
+  showAppTab("map");
   elements.recommendationMapLabel.textContent = group.indices
     .map((index) => trackedSatellites[index].label)
     .join(" · ");
@@ -1506,11 +1533,14 @@ async function loadSatellites() {
 
 elements.refreshButton.addEventListener("click", loadSatellites);
 elements.scenarioButton.addEventListener("click", () => {
-  elements.scenarioPanel.hidden = false;
+  showAppTab("analysis");
 });
 elements.scenarioClose.addEventListener("click", () => {
-  elements.scenarioPanel.hidden = true;
+  showAppTab("map");
 });
+elements.learningButton.addEventListener("click", () => showAppTab("learning"));
+elements.learningClose.addEventListener("click", () => showAppTab("map"));
+elements.mapButton.addEventListener("click", () => showAppTab("map"));
 elements.scenarioRun.addEventListener("click", runScenarioAnalysis);
 elements.scenarioAnalysisDays.addEventListener("input", invalidateScenarioResults);
 elements.scenarioSatelliteCount.addEventListener("input", updateScenarioLinkCount);
@@ -1552,5 +1582,7 @@ elements.clearSelection.addEventListener("click", () => {
   selectedIds = [];
   updatePositions();
 });
+
+initializeLearningLab(learningElements);
 
 loadSatellites();
