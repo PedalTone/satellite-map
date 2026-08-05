@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <link rel="stylesheet" href="styles.css?v=variable-satellite-scenario-1">
+    <link rel="stylesheet" href="styles.css?v=ephemeris-request-ui-1">
   </head>
   <body>
     <main>
@@ -34,6 +34,10 @@
           <span id="status-text">Loading satellites…</span>
           <span class="panel-chevron" aria-hidden="true">⌄</span>
         </button>
+        <div class="ephemeris-control">
+          <a class="ephemeris-request" href="https://github.com/PedalTone/satellite-map/actions/workflows/refresh-satellite-data.yml" target="_blank" rel="noopener noreferrer">Request / Update Ephemeris</a>
+          <time id="ephemeris-epoch">Elements: loading…</time>
+        </div>
         <div id="satellite-summary" class="satellite-summary" hidden>
           <div class="summary-stat">
             <span>Launches</span>
@@ -224,6 +228,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=longest-opportunity-scenario-1"></script>
+    <script type="module" src="app.js?v=ephemeris-request-ui-1"></script>
   </body>
 </html>

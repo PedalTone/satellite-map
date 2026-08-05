@@ -67,6 +67,7 @@ const elements = {
   launchDate: document.querySelector("#detail-launch-date"),
   dataAge: document.querySelector("#data-age"),
   refreshButton: document.querySelector("#refresh-button"),
+  ephemerisEpoch: document.querySelector("#ephemeris-epoch"),
   clearSelection: document.querySelector("#clear-selection"),
   groundTrackToggle: document.querySelector("#ground-track-toggle"),
   footprintToggle: document.querySelector("#footprint-toggle"),
@@ -1318,6 +1319,29 @@ function formatLaunchDate(value) {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
+function updateEphemerisEpochDisplay(satellites) {
+  const epochs = satellites
+    .map((item) => new Date(item.omm.EPOCH))
+    .filter((date) => Number.isFinite(date.getTime()))
+    .sort((first, second) => first - second);
+  if (!epochs.length) {
+    elements.ephemerisEpoch.textContent = "Element epoch unavailable";
+    return;
+  }
+  const formatter = new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "UTC",
+    timeZoneName: "short",
+  });
+  elements.ephemerisEpoch.textContent = epochs[0].getTime() === epochs.at(-1).getTime()
+    ? `Element epoch: ${formatter.format(epochs[0])}`
+    : `Element epochs: ${formatter.format(epochs[0])} – ${formatter.format(epochs.at(-1))}`;
+}
+
 function updateSatelliteSummary() {
   const positions = trackedSatellites.map((item) => item.position).filter(Boolean);
   const altitudes = positions.map((position) => position.altitude);
@@ -1449,6 +1473,7 @@ async function loadSatellites() {
     }));
 
     updatePositions();
+    updateEphemerisEpochDisplay(trackedSatellites);
     updateSatelliteSummary();
     updateGroundTracks();
     updateAccessWindows();

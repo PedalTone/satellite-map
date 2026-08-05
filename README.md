@@ -98,6 +98,7 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 
 - Orbital elements: [CelesTrak](https://celestrak.org/)
 - Code and UI pushes deploy immediately using the checked-in satellite dataset; CelesTrak refreshes run separately every six hours or on manual request, then commit and deploy the refreshed data.
+- The map displays the loaded orbital-element epoch range and links to the manual **Request / Update Ephemeris** GitHub Actions workflow.
 - Map tiles: [OpenStreetMap](https://www.openstreetmap.org/)
 - SGP4 propagation: [satellite.js](https://github.com/shashwatak/satellite-js)
 - Map rendering: [Leaflet](https://leafletjs.com/)
