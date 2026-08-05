@@ -293,12 +293,14 @@ function updateRecommendationCrosslinks() {
     if (!layers) {
       layers = {
         halo: L.polyline(coordinates, {
+          className: "recommendation-crosslink-halo",
           color: "#050505",
           weight: 7,
           opacity: 0.8,
           interactive: false,
         }).addTo(map),
         line: L.polyline(coordinates, {
+          className: "recommendation-crosslink",
           color: "#66e0ff",
           weight: 3,
           opacity: 1,
@@ -318,24 +320,24 @@ function updateRecommendationCrosslinks() {
 function visualizeRecommendation(group) {
   clearRecommendationVisualization(false);
   visualizedRecommendationIds = group.indices.map((index) => trackedSatellites[index].id);
-  visualizedRecommendationLinks = group.bestGeometryLinks.map(({ first, second }) => [
+  visualizedRecommendationLinks = group.displayOpportunityLinks.map(({ first, second }) => [
     trackedSatellites[first].id,
     trackedSatellites[second].id,
   ]);
   simulationSpeed = 1;
   elements.speedSelect.value = "1";
-  simulationTimeMs = group.bestGeometryMs;
+  simulationTimeMs = group.displayOpportunityMs;
   lastClockUpdateMs = Date.now();
   elements.scenarioPanel.hidden = true;
   elements.recommendationMapLabel.textContent = group.indices
     .map((index) => trackedSatellites[index].label)
     .join(" · ");
-  elements.recommendationMapTime.textContent = new Date(group.bestGeometryMs).toLocaleString();
-  elements.recommendationMapTime.dateTime = new Date(group.bestGeometryMs).toISOString();
+  elements.recommendationMapTime.textContent = new Date(group.displayOpportunityMs).toLocaleString();
+  elements.recommendationMapTime.dateTime = new Date(group.displayOpportunityMs).toISOString();
   elements.recommendationMapBanner.hidden = false;
   updatePositions();
   updateGroundTracks();
-  updateAccessWindows(new Date(group.bestGeometryMs));
+  updateAccessWindows(new Date(group.displayOpportunityMs));
 }
 
 function splitAtDateLine(points) {
@@ -591,7 +593,6 @@ function qualifyingScenarioGroups(
 ) {
   const satelliteCount = positions.length;
   const links = Array.from({ length: satelliteCount }, () => new Float64Array(satelliteCount));
-  const earthClearances = Array.from({ length: satelliteCount }, () => new Float64Array(satelliteCount));
 
   for (let first = 0; first < satelliteCount; first += 1) {
     if (!positions[first]) continue;
@@ -617,14 +618,11 @@ function qualifyingScenarioGroups(
         );
         links[first][second] = distance;
         links[second][first] = distance;
-        const clearance = earthLineOfSightClearance(positions[first].eci, positions[second].eci);
-        earthClearances[first][second] = clearance;
-        earthClearances[second][first] = clearance;
       }
     }
   }
 
-  function bestGeometrySpanningTree(indices) {
+  function minimumDistanceSpanningTree(indices) {
     const connected = new Set([indices[0]]);
     const treeLinks = [];
     while (connected.size < indices.length) {
@@ -633,18 +631,7 @@ function qualifyingScenarioGroups(
         for (const second of indices) {
           const distance = links[first][second];
           if (connected.has(second) || !distance) continue;
-          const distanceMarginKm = Math.min(
-            distance - minimumDistanceKm,
-            maximumDistanceKm - distance,
-          );
-          const earthClearance = earthClearances[first][second];
-          if (
-            !bestLink
-            || distanceMarginKm > bestLink.distanceMarginKm
-            || (distanceMarginKm === bestLink.distanceMarginKm && earthClearance > bestLink.earthClearance)
-          ) {
-            bestLink = { first, second, distance, distanceMarginKm, earthClearance };
-          }
+          if (!bestLink || distance < bestLink.distance) bestLink = { first, second, distance };
         }
       }
       if (!bestLink) return null;
@@ -669,14 +656,9 @@ function qualifyingScenarioGroups(
         0,
       );
       if (!groundAccessCount) return;
-      const treeLinks = bestGeometrySpanningTree(sortedIndices);
+      const treeLinks = minimumDistanceSpanningTree(sortedIndices);
       if (treeLinks?.length === requestedSatelliteCount - 1) {
-        groups.set(key, {
-          groundAccessCount,
-          treeLinks,
-          minimumDistanceMarginKm: Math.min(...treeLinks.map((link) => link.distanceMarginKm)),
-          minimumEarthClearance: Math.min(...treeLinks.map((link) => link.earthClearance)),
-        });
+        groups.set(key, { groundAccessCount, treeLinks });
       }
       return;
     }
@@ -696,6 +678,60 @@ function qualifyingScenarioGroups(
     if (positions[root]?.groundAccess) growConnectedGroup([root]);
   }
   return groups;
+}
+
+function fixedScenarioGroupAt(
+  indices,
+  date,
+  minimumDistanceKm,
+  maximumDistanceKm,
+  samePlaneOnly,
+  raanToleranceDegrees,
+) {
+  const positions = scenarioPositionsAt(date);
+  const availableLinks = [];
+  for (let firstIndex = 0; firstIndex < indices.length; firstIndex += 1) {
+    const first = indices[firstIndex];
+    if (!positions[first]) return null;
+    for (let secondIndex = firstIndex + 1; secondIndex < indices.length; secondIndex += 1) {
+      const second = indices[secondIndex];
+      if (!positions[second]) return null;
+      const firstRaan = Number(trackedSatellites[first].omm.RA_OF_ASC_NODE);
+      const secondRaan = Number(trackedSatellites[second].omm.RA_OF_ASC_NODE);
+      if (
+        samePlaneOnly
+        && (
+          !Number.isFinite(firstRaan)
+          || !Number.isFinite(secondRaan)
+          || raanSeparationDegrees(firstRaan, secondRaan) > raanToleranceDegrees
+        )
+      ) continue;
+      if (hasEarthClearLink(positions[first].eci, positions[second].eci, minimumDistanceKm, maximumDistanceKm)) {
+        availableLinks.push({
+          first,
+          second,
+          distance: Math.hypot(
+            positions[first].eci.x - positions[second].eci.x,
+            positions[first].eci.y - positions[second].eci.y,
+            positions[first].eci.z - positions[second].eci.z,
+          ),
+        });
+      }
+    }
+  }
+
+  const connected = new Set([indices[0]]);
+  const treeLinks = [];
+  while (connected.size < indices.length) {
+    const bestLink = availableLinks
+      .filter((link) => connected.has(link.first) !== connected.has(link.second))
+      .sort((first, second) => first.distance - second.distance)[0];
+    if (!bestLink) return null;
+    connected.add(bestLink.first);
+    connected.add(bestLink.second);
+    treeLinks.push(bestLink);
+  }
+  return treeLinks;
 }
 
 function durationStatistics(durations) {
@@ -796,11 +832,10 @@ function createRecommendationCard(group, index) {
     durations.append(item);
   }
   evidence.className = "recommendation-evidence";
-  const bestGeometry = document.createElement("p");
-  const approximateEarthClearanceKm = group.bestGeometryEarthClearance * earthEquatorialRadiusKm;
-  bestGeometry.textContent = `Best geometry: ${new Date(group.bestGeometryMs).toLocaleString()} · weakest distance-bound margin ${group.bestGeometryDistanceMarginKm.toLocaleString(undefined, { maximumFractionDigits: 1 })} km · approximate minimum Earth clearance ${approximateEarthClearanceKm.toLocaleString(undefined, { maximumFractionDigits: 1 })} km`;
-  evidence.append(bestGeometry);
-  for (const link of group.bestGeometryLinks) {
+  const longestOpportunity = document.createElement("p");
+  longestOpportunity.textContent = `Longest continuous opportunity: ${new Date(group.longestEventStartMs).toLocaleString()} – ${new Date(group.longestEventEndMs).toLocaleString()} · ${formatScenarioDuration(group.maximumEventDurationMs)}. Map snapshot uses the midpoint.`;
+  evidence.append(longestOpportunity);
+  for (const link of group.displayOpportunityLinks) {
     const pair = document.createElement("span");
     const distance = link.distance.toLocaleString(undefined, {
       minimumFractionDigits: 1,
@@ -811,7 +846,7 @@ function createRecommendationCard(group, index) {
   }
   viewButton.className = "recommendation-map-button";
   viewButton.type = "button";
-  viewButton.textContent = "View best geometry on map";
+  viewButton.textContent = "View longest opportunity on map";
   viewButton.addEventListener("click", () => visualizeRecommendation(group));
   card.append(rank, heading, metrics, viewButton, durations, evidence);
   if (index === 0) {
@@ -830,7 +865,7 @@ function createRecommendationCard(group, index) {
       `Each qualifying connectivity window lasts ${formatScenarioDuration(group.averageEventDurationMs)} on average.`,
       `It produces at least one qualifying opportunity on ${group.coveredDayCount} of ${group.analysisDays} analysis days.`,
       `Two or more satellites have simultaneous ground access for ${formatScenarioDuration(group.twoGroundDurationMs)}, about ${multiGroundPercent}% of its connected time.`,
-      `Its best geometry keeps the weakest displayed link ${group.bestGeometryDistanceMarginKm.toLocaleString(undefined, { maximumFractionDigits: 1 })} km inside the selected distance bounds.`,
+      `Its longest continuous qualifying opportunity lasts ${formatScenarioDuration(group.maximumEventDurationMs)}.`,
       `Every counted window connects all ${group.satelliteCount} satellites through exactly ${group.satelliteCount - 1} displayed spanning-tree links inside the selected distance range${group.samePlaneOnly ? ` and within ${group.raanToleranceDegrees}° RAAN` : ""}, with Earth-clear line of sight.`,
     ]) {
       const item = document.createElement("li");
@@ -992,10 +1027,8 @@ async function runScenarioAnalysis() {
             minimumEventDurationMs: Infinity,
             maxGapMs: 0,
             coveredDays: new Set(),
-            bestGeometryMs: date.getTime(),
-            bestGeometryLinks: groupAccessCounts.get(key).treeLinks,
-            bestGeometryDistanceMarginKm: groupAccessCounts.get(key).minimumDistanceMarginKm,
-            bestGeometryEarthClearance: groupAccessCounts.get(key).minimumEarthClearance,
+            longestEventStartMs: date.getTime(),
+            longestEventEndMs: date.getTime() + scenarioStepMs,
             minimumLinkDistance: Infinity,
             maximumLinkDistance: 0,
             twoGroundDurationMs: 0,
@@ -1014,18 +1047,6 @@ async function runScenarioAnalysis() {
         }
         const groupDetails = groupAccessCounts.get(key);
         const groundAccessCount = groupDetails.groundAccessCount;
-        if (
-          groupDetails.minimumDistanceMarginKm > stats.bestGeometryDistanceMarginKm
-          || (
-            groupDetails.minimumDistanceMarginKm === stats.bestGeometryDistanceMarginKm
-            && groupDetails.minimumEarthClearance > stats.bestGeometryEarthClearance
-          )
-        ) {
-          stats.bestGeometryMs = date.getTime();
-          stats.bestGeometryLinks = groupDetails.treeLinks;
-          stats.bestGeometryDistanceMarginKm = groupDetails.minimumDistanceMarginKm;
-          stats.bestGeometryEarthClearance = groupDetails.minimumEarthClearance;
-        }
         groupDetails.treeLinks.forEach(({ distance }) => {
           if (!(distance > minimumDistanceKm && distance < maximumDistanceKm)) {
             throw new Error(`Scenario distance invariant failed for ${key}: ${distance} km`);
@@ -1048,7 +1069,11 @@ async function runScenarioAnalysis() {
         const stats = groupStats.get(key);
         const eventDurationMs = date.getTime() - stats.eventStartMs;
         stats.minimumEventDurationMs = Math.min(stats.minimumEventDurationMs, eventDurationMs);
-        stats.maximumEventDurationMs = Math.max(stats.maximumEventDurationMs, eventDurationMs);
+        if (eventDurationMs > stats.maximumEventDurationMs) {
+          stats.maximumEventDurationMs = eventDurationMs;
+          stats.longestEventStartMs = stats.eventStartMs;
+          stats.longestEventEndMs = date.getTime();
+        }
         stats.eventStartMs = null;
         stats.lastEndMs = date.getTime();
       }
@@ -1080,7 +1105,11 @@ async function runScenarioAnalysis() {
       if (stats.eventStartMs !== null) {
         const eventDurationMs = end.getTime() - stats.eventStartMs;
         stats.minimumEventDurationMs = Math.min(stats.minimumEventDurationMs, eventDurationMs);
-        stats.maximumEventDurationMs = Math.max(stats.maximumEventDurationMs, eventDurationMs);
+        if (eventDurationMs > stats.maximumEventDurationMs) {
+          stats.maximumEventDurationMs = eventDurationMs;
+          stats.longestEventStartMs = stats.eventStartMs;
+          stats.longestEventEndMs = end.getTime();
+        }
         stats.eventStartMs = null;
         stats.lastEndMs = end.getTime();
       }
@@ -1101,10 +1130,8 @@ async function runScenarioAnalysis() {
         averageEventDurationMs: stats.durationMs / stats.eventCount,
         maxGapMs: stats.maxGapMs,
         coveredDayCount: stats.coveredDays.size,
-        bestGeometryMs: stats.bestGeometryMs,
-        bestGeometryLinks: stats.bestGeometryLinks,
-        bestGeometryDistanceMarginKm: stats.bestGeometryDistanceMarginKm,
-        bestGeometryEarthClearance: stats.bestGeometryEarthClearance,
+        longestEventStartMs: stats.longestEventStartMs,
+        longestEventEndMs: stats.longestEventEndMs,
         minimumLinkDistance: stats.minimumLinkDistance,
         maximumLinkDistance: stats.maximumLinkDistance,
         analysisDays,
@@ -1114,6 +1141,30 @@ async function runScenarioAnalysis() {
       }))
       .sort((first, second) => second.durationMs - first.durationMs);
     const recommendedGroups = [...groups].sort(robustnessComparator);
+    for (const group of recommendedGroups.slice(0, 3)) {
+      const midpointMs = group.longestEventStartMs
+        + (group.longestEventEndMs - group.longestEventStartMs) / 2;
+      group.displayOpportunityMs = midpointMs;
+      group.displayOpportunityLinks = fixedScenarioGroupAt(
+        group.indices,
+        new Date(midpointMs),
+        minimumDistanceKm,
+        maximumDistanceKm,
+        samePlaneOnly,
+        raanToleranceDegrees,
+      );
+      if (!group.displayOpportunityLinks) {
+        group.displayOpportunityMs = group.longestEventStartMs;
+        group.displayOpportunityLinks = fixedScenarioGroupAt(
+          group.indices,
+          new Date(group.displayOpportunityMs),
+          minimumDistanceKm,
+          maximumDistanceKm,
+          samePlaneOnly,
+          raanToleranceDegrees,
+        ) ?? [];
+      }
+    }
     renderScenarioResults({
       start,
       end,
