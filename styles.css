@@ -383,7 +383,7 @@ button { font: inherit; }
 }
 
 .footprint-diameter input {
-  width: 62px;
+  width: 58px;
   padding: 4px 6px;
   border: 1px solid var(--line);
   border-radius: 7px;
