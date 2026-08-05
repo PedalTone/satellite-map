@@ -84,14 +84,14 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 - Selecting two satellites displays their straight-line separation in Earth-centered inertial space.
 - Two-satellite comparisons use a WGS-84 oblate Earth model to label whether Earth occludes the line of sight and color occluded map links red.
 - Optional satellite coverage footprints use a user-defined ground diameter in kilometres and follow each satellite's subsatellite point.
-- Scenario Lab performs a user-selected 1–60 day geometric feasibility scan for mutually connected three-satellite groups with simultaneous Central Alaska access and a configurable inter-satellite distance range; the default horizon is seven days.
+- Scenario Lab performs a user-selected 1–60 day geometric feasibility scan for connected groups of three to six satellites with simultaneous Central Alaska access and a configurable inter-satellite distance range; the default horizon is seven days.
 - Changing either distance bound invalidates the previous analysis so recommendations always correspond to the displayed settings.
 - An optional same-plane filter excludes links whose satellites differ by more than a user-selected RAAN tolerance.
 - Scenario results use two-minute sampling, account for Earth blocking inter-satellite links, and report union duration, opportunity windows, and totals by satellite group.
-- Scenario Lab compares combination-window duration statistics for one, two, or all three satellites having simultaneous ground access and identifies the groups reaching each tier.
-- Scenario Lab recommends a fixed three-satellite combination using transparent priorities: total qualifying connectivity, average/minimum/maximum connectivity-window duration, time with multiple simultaneous ground links, and covered days.
-- Recommendation cards show the first qualifying opportunity and independently accumulated minimum–maximum distance for all three satellite pairs during valid windows.
-- Recommendation cards can jump the live map to their first qualifying opportunity and draw all three inter-satellite crosslinks for visual verification.
+- Scenario Lab compares combination-window duration statistics for one, two, or all selected satellites having simultaneous ground access and identifies the groups reaching each tier.
+- Scenario Lab recommends a fixed satellite combination using transparent priorities: total qualifying connectivity, average/minimum/maximum connectivity-window duration, time with multiple simultaneous ground links, and covered days.
+- Each qualifying group is represented by a minimum spanning tree containing exactly one fewer inter-satellite link than satellites; every displayed link must satisfy the selected distance, RAAN, and WGS-84 Earth-clear constraints.
+- Recommendation cards can jump the live map to their first qualifying opportunity and draw the spanning-tree inter-satellite links for visual verification.
 - CelesTrak data is for visualization and is not appropriate for safety-critical operations.
 
 ## Third-party services

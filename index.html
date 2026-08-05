@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <link rel="stylesheet" href="styles.css?v=coverage-footprints-2">
+    <link rel="stylesheet" href="styles.css?v=variable-satellite-scenario-1">
   </head>
   <body>
     <main>
@@ -134,22 +134,27 @@
         <div class="scenario-header">
           <div>
             <p class="eyebrow">Feasibility analysis</p>
-            <h2 id="scenario-title">Three-Satellite Connectivity</h2>
+            <h2 id="scenario-title">Multi-Satellite Connectivity</h2>
           </div>
           <button id="scenario-close" class="icon-button scenario-close" type="button" aria-label="Close Scenario Lab">×</button>
         </div>
         <p class="scenario-question">
-          During the selected analysis period, when can three satellites maintain qualifying mutual space links while at least one has Central Alaska access at 10° or higher?
+          During the selected analysis period, when can a user-selected number of satellites form a connected space network while at least one has Central Alaska access at 10° or higher?
         </p>
         <div class="scenario-assumptions">
           <span>2-minute resolution</span>
           <span>Earth-clear links</span>
+          <span id="scenario-link-count">3 satellites · 2 links</span>
           <span>Non-operational estimate</span>
         </div>
         <div class="scenario-range" aria-label="Inter-satellite distance range">
           <label for="scenario-analysis-days">
             Analysis period
             <span><input id="scenario-analysis-days" type="number" min="1" max="60" step="1" value="7" inputmode="numeric"> days</span>
+          </label>
+          <label for="scenario-satellite-count">
+            Satellites
+            <span><input id="scenario-satellite-count" type="number" min="3" max="6" step="1" value="3" inputmode="numeric"> total</span>
           </label>
           <label for="scenario-minimum-distance">
             Lower bound
@@ -199,7 +204,7 @@
             <div id="scenario-multi-list" class="scenario-group-list scenario-tier-list"></div>
           </details>
           <details class="scenario-window-details">
-            <summary id="scenario-triple-summary">Groups with all 3 satellites in ground access</summary>
+            <summary id="scenario-triple-summary">Groups with all satellites in ground access</summary>
             <div id="scenario-triple-list" class="scenario-group-list scenario-tier-list"></div>
           </details>
           <h3>Groups by total opportunity time</h3>
@@ -219,6 +224,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=coverage-footprints-1"></script>
+    <script type="module" src="app.js?v=variable-satellite-scenario-1"></script>
   </body>
 </html>
