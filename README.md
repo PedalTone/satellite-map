@@ -91,7 +91,7 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 - Scenario Lab compares combination-window duration statistics for one, two, or all selected satellites having simultaneous ground access and identifies the groups reaching each tier.
 - Scenario Lab recommends a fixed satellite combination using transparent priorities: total qualifying connectivity, average/minimum/maximum connectivity-window duration, time with multiple simultaneous ground links, and covered days.
 - Each qualifying group is represented by a minimum spanning tree containing exactly one fewer inter-satellite link than satellites; every displayed link must satisfy the selected distance, RAAN, and WGS-84 Earth-clear constraints.
-- Recommendation cards can jump the live map to their first qualifying opportunity and draw the spanning-tree inter-satellite links for visual verification.
+- Recommendation cards identify the most robust geometry during the analysis period by maximizing the weakest spanning-tree link's margin from the selected distance bounds, breaking ties with WGS-84 Earth clearance; they can jump the live map to that geometry for visual verification.
 - CelesTrak data is for visualization and is not appropriate for safety-critical operations.
 
 ## Third-party services
