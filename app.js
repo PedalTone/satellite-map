@@ -57,6 +57,7 @@ const elements = {
   separationDetail: document.querySelector("#separation-detail"),
   separationLabel: document.querySelector("#separation-label"),
   separationDistance: document.querySelector("#separation-distance"),
+  separationVisibility: document.querySelector("#separation-visibility"),
   altitude: document.querySelector("#detail-altitude"),
   speed: document.querySelector("#detail-speed"),
   latitude: document.querySelector("#detail-latitude"),
@@ -434,17 +435,14 @@ function calculatePosition(item, date) {
   };
 }
 
-function hasEarthClearLink(firstPosition, secondPosition, minimumDistanceKm, maximumDistanceKm) {
+function hasEarthLineOfSight(firstPosition, secondPosition) {
   const delta = {
     x: secondPosition.x - firstPosition.x,
     y: secondPosition.y - firstPosition.y,
     z: secondPosition.z - firstPosition.z,
   };
   const distanceSquared = delta.x ** 2 + delta.y ** 2 + delta.z ** 2;
-  if (
-    distanceSquared <= minimumDistanceKm ** 2
-    || distanceSquared >= maximumDistanceKm ** 2
-  ) return false;
+  if (distanceSquared === 0) return true;
 
   const projection = -(
     firstPosition.x * delta.x
@@ -458,6 +456,17 @@ function hasEarthClearLink(firstPosition, secondPosition, minimumDistanceKm, max
     z: firstPosition.z + segmentFraction * delta.z,
   };
   return Math.hypot(closestPoint.x, closestPoint.y, closestPoint.z) > earthRadiusKm;
+}
+
+function hasEarthClearLink(firstPosition, secondPosition, minimumDistanceKm, maximumDistanceKm) {
+  const distance = Math.hypot(
+    secondPosition.x - firstPosition.x,
+    secondPosition.y - firstPosition.y,
+    secondPosition.z - firstPosition.z
+  );
+  return distance > minimumDistanceKm
+    && distance < maximumDistanceKm
+    && hasEarthLineOfSight(firstPosition, secondPosition);
 }
 
 function raanSeparationDegrees(firstRaan, secondRaan) {
@@ -1164,12 +1173,22 @@ function updateDetailPanel() {
       z: first.position.eci.z - second.position.eci.z,
     };
     const distance = Math.hypot(delta.x, delta.y, delta.z);
+    const earthClear = hasEarthLineOfSight(first.position.eci, second.position.eci);
     elements.separationLabel.textContent = `${first.label} ↔ ${second.label}`;
     elements.separationDistance.textContent = `${distance.toLocaleString(undefined, { maximumFractionDigits: 1 })} km`;
-    separationLine = L.polyline([
-      [first.position.latitude, first.position.longitude],
-      [second.position.latitude, second.position.longitude],
-    ], { color: "#111111", weight: 3, dashArray: "6 7", opacity: 0.95 }).addTo(map);
+    elements.separationVisibility.textContent = earthClear
+      ? "Earth-clear line of sight"
+      : "Line of sight occluded by Earth";
+    elements.separationVisibility.className = `separation-visibility ${earthClear ? "clear" : "occluded"}`;
+    separationLine = L.polyline(
+      wrappedPairCoordinates(first.position, second.position),
+      {
+        color: earthClear ? "#111111" : "#d7263d",
+        weight: earthClear ? 3 : 4,
+        dashArray: earthClear ? "6 7" : "3 7",
+        opacity: 0.95,
+      }
+    ).addTo(map);
   }
 }
 

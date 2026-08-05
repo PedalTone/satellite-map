@@ -503,6 +503,14 @@ body.summary-expanded .detail-panel {
   font-size: 17px;
 }
 
+.separation .separation-visibility {
+  margin: 4px 0 2px;
+  font-weight: 750;
+}
+
+.separation-visibility.clear { color: #adf7c8; }
+.separation-visibility.occluded { color: #ff9c9c; }
+
 .data-age { margin: 8px 0 0; font-size: 9px; }
 
 .scenario-panel {
