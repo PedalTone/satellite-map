@@ -160,6 +160,7 @@ function updateSimulationClock(date) {
 
 function setSimulationSpeed(speed) {
   currentSimulationDate();
+  if (!elements.recommendationMapBanner.hidden && speed !== 0) clearRecommendationVisualization(false);
   simulationSpeed = speed;
   if (speed === 1) simulationTimeMs = Date.now();
   lastClockUpdateMs = Date.now();
@@ -325,8 +326,8 @@ function visualizeRecommendation(group) {
     trackedSatellites[first].id,
     trackedSatellites[second].id,
   ]);
-  simulationSpeed = 1;
-  elements.speedSelect.value = "1";
+  simulationSpeed = 0;
+  elements.speedSelect.value = "0";
   simulationTimeMs = group.displayOpportunityMs;
   lastClockUpdateMs = Date.now();
   elements.scenarioPanel.hidden = true;
@@ -339,6 +340,17 @@ function visualizeRecommendation(group) {
   updatePositions();
   updateGroundTracks();
   updateAccessWindows(new Date(group.displayOpportunityMs));
+}
+
+function returnToRealTime() {
+  clearRecommendationVisualization(false);
+  simulationSpeed = 1;
+  elements.speedSelect.value = "1";
+  simulationTimeMs = Date.now();
+  lastClockUpdateMs = Date.now();
+  updatePositions();
+  updateGroundTracks();
+  updateAccessWindows(new Date(simulationTimeMs));
 }
 
 function splitAtDateLine(points) {
@@ -1509,7 +1521,7 @@ elements.scenarioSamePlaneOnly.addEventListener("change", () => {
   invalidateScenarioResults();
 });
 elements.scenarioRaanTolerance.addEventListener("input", invalidateScenarioResults);
-elements.recommendationMapClear.addEventListener("click", () => clearRecommendationVisualization());
+elements.recommendationMapClear.addEventListener("click", returnToRealTime);
 elements.summaryToggle.addEventListener("click", () => {
   const expanded = elements.summaryToggle.getAttribute("aria-expanded") !== "true";
   setPanelExpanded(elements.summaryToggle, elements.satelliteSummary, expanded, "summary-expanded");

@@ -92,6 +92,7 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 - Scenario Lab recommends a fixed satellite combination using transparent priorities: total qualifying connectivity, average/minimum/maximum connectivity-window duration, time with multiple simultaneous ground links, and covered days.
 - Each qualifying group is represented by a minimum spanning tree containing exactly one fewer inter-satellite link than satellites; every displayed link must satisfy the selected distance, RAAN, and WGS-84 Earth-clear constraints.
 - Recommendation cards rank groups by total accumulated qualifying duration, identify each group's longest continuous opportunity, and jump the live map to the midpoint of that window for visual verification.
+- Scenario map jumps pause the simulation at the selected historical/future epoch so positions, tracks, access, and crosslinks remain synchronized; **Return to real time** restores the live clock and current positions.
 - CelesTrak data is for visualization and is not appropriate for safety-critical operations.
 
 ## Third-party services

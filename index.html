@@ -62,6 +62,7 @@
       <section class="time-control" aria-label="Simulation time controls">
         <label for="speed-select">Time speed</label>
         <select id="speed-select">
+          <option value="0">Paused</option>
           <option value="1">1× Real time</option>
           <option value="10">10×</option>
           <option value="50">50×</option>
@@ -219,15 +220,15 @@
 
       <section id="recommendation-map-banner" class="recommendation-map-banner" hidden>
         <div>
-          <span>Scenario recommendation</span>
+          <span>Scenario epoch · paused</span>
           <strong id="recommendation-map-label">—</strong>
           <time id="recommendation-map-time">—</time>
         </div>
-        <button id="recommendation-map-clear" class="text-button" type="button">Clear crosslinks</button>
+        <button id="recommendation-map-clear" class="text-button" type="button">Return to real time</button>
       </section>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=ephemeris-request-ui-1"></script>
+    <script type="module" src="app.js?v=frozen-scenario-epoch-1"></script>
   </body>
 </html>
