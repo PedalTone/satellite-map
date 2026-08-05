@@ -11,7 +11,9 @@ This file is a working notebook for possible improvements. Items here are ideas,
 
 ## Visualization
 
-- Add a 3D globe view while retaining the existing 2D map.
+- Add an interactive 3D globe view while retaining the existing 2D map.
+- Plot satellites at their current 3D positions with optional altitude exaggeration, orbit paths, ground tracks, ground stations, and Earth-occluded crosslinks.
+- Allow rotating, zooming, and switching between 2D and 3D without losing the selected satellites or simulation time.
 - Evaluate an alternative basemap whose place labels are consistently displayed in English.
 - Show orbital planes and relative plane spacing.
 - Add true-scale and exaggerated-altitude modes.

@@ -122,7 +122,9 @@ let lastAccessPanelRenderMs = 0;
 let visualizedRecommendationIds = [];
 let recommendationCrosslinkLayers = [];
 const trackColors = ["#66e0ff", "#ff7a90", "#a98bff", "#73e6a2", "#ffad5c", "#f3e56b"];
-const earthRadiusKm = 6378.137;
+const earthEquatorialRadiusKm = 6378.137;
+const earthFlattening = 1 / 298.257223563;
+const earthPolarRadiusKm = earthEquatorialRadiusKm * (1 - earthFlattening);
 const scenarioStepMs = 2 * 60_000;
 
 elements.groundTrackToggle.checked = groundTracksVisible;
@@ -436,26 +438,40 @@ function calculatePosition(item, date) {
 }
 
 function hasEarthLineOfSight(firstPosition, secondPosition) {
-  const delta = {
-    x: secondPosition.x - firstPosition.x,
-    y: secondPosition.y - firstPosition.y,
-    z: secondPosition.z - firstPosition.z,
+  const firstScaled = {
+    x: firstPosition.x / earthEquatorialRadiusKm,
+    y: firstPosition.y / earthEquatorialRadiusKm,
+    z: firstPosition.z / earthPolarRadiusKm,
   };
-  const distanceSquared = delta.x ** 2 + delta.y ** 2 + delta.z ** 2;
+  const secondScaled = {
+    x: secondPosition.x / earthEquatorialRadiusKm,
+    y: secondPosition.y / earthEquatorialRadiusKm,
+    z: secondPosition.z / earthPolarRadiusKm,
+  };
+  const scaledDelta = {
+    x: secondScaled.x - firstScaled.x,
+    y: secondScaled.y - firstScaled.y,
+    z: secondScaled.z - firstScaled.z,
+  };
+  const distanceSquared = scaledDelta.x ** 2 + scaledDelta.y ** 2 + scaledDelta.z ** 2;
   if (distanceSquared === 0) return true;
 
   const projection = -(
-    firstPosition.x * delta.x
-    + firstPosition.y * delta.y
-    + firstPosition.z * delta.z
+    firstScaled.x * scaledDelta.x
+    + firstScaled.y * scaledDelta.y
+    + firstScaled.z * scaledDelta.z
   ) / distanceSquared;
   const segmentFraction = Math.max(0, Math.min(1, projection));
-  const closestPoint = {
-    x: firstPosition.x + segmentFraction * delta.x,
-    y: firstPosition.y + segmentFraction * delta.y,
-    z: firstPosition.z + segmentFraction * delta.z,
+  const closestScaledPoint = {
+    x: firstScaled.x + segmentFraction * scaledDelta.x,
+    y: firstScaled.y + segmentFraction * scaledDelta.y,
+    z: firstScaled.z + segmentFraction * scaledDelta.z,
   };
-  return Math.hypot(closestPoint.x, closestPoint.y, closestPoint.z) > earthRadiusKm;
+  return Math.hypot(
+    closestScaledPoint.x,
+    closestScaledPoint.y,
+    closestScaledPoint.z,
+  ) > 1;
 }
 
 function hasEarthClearLink(firstPosition, secondPosition, minimumDistanceKm, maximumDistanceKm) {

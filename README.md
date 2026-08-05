@@ -82,7 +82,7 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 - The status card summarizes launch groups plus current altitude, inclination, and RAAN spreads.
 - Failed downloads reuse previously generated data when available.
 - Selecting two satellites displays their straight-line separation in Earth-centered inertial space.
-- Two-satellite comparisons label whether Earth occludes the line of sight and color occluded map links red.
+- Two-satellite comparisons use a WGS-84 oblate Earth model to label whether Earth occludes the line of sight and color occluded map links red.
 - Scenario Lab performs a user-selected 1–60 day geometric feasibility scan for mutually connected three-satellite groups with simultaneous Central Alaska access and a configurable inter-satellite distance range; the default horizon is seven days.
 - Changing either distance bound invalidates the previous analysis so recommendations always correspond to the displayed settings.
 - An optional same-plane filter excludes links whose satellites differ by more than a user-selected RAAN tolerance.
