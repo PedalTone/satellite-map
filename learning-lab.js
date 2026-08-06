@@ -100,6 +100,12 @@ function formatMinutes(seconds) {
   return `${(seconds / 60).toFixed(1)} min`;
 }
 
+function orbitRegime(altitude) {
+  if (altitude < 2000) return "LEO";
+  if (altitude < 35000) return "MEO";
+  return "GEO altitude";
+}
+
 function groundTrackSegments(config) {
   const duration = orbitPeriodSeconds(config.altitude) * 2;
   const points = [];
@@ -193,7 +199,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     };
     currentConfig = config;
     const days = Math.max(1, Math.min(30, Number(elements.days.value) || 7));
-    elements.altitudeValue.textContent = `${config.altitude} km`;
+    elements.altitudeValue.textContent = `${config.altitude.toLocaleString()} km · ${orbitRegime(config.altitude)}`;
     elements.inclinationValue.textContent = `${config.inclination}°`;
     elements.raanValue.textContent = `${config.raan}°`;
 
@@ -232,6 +238,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     if (config.altitude !== BASELINE.altitude) changes.push(`Altitude changes orbit size, period, viewing footprint, and time above the elevation mask.`);
     if (config.inclination !== BASELINE.inclination) changes.push(`Inclination changes latitude reach. Central Alaska is at ${STATION.latitude}° N, so low-inclination orbits may never rise above the 10° mask.`);
     if (config.raan !== BASELINE.raan) changes.push("RAAN rotates the orbital plane around Earth. It shifts pass timing and ground-track longitude without changing orbital period.");
+    if (config.altitude >= 35000) changes.push("A circular orbit near 35,786 km is geosynchronous. It is geostationary only when inclination is 0° and the orbit is equatorial.");
     if (!changes.length) changes.push("The modified orbit currently matches the baseline. Move one control and watch which outcomes change.");
     elements.explanation.replaceChildren(...changes.map((text) => Object.assign(document.createElement("p"), { textContent: text })));
 
