@@ -148,6 +148,7 @@ let lastAccessPanelRenderMs = 0;
 let visualizedRecommendationIds = [];
 let visualizedRecommendationLinks = [];
 let recommendationCrosslinkLayers = [];
+let learningLabController;
 const trackColors = ["#66e0ff", "#ff7a90", "#a98bff", "#73e6a2", "#ffad5c", "#f3e56b"];
 const earthEquatorialRadiusKm = 6378.137;
 const earthFlattening = 1 / 298.257223563;
@@ -168,6 +169,8 @@ function currentSimulationDate() {
 function showAppTab(tab) {
   elements.scenarioPanel.hidden = tab !== "analysis";
   elements.learningPanel.hidden = tab !== "learning";
+  document.body.dataset.appTab = tab;
+  learningLabController?.setActive(tab === "learning");
   document.querySelectorAll(".app-tab").forEach((button) => {
     button.classList.toggle("active", button.dataset.tab === tab);
   });
@@ -264,6 +267,7 @@ function updateFootprintLayers(item) {
   if (item.footprintLayers.length !== centers.length) {
     removeFootprintLayers(item);
     item.footprintLayers = centers.map((center) => L.circle(center, {
+      className: "live-footprint",
       radius: radiusMeters,
       color: item.color,
       weight: 1.5,
@@ -419,6 +423,7 @@ function updateGroundTracks() {
 
     item.trackLayers = splitAtDateLine(points).map((segment) => {
       const layer = L.polyline(segment, {
+        className: "live-ground-track",
         color: item.color,
         weight: 2,
         opacity: 0.72,
@@ -1468,6 +1473,7 @@ function updateDetailPanel() {
     separationLine = L.polyline(
       wrappedPairCoordinates(first.position, second.position),
       {
+        className: "live-separation-line",
         color: earthClear ? "#111111" : "#d7263d",
         weight: earthClear ? 3 : 4,
         dashArray: earthClear ? "6 7" : "3 7",
@@ -1583,6 +1589,6 @@ elements.clearSelection.addEventListener("click", () => {
   updatePositions();
 });
 
-initializeLearningLab(learningElements);
+learningLabController = initializeLearningLab(learningElements, { map, leaflet: L });
 
 loadSatellites();

@@ -627,6 +627,56 @@ body.summary-expanded .detail-panel {
   backdrop-filter: blur(22px);
 }
 
+.learning-panel {
+  z-index: 1900;
+  top: calc(72px + env(safe-area-inset-top));
+  right: 14px;
+  bottom: 14px;
+  width: min(370px, calc(100vw - 28px));
+  height: auto;
+  padding: 14px;
+  border: 1px solid rgba(102, 224, 255, 0.25);
+  border-radius: 18px;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.5);
+}
+
+.learning-mode-badge {
+  margin: -3px 46px 10px 0;
+  color: #d9f8ff;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+body[data-app-tab="learning"] .status-panel,
+body[data-app-tab="learning"] .time-control,
+body[data-app-tab="learning"] .access-panel,
+body[data-app-tab="learning"] .map-overlays,
+body[data-app-tab="learning"] .detail-panel,
+body[data-app-tab="learning"] .recommendation-map-banner,
+body[data-app-tab="learning"] .satellite-marker,
+body[data-app-tab="learning"] .live-ground-track,
+body[data-app-tab="learning"] .live-footprint,
+body[data-app-tab="learning"] .access-link,
+body[data-app-tab="learning"] .access-link-halo,
+body[data-app-tab="learning"] .live-separation-line,
+body[data-app-tab="learning"] .recommendation-crosslink,
+body[data-app-tab="learning"] .recommendation-crosslink-halo {
+  display: none;
+}
+
+body[data-app-tab="learning"] .topbar h1 { font-size: 0; }
+body[data-app-tab="learning"] .topbar h1::after { content: "Orbital Learning Lab"; font-size: 23px; }
+body[data-app-tab="learning"] .topbar .eyebrow { font-size: 0; }
+body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational workspace"; font-size: 10px; }
+
+.learning-map-marker { overflow: visible; background: transparent; border: 0; white-space: nowrap; }
+.learning-map-marker strong { margin-left: 7px; padding: 4px 7px; border-radius: 8px; color: #fff; background: rgba(5, 13, 25, 0.88); font-size: 11px; box-shadow: 0 2px 8px rgba(0,0,0,.45); }
+.learning-map-dot { display: inline-block; width: 14px; height: 14px; border: 2px solid #fff; border-radius: 50%; vertical-align: middle; }
+.learning-map-dot.baseline { background: #9caac0; box-shadow: 0 0 10px #9caac0; }
+.learning-map-dot.modified { background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+
 .scenario-panel[hidden], .learning-panel[hidden] { display: none; }
 
 .learning-question-list {
@@ -1207,6 +1257,16 @@ body.summary-expanded .detail-panel {
   .app-tab { padding: 6px 7px; font-size: 9px; }
   .topbar-actions .icon-button { width: 34px; height: 34px; }
   .learning-controls, .learning-metrics { grid-template-columns: repeat(2, 1fr); }
+  .learning-panel {
+    top: auto;
+    left: 8px;
+    right: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    width: auto;
+    height: min(58vh, 520px);
+    border-radius: 16px;
+  }
+  body[data-app-tab="learning"] .topbar h1::after { font-size: 18px; }
   .metrics { grid-template-columns: repeat(2, 1fr); }
   .satellite-label { font-size: 10px; }
   .summary-stat { padding-inline: 7px; }

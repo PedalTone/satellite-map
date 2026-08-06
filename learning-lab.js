@@ -126,8 +126,59 @@ function metricCard(label, baseline, modified) {
   return card;
 }
 
-export function initializeLearningLab(elements) {
+export function initializeLearningLab(elements, { map, leaflet }) {
   const controls = [elements.altitude, elements.inclination, elements.raan, elements.days];
+  const overlayGroup = leaflet.layerGroup();
+  let active = false;
+  let currentConfig = { ...BASELINE };
+  let animationStartMs = Date.now();
+  let animationTimer;
+
+  function wrappedSegments(segments) {
+    return segments.flatMap((segment) => [-360, 0, 360].map((offset) =>
+      segment.map((point) => [point.latitude, point.longitude + offset])
+    ));
+  }
+
+  function markerIcon(label, className) {
+    return leaflet.divIcon({
+      className: "learning-map-marker",
+      html: `<span class="learning-map-dot ${className}"></span><strong>${label}</strong>`,
+      iconSize: [100, 28],
+      iconAnchor: [8, 8],
+    });
+  }
+
+  let baselineMarker;
+  let modifiedMarker;
+  let baselineFootprint;
+  let modifiedFootprint;
+
+  function updateAnimatedPositions() {
+    if (!active || !baselineMarker || !modifiedMarker) return;
+    const elapsedSeconds = (Date.now() - animationStartMs) / 1000;
+    const baselinePoint = geodetic(positionAt(BASELINE, elapsedSeconds));
+    const modifiedPoint = geodetic(positionAt(currentConfig, elapsedSeconds));
+    baselineMarker.setLatLng([baselinePoint.latitude, baselinePoint.longitude]);
+    modifiedMarker.setLatLng([modifiedPoint.latitude, modifiedPoint.longitude]);
+    baselineFootprint.setLatLng([baselinePoint.latitude, baselinePoint.longitude]);
+    modifiedFootprint.setLatLng([modifiedPoint.latitude, modifiedPoint.longitude]);
+  }
+
+  function renderMapOverlays() {
+    overlayGroup.clearLayers();
+    wrappedSegments(groundTrackSegments(BASELINE)).forEach((segment) => {
+      leaflet.polyline(segment, { className: "learning-baseline-map-track", color: "#9caac0", weight: 3, opacity: 0.9, dashArray: "8 7", interactive: false }).addTo(overlayGroup);
+    });
+    wrappedSegments(groundTrackSegments(currentConfig)).forEach((segment) => {
+      leaflet.polyline(segment, { className: "learning-modified-map-track", color: "#66e0ff", weight: 4, opacity: 1, interactive: false }).addTo(overlayGroup);
+    });
+    baselineFootprint = leaflet.circle([0, 0], { className: "learning-baseline-footprint", radius: coverageDiameter(BASELINE.altitude) * 500, color: "#9caac0", weight: 1, fillOpacity: 0.035, interactive: false }).addTo(overlayGroup);
+    modifiedFootprint = leaflet.circle([0, 0], { className: "learning-modified-footprint", radius: coverageDiameter(currentConfig.altitude) * 500, color: "#66e0ff", weight: 2, fillOpacity: 0.07, interactive: false }).addTo(overlayGroup);
+    baselineMarker = leaflet.marker([0, 0], { icon: markerIcon("Baseline", "baseline"), interactive: false }).addTo(overlayGroup);
+    modifiedMarker = leaflet.marker([0, 0], { icon: markerIcon("Modified", "modified"), interactive: false }).addTo(overlayGroup);
+    updateAnimatedPositions();
+  }
 
   function render() {
     const config = {
@@ -135,6 +186,7 @@ export function initializeLearningLab(elements) {
       inclination: Number(elements.inclination.value),
       raan: Number(elements.raan.value),
     };
+    currentConfig = config;
     const days = Math.max(1, Math.min(30, Number(elements.days.value) || 7));
     elements.altitudeValue.textContent = `${config.altitude} km`;
     elements.inclinationValue.textContent = `${config.inclination}°`;
@@ -182,8 +234,25 @@ export function initializeLearningLab(elements) {
     elements.insight.textContent = passDifference === 0
       ? `At these settings, pass count is unchanged over ${days} days—but timing, duration, or ground-track placement may still differ.`
       : `This orbit produces ${Math.abs(passDifference)} ${passDifference > 0 ? "more" : "fewer"} Central Alaska passes than the baseline over ${days} days.`;
+    if (active) renderMapOverlays();
   }
 
   controls.forEach((control) => control.addEventListener("input", render));
   render();
+  return {
+    setActive(nextActive) {
+      if (active === nextActive) return;
+      active = nextActive;
+      if (active) {
+        overlayGroup.addTo(map);
+        animationStartMs = Date.now();
+        renderMapOverlays();
+        map.setView([25, -80], 2);
+        animationTimer = window.setInterval(updateAnimatedPositions, 250);
+      } else {
+        overlayGroup.remove();
+        window.clearInterval(animationTimer);
+      }
+    },
+  };
 }
