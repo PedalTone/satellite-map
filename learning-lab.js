@@ -138,7 +138,7 @@ function metricCard(label, baseline, modified) {
 }
 
 export function initializeLearningLab(elements, { map, leaflet }) {
-  const controls = [elements.altitude, elements.inclination, elements.raan, elements.days];
+  const controls = [elements.altitude, elements.inclination, elements.raan, elements.days, elements.footprints];
   const overlayGroup = leaflet.layerGroup();
   let active = false;
   let currentConfig = { ...BASELINE };
@@ -173,8 +173,8 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     const modifiedPoint = geodetic(positionAt(currentConfig, elapsedSeconds));
     baselineMarker.setLatLng([baselinePoint.latitude, baselinePoint.longitude]);
     modifiedMarker.setLatLng([modifiedPoint.latitude, modifiedPoint.longitude]);
-    baselineFootprint.setLatLng([baselinePoint.latitude, baselinePoint.longitude]);
-    modifiedFootprint.setLatLng([modifiedPoint.latitude, modifiedPoint.longitude]);
+    baselineFootprint?.setLatLng([baselinePoint.latitude, baselinePoint.longitude]);
+    modifiedFootprint?.setLatLng([modifiedPoint.latitude, modifiedPoint.longitude]);
   }
 
   function renderMapOverlays() {
@@ -187,8 +187,12 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     wrappedSegments(groundTrackSegments(BASELINE, 86400)).forEach((segment) => {
       leaflet.polyline(segment, { className: "learning-baseline-map-track", color: "#8fa3bf", weight: 5, opacity: 1, dashArray: "9 8", interactive: false }).addTo(overlayGroup);
     });
-    baselineFootprint = leaflet.circle([0, 0], { className: "learning-baseline-footprint", radius: coverageDiameter(BASELINE.altitude) * 500, color: "#9caac0", weight: 1, fillOpacity: 0.035, interactive: false }).addTo(overlayGroup);
-    modifiedFootprint = leaflet.circle([0, 0], { className: "learning-modified-footprint", radius: coverageDiameter(currentConfig.altitude) * 500, color: "#66e0ff", weight: 2, fillOpacity: 0.07, interactive: false }).addTo(overlayGroup);
+    baselineFootprint = null;
+    modifiedFootprint = null;
+    if (elements.footprints.checked) {
+      baselineFootprint = leaflet.circle([0, 0], { className: "learning-baseline-footprint", radius: coverageDiameter(BASELINE.altitude) * 500, color: "#9caac0", weight: 1, dashArray: "5 6", fillOpacity: 0.025, interactive: false }).addTo(overlayGroup);
+      modifiedFootprint = leaflet.circle([0, 0], { className: "learning-modified-footprint", radius: coverageDiameter(currentConfig.altitude) * 500, color: "#66e0ff", weight: 2, dashArray: "6 7", fillOpacity: 0.055, interactive: false }).addTo(overlayGroup);
+    }
     baselineMarker = leaflet.marker([0, 0], { icon: markerIcon("Baseline", "baseline"), interactive: false }).addTo(overlayGroup);
     modifiedMarker = leaflet.marker([0, 0], { icon: markerIcon("Modified", "modified"), interactive: false }).addTo(overlayGroup);
     updateAnimatedPositions();

@@ -772,6 +772,8 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
 .learning-controls output, .learning-controls label > span { float: right; color: #fff; }
 .learning-controls input[type="range"] { width: 100%; margin: 8px 0 0; accent-color: var(--accent); }
 .learning-controls input[type="number"] { width: 50px; padding: 5px; border: 1px solid var(--line); border-radius: 7px; color: #fff; background: rgba(255,255,255,.07); }
+.learning-controls .learning-check { display: flex; grid-column: 1 / -1; align-items: center; gap: 7px; color: #dbe6f6; }
+.learning-check input { accent-color: var(--accent); }
 
 .learning-period-note {
   margin: 10px 0 0;

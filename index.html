@@ -239,6 +239,7 @@
             <label for="learning-inclination">Inclination <output id="learning-inclination-value">53°</output><input id="learning-inclination" type="range" min="0" max="100" step="1" value="53"></label>
             <label for="learning-raan">RAAN <output id="learning-raan-value">0°</output><input id="learning-raan" type="range" min="0" max="359" step="1" value="0"></label>
             <label for="learning-days">Analysis period <span><input id="learning-days" type="number" min="1" max="30" step="1" value="1"> days</span></label>
+            <label class="learning-check" for="learning-footprints"><input id="learning-footprints" type="checkbox"> Show coverage footprints</label>
           </div>
           <p id="learning-period-note" class="learning-period-note">The gray baseline and modified path show 1 day.</p>
 
@@ -282,6 +283,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=learning-meo-baseline-1"></script>
+    <script type="module" src="app.js?v=learning-footprint-toggle-1"></script>
   </body>
 </html>
