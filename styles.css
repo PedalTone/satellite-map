@@ -784,6 +784,21 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
   line-height: 1.4;
 }
 
+.learning-reset-button {
+  width: 100%;
+  margin-top: 9px;
+  padding: 7px 9px;
+  border: 1px solid rgba(102, 224, 255, 0.35);
+  border-radius: 9px;
+  color: #d9f8ff;
+  background: rgba(102, 224, 255, 0.08);
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.learning-reset-button:hover { background: rgba(102, 224, 255, 0.16); }
+
 .learning-prompt, .learning-insight {
   margin: 14px 0;
   padding: 10px 12px;

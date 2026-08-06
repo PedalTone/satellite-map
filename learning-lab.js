@@ -279,6 +279,15 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     elements.altitude.value = String(altitude);
     render();
   });
+  elements.reset.addEventListener("click", () => {
+    elements.altitude.value = String(BASELINE.altitude);
+    elements.altitudeNumber.value = String(BASELINE.altitude);
+    elements.inclination.value = String(BASELINE.inclination);
+    elements.raan.value = String(BASELINE.raan);
+    elements.days.value = "1";
+    elements.footprints.checked = false;
+    render();
+  });
   controls.forEach((control) => control.addEventListener("input", render));
   render();
   return {
