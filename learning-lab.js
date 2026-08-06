@@ -96,6 +96,10 @@ function formatDuration(seconds) {
   return `${hours}h ${remainder}m`;
 }
 
+function formatMinutes(seconds) {
+  return `${(seconds / 60).toFixed(1)} min`;
+}
+
 function groundTrackSegments(config) {
   const duration = orbitPeriodSeconds(config.altitude) * 2;
   const points = [];
@@ -216,7 +220,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     elements.groundTrack.innerHTML = `<g class="track-grid">${grid}</g><line class="equator" x1="0" y1="160" x2="720" y2="160" />${paths}<circle class="learning-station" cx="${stationX}" cy="${stationY}" r="6" /><text x="${stationX + 10}" y="${stationY - 8}">Central Alaska</text>`;
 
     elements.metrics.replaceChildren(
-      metricCard("Orbital period", formatDuration(baselinePeriod), formatDuration(modifiedPeriod)),
+      metricCard("Orbital period", formatMinutes(baselinePeriod), formatMinutes(modifiedPeriod)),
       metricCard("Horizon footprint", `${Math.round(baselineFootprint).toLocaleString()} km`, `${Math.round(modifiedFootprint).toLocaleString()} km`),
       metricCard(`Passes in ${days}d`, baselineAccess.passes, modifiedAccess.passes),
       metricCard("Average pass", formatDuration(baselineAccess.averagePassSeconds), formatDuration(modifiedAccess.averagePassSeconds)),
