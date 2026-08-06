@@ -629,15 +629,70 @@ body.summary-expanded .detail-panel {
 
 .learning-panel {
   z-index: 1900;
-  top: calc(72px + env(safe-area-inset-top));
-  right: 14px;
-  bottom: 14px;
-  width: min(370px, calc(100vw - 28px));
-  height: auto;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  pointer-events: none;
+}
+
+.learning-float {
+  position: absolute;
+  overflow: auto;
+  border: 1px solid rgba(102, 224, 255, 0.24);
+  border-radius: 16px;
+  background: rgba(7, 17, 31, 0.92);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(18px);
+  pointer-events: auto;
+}
+
+.learning-control-card {
+  top: calc(78px + env(safe-area-inset-top));
+  left: 16px;
+  width: 330px;
+  max-height: calc(100vh - 280px);
   padding: 14px;
-  border: 1px solid rgba(102, 224, 255, 0.25);
-  border-radius: 18px;
-  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.5);
+}
+
+.learning-interpretation-card {
+  top: calc(90px + env(safe-area-inset-top));
+  right: 16px;
+  width: 340px;
+  max-height: calc(100vh - 300px);
+  padding: 14px;
+}
+
+.learning-metrics-card {
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  left: 362px;
+  padding: 12px 14px 14px;
+}
+
+.learning-card-intro {
+  margin: 8px 0 14px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.learning-metrics-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 9px;
+}
+
+.learning-metrics-heading strong { display: block; margin-top: 2px; font-size: 12px; }
+.learning-map-legend { display: flex; gap: 12px; color: var(--muted); font-size: 9px; white-space: nowrap; }
+.learning-map-legend i { display: inline-block; width: 18px; margin-right: 5px; border-top: 3px solid; vertical-align: middle; }
 }
 
 .learning-mode-badge {
@@ -746,14 +801,15 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
 #learning-ground-track .learning-station { fill: #73e6a2; stroke: #fff; stroke-width: 2; }
 #learning-ground-track text { fill: #dfffea; font-size: 10px; font-weight: 700; }
 
-.learning-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.learning-metrics { display: grid; grid-template-columns: repeat(6, minmax(105px, 1fr)); gap: 7px; }
 .learning-metrics div { padding: 9px; border-radius: 9px; background: rgba(255,255,255,.06); }
 .learning-metrics span, .learning-metrics small, .learning-metrics strong { display: block; }
 .learning-metrics span { color: var(--muted); font-size: 9px; }
 .learning-metrics strong { margin: 3px 0; font-size: 14px; }
 .learning-metrics small { color: #70829c; font-size: 8px; }
 
-.learning-explanation { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.learning-interpretation-card .learning-insight { margin: 8px 0 10px; }
+.learning-explanation { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 10px; }
 .learning-explanation summary { color: #fff; font-size: 11px; font-weight: 750; cursor: pointer; }
 .learning-explanation p { margin: 8px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
 
@@ -1194,6 +1250,13 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
 .scenario-group-row span { color: var(--muted); font-size: 10px; text-align: right; }
 .scenario-disclaimer { margin: 14px 0 0; }
 
+@media (min-width: 481px) and (max-width: 900px) {
+  .learning-control-card { left: 10px; width: 300px; }
+  .learning-interpretation-card { right: 10px; width: 280px; }
+  .learning-metrics-card { right: 10px; bottom: 10px; left: 10px; }
+  .learning-metrics { overflow-x: auto; grid-template-columns: repeat(6, minmax(110px, 1fr)); }
+}
+
 .satellite-marker {
   background: transparent;
   border: 0;
@@ -1256,16 +1319,40 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
   .topbar-actions { gap: 5px; }
   .app-tab { padding: 6px 7px; font-size: 9px; }
   .topbar-actions .icon-button { width: 34px; height: 34px; }
-  .learning-controls, .learning-metrics { grid-template-columns: repeat(2, 1fr); }
-  .learning-panel {
-    top: auto;
+  .learning-controls { grid-template-columns: repeat(2, 1fr); }
+  .learning-control-card {
+    top: calc(72px + env(safe-area-inset-top));
     left: 8px;
+    width: calc(100vw - 16px);
+    max-height: 205px;
+    padding: 11px;
+  }
+  .learning-control-card .learning-mode-badge,
+  .learning-control-card .learning-card-intro,
+  .learning-control-card .learning-prompt { display: none; }
+  .learning-control-card .scenario-header h2 { font-size: 15px; }
+  .learning-control-card .scenario-close { width: 32px; height: 32px; }
+  .learning-interpretation-card {
+    top: calc(285px + env(safe-area-inset-top));
+    right: 8px;
+    width: min(250px, calc(100vw - 16px));
+    max-height: 128px;
+    padding: 10px;
+  }
+  .learning-interpretation-card .learning-explanation,
+  .learning-interpretation-card .scenario-disclaimer { display: none; }
+  .learning-interpretation-card .learning-insight { margin-bottom: 0; font-size: 10px; }
+  .learning-metrics-card {
     right: 8px;
     bottom: calc(8px + env(safe-area-inset-bottom));
-    width: auto;
-    height: min(58vh, 520px);
-    border-radius: 16px;
+    left: 8px;
+    padding: 10px;
   }
+  .learning-metrics-heading { align-items: center; margin-bottom: 7px; }
+  .learning-metrics-heading strong { font-size: 10px; }
+  .learning-map-legend { display: none; }
+  .learning-metrics { display: flex; overflow-x: auto; }
+  .learning-metrics div { min-width: 108px; }
   body[data-app-tab="learning"] .topbar h1::after { font-size: 18px; }
   .metrics { grid-template-columns: repeat(2, 1fr); }
   .satellite-label { font-size: 10px; }
