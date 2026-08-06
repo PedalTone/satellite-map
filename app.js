@@ -1,5 +1,5 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
-import { initializeLearningLab } from "./learning-lab.js?v=learning-period-effect-1";
+import { initializeLearningLab } from "./learning-lab.js?v=learning-full-ground-path-1";
 
 const map = L.map("map", {
   center: [18, 0],

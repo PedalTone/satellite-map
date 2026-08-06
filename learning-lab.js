@@ -106,11 +106,12 @@ function orbitRegime(altitude) {
   return "GEO altitude";
 }
 
-function groundTrackSegments(config) {
-  const duration = orbitPeriodSeconds(config.altitude) * 2;
+function groundTrackSegments(config, duration = orbitPeriodSeconds(config.altitude) * 2) {
+  const orbitCount = Math.max(1, duration / orbitPeriodSeconds(config.altitude));
+  const pointCount = Math.min(12_000, Math.max(240, Math.ceil(orbitCount * (orbitCount > 100 ? 24 : 48))));
   const points = [];
-  for (let index = 0; index <= 240; index += 1) {
-    const point = geodetic(positionAt(config, duration * index / 240));
+  for (let index = 0; index <= pointCount; index += 1) {
+    const point = geodetic(positionAt(config, duration * index / pointCount));
     points.push(point);
   }
   const segments = [[]];
@@ -141,6 +142,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
   const overlayGroup = leaflet.layerGroup();
   let active = false;
   let currentConfig = { ...BASELINE };
+  let currentDays = 7;
   let animationStartMs = Date.now();
   let animationTimer;
 
@@ -177,10 +179,11 @@ export function initializeLearningLab(elements, { map, leaflet }) {
 
   function renderMapOverlays() {
     overlayGroup.clearLayers();
-    wrappedSegments(groundTrackSegments(BASELINE)).forEach((segment) => {
+    const displayDurationSeconds = currentDays * 86400;
+    wrappedSegments(groundTrackSegments(BASELINE, displayDurationSeconds)).forEach((segment) => {
       leaflet.polyline(segment, { className: "learning-baseline-map-track", color: "#9caac0", weight: 3, opacity: 0.9, dashArray: "8 7", interactive: false }).addTo(overlayGroup);
     });
-    wrappedSegments(groundTrackSegments(currentConfig)).forEach((segment) => {
+    wrappedSegments(groundTrackSegments(currentConfig, displayDurationSeconds)).forEach((segment) => {
       leaflet.polyline(segment, { className: "learning-modified-map-track-halo", color: "#ffffff", weight: 7, opacity: 0.85, interactive: false }).addTo(overlayGroup);
       leaflet.polyline(segment, { className: "learning-modified-map-track", color: "#111827", weight: 4, opacity: 1, interactive: false }).addTo(overlayGroup);
     });
@@ -199,10 +202,11 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     };
     currentConfig = config;
     const days = Math.max(1, Math.min(30, Number(elements.days.value) || 7));
+    currentDays = days;
     elements.altitudeValue.textContent = `${config.altitude.toLocaleString()} km · ${orbitRegime(config.altitude)}`;
     elements.inclinationValue.textContent = `${config.inclination}°`;
     elements.raanValue.textContent = `${config.raan}°`;
-    elements.periodNote.textContent = `Access metrics analyze ${days} ${days === 1 ? "day" : "days"}. The map shows two representative orbits${config.altitude >= 35000 ? ", which repeat each sidereal day near GEO" : ""}.`;
+    elements.periodNote.textContent = `The map and access metrics cover ${days} ${days === 1 ? "day" : "days"}${config.altitude >= 35000 ? "; near GEO, each sidereal day retraces the same ground-path shape" : ""}.`;
 
     const baselineAccess = accessMetrics(BASELINE, days);
     const modifiedAccess = accessMetrics(config, days);
