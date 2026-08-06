@@ -339,15 +339,15 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     render();
   });
   elements.stationMove.addEventListener("click", () => setStationMoveMode(!stationMoveMode));
-  elements.stationLatitude.addEventListener("change", () => {
+  elements.stationLatitude.addEventListener("input", () => {
     const latitude = Number(elements.stationLatitude.value);
     if (Number.isFinite(latitude) && latitude >= -90 && latitude <= 90) setStation(latitude, currentStation.longitude);
   });
-  elements.stationLongitude.addEventListener("change", () => {
+  elements.stationLongitude.addEventListener("input", () => {
     const longitude = Number(elements.stationLongitude.value);
     if (Number.isFinite(longitude) && longitude >= -180 && longitude <= 180) setStation(currentStation.latitude, longitude);
   });
-  elements.stationElevation.addEventListener("change", () => {
+  elements.stationElevation.addEventListener("input", () => {
     const elevation = Number(elements.stationElevation.value);
     if (Number.isFinite(elevation) && elevation >= 0 && elevation <= 90) setStation(currentStation.latitude, currentStation.longitude, elevation);
   });
