@@ -1,5 +1,5 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
-import { initializeLearningLab } from "./learning-lab.js?v=learning-movable-station-2";
+import { initializeLearningLab } from "./learning-lab.js?v=learning-lesson-2-1";
 
 const map = L.map("map", {
   center: [18, 0],
@@ -121,6 +121,12 @@ const elements = {
 };
 
 const learningElements = {
+  lessonButtons: [...document.querySelectorAll("[data-learning-lesson]")],
+  lessonLabel: document.querySelector("#learning-lesson-label"),
+  title: document.querySelector("#learning-title"),
+  cardIntro: document.querySelector("#learning-card-intro"),
+  prediction: document.querySelector("#learning-prediction"),
+  metricsTitle: document.querySelector("#learning-metrics-title"),
   altitude: document.querySelector("#learning-altitude"),
   altitudeNumber: document.querySelector("#learning-altitude-number"),
   altitudeValue: document.querySelector("#learning-altitude-value"),

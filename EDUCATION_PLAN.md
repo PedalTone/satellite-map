@@ -124,4 +124,4 @@ Outputs:
 
 ## Current implementation
 
-Module 1 is scaffolded with a two-body circular-orbit teaching model. It intentionally emphasizes intuition and is clearly separated from the real-satellite SGP4 calculations used elsewhere in the application.
+Lessons 1 and 2 use a two-body circular-orbit teaching model. Lesson 1 compares orbit size, tilt, and plane placement. Lesson 2 follows successive same-phase ground tracks to connect orbital period and Earth rotation to ground-track drift and ground-station revisit. Both intentionally emphasize intuition and remain clearly separated from the real-satellite SGP4 calculations used elsewhere in the application.

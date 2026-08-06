@@ -20,6 +20,20 @@ This file is a working notebook for possible improvements. Items here are ideas,
 - Color satellites by launch group, altitude band, or orbital plane.
 - Add optional recent-history trails in addition to predicted paths.
 
+## Orbital Learning Lab — Future Lessons
+
+### Lesson 3: Ground Station Access
+
+- Let the learner move the ground station and adjust its minimum elevation mask.
+- Visualize the access footprint, line of sight, pass direction, maximum elevation, and contact duration.
+- Center the lesson on: “What determines whether a ground station can see a satellite—and for how long?”
+
+### Lesson 4: Building a Connected Constellation
+
+- Let the learner add satellites and vary orbital spacing, plane count, phasing, and RAAN separation.
+- Visualize coverage overlap, intersatellite links, Earth occlusion, cross-plane links, and ground connectivity.
+- Center the lesson on: “How do multiple satellites cooperate to improve coverage and reduce outages?”
+
 ## Analysis
 
 - Show nearest-neighbor distance for each satellite.

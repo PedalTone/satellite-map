@@ -3,13 +3,40 @@ const EARTH_MU_KM3_S2 = 398600.4418;
 const EARTH_ROTATION_RAD_S = 7.2921159e-5;
 const DEFAULT_STATION = { latitude: 64.2, longitude: -152.5, minimumElevation: 10 };
 let currentStation = { ...DEFAULT_STATION };
-const BASELINE = { altitude: 10000, inclination: 53, raan: 0 };
+const LESSONS = {
+  1: {
+    label: "Interactive lesson 01",
+    title: "Orbit size, tilt, and plane",
+    intro: "Change one input at a time and compare the modified orbit with the gray baseline.",
+    prediction: "What do you expect this change to do to pass duration and revisit over the ground station?",
+    metricsTitle: "Modified orbit compared with baseline",
+    baseline: { altitude: 10000, inclination: 53, raan: 0 },
+    days: 1,
+  },
+  2: {
+    label: "Interactive lesson 02",
+    title: "Why revisit changes",
+    intro: "Follow four successive orbits and see how Earth’s rotation moves each ground track westward.",
+    prediction: "Will this orbit return over the ground station on the next revolution, or will Earth rotate it away?",
+    metricsTitle: "Ground-track drift and revisit",
+    baseline: { altitude: 1000, inclination: 70, raan: 0 },
+    days: 3,
+  },
+};
 
 const radians = (degrees) => degrees * Math.PI / 180;
 const degrees = (angle) => angle * 180 / Math.PI;
 
 function orbitPeriodSeconds(altitude) {
   return 2 * Math.PI * Math.sqrt((EARTH_RADIUS_KM + altitude) ** 3 / EARTH_MU_KM3_S2);
+}
+
+function groundTrackShiftDegrees(altitude) {
+  return degrees(EARTH_ROTATION_RAD_S * orbitPeriodSeconds(altitude));
+}
+
+function orbitsPerDay(altitude) {
+  return 86400 / orbitPeriodSeconds(altitude);
 }
 
 function positionAt(config, elapsedSeconds) {
@@ -147,7 +174,8 @@ export function initializeLearningLab(elements, { map, leaflet }) {
   const controls = [elements.inclination, elements.raan, elements.days, elements.footprints];
   const overlayGroup = leaflet.layerGroup();
   let active = false;
-  let currentConfig = { ...BASELINE };
+  let activeLesson = 1;
+  let currentConfig = { ...LESSONS[activeLesson].baseline };
   let currentDays = 1;
   let animationStartMs = Date.now();
   let animationTimer;
@@ -165,6 +193,15 @@ export function initializeLearningLab(elements, { map, leaflet }) {
       html: `<span class="learning-map-dot ${className}"></span><strong>${label}</strong>`,
       iconSize: [100, 28],
       iconAnchor: [8, 8],
+    });
+  }
+
+  function orbitNumberIcon(number) {
+    return leaflet.divIcon({
+      className: "learning-orbit-number",
+      html: `<span>${number}</span>`,
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
     });
   }
 
@@ -210,7 +247,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
   function updateAnimatedPositions() {
     if (!active || !baselineMarker || !modifiedMarker) return;
     const elapsedSeconds = (Date.now() - animationStartMs) / 1000;
-    const baselinePoint = geodetic(positionAt(BASELINE, elapsedSeconds));
+    const baselinePoint = geodetic(positionAt(LESSONS[activeLesson].baseline, elapsedSeconds));
     const modifiedPoint = geodetic(positionAt(currentConfig, elapsedSeconds));
     baselineMarker.setLatLng([baselinePoint.latitude, baselinePoint.longitude]);
     modifiedMarker.setLatLng([modifiedPoint.latitude, modifiedPoint.longitude]);
@@ -220,18 +257,35 @@ export function initializeLearningLab(elements, { map, leaflet }) {
 
   function renderMapOverlays() {
     overlayGroup.clearLayers();
-    const displayDurationSeconds = currentDays * 86400;
+    const baseline = LESSONS[activeLesson].baseline;
+    const displayDurationSeconds = activeLesson === 2
+      ? Math.min(currentDays * 86400, orbitPeriodSeconds(currentConfig.altitude) * 4)
+      : currentDays * 86400;
     wrappedSegments(groundTrackSegments(currentConfig, displayDurationSeconds)).forEach((segment) => {
       leaflet.polyline(segment, { className: "learning-modified-map-track-halo", color: "#ffffff", weight: 7, opacity: 0.85, interactive: false }).addTo(overlayGroup);
       leaflet.polyline(segment, { className: "learning-modified-map-track", color: "#111827", weight: 4, opacity: 1, interactive: false }).addTo(overlayGroup);
     });
-    wrappedSegments(groundTrackSegments(BASELINE, 86400)).forEach((segment) => {
+    const baselineDisplaySeconds = activeLesson === 2 ? orbitPeriodSeconds(baseline.altitude) : 86400;
+    wrappedSegments(groundTrackSegments(baseline, baselineDisplaySeconds)).forEach((segment) => {
       leaflet.polyline(segment, { className: "learning-baseline-map-track", color: "#8fa3bf", weight: 5, opacity: 1, dashArray: "9 8", interactive: false }).addTo(overlayGroup);
     });
+    if (activeLesson === 2) {
+      const period = orbitPeriodSeconds(currentConfig.altitude);
+      for (let orbitIndex = 0; orbitIndex < 4; orbitIndex += 1) {
+        const crossing = geodetic(positionAt(currentConfig, period * orbitIndex));
+        [-360, 0, 360].forEach((offset) => {
+          leaflet.marker([crossing.latitude, crossing.longitude + offset], {
+            icon: orbitNumberIcon(orbitIndex + 1),
+            interactive: false,
+            keyboard: false,
+          }).addTo(overlayGroup);
+        });
+      }
+    }
     baselineFootprint = null;
     modifiedFootprint = null;
     if (elements.footprints.checked) {
-      baselineFootprint = leaflet.circle([0, 0], { className: "learning-baseline-footprint", radius: coverageDiameter(BASELINE.altitude) * 500, color: "#9caac0", weight: 1, dashArray: "5 6", fillOpacity: 0.025, interactive: false }).addTo(overlayGroup);
+      baselineFootprint = leaflet.circle([0, 0], { className: "learning-baseline-footprint", radius: coverageDiameter(baseline.altitude) * 500, color: "#9caac0", weight: 1, dashArray: "5 6", fillOpacity: 0.025, interactive: false }).addTo(overlayGroup);
       modifiedFootprint = leaflet.circle([0, 0], { className: "learning-modified-footprint", radius: coverageDiameter(currentConfig.altitude) * 500, color: "#66e0ff", weight: 2, dashArray: "6 7", fillOpacity: 0.055, interactive: false }).addTo(overlayGroup);
     }
     learningStationMarker = leaflet.marker([currentStation.latitude, currentStation.longitude], {
@@ -254,6 +308,8 @@ export function initializeLearningLab(elements, { map, leaflet }) {
   }
 
   function render() {
+    const lesson = LESSONS[activeLesson];
+    const baseline = lesson.baseline;
     const config = {
       altitude: Number(elements.altitude.value),
       inclination: Number(elements.inclination.value),
@@ -262,16 +318,29 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     currentConfig = config;
     const days = Math.max(1, Math.min(30, Number(elements.days.value) || 1));
     currentDays = days;
+    elements.lessonButtons.forEach((button) => {
+      const selected = Number(button.dataset.learningLesson) === activeLesson;
+      button.classList.toggle("active", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+    elements.lessonLabel.textContent = lesson.label;
+    elements.title.textContent = lesson.title;
+    elements.cardIntro.textContent = lesson.intro;
+    elements.prediction.textContent = lesson.prediction;
+    elements.metricsTitle.textContent = lesson.metricsTitle;
     elements.altitudeValue.textContent = `${config.altitude.toLocaleString()} km · ${orbitRegime(config.altitude)}`;
+    elements.altitude.setAttribute("aria-label", `Altitude ${config.altitude} km`);
     elements.inclinationValue.textContent = `${config.inclination}°`;
     elements.raanValue.textContent = `${config.raan}°`;
-    elements.periodNote.textContent = `The gray baseline path shows 1 day. The modified path and both access metrics cover ${days} ${days === 1 ? "day" : "days"}${config.altitude >= 35000 ? "; near GEO, each sidereal day retraces the same ground-path shape" : ""}.`;
+    elements.periodNote.textContent = activeLesson === 2
+      ? `The numbered circles mark the same ascending-orbit phase on four successive revolutions. Access metrics cover ${days} ${days === 1 ? "day" : "days"}.`
+      : `The gray baseline path shows 1 day. The modified path and both access metrics cover ${days} ${days === 1 ? "day" : "days"}${config.altitude >= 35000 ? "; near GEO, each sidereal day retraces the same ground-path shape" : ""}.`;
 
-    const baselineAccess = accessMetrics(BASELINE, days);
+    const baselineAccess = accessMetrics(baseline, days);
     const modifiedAccess = accessMetrics(config, days);
-    const baselinePeriod = orbitPeriodSeconds(BASELINE.altitude);
+    const baselinePeriod = orbitPeriodSeconds(baseline.altitude);
     const modifiedPeriod = orbitPeriodSeconds(config.altitude);
-    const baselineFootprint = coverageDiameter(BASELINE.altitude);
+    const baselineFootprint = coverageDiameter(baseline.altitude);
     const modifiedFootprint = coverageDiameter(config.altitude);
     const modifiedLatitudeLimit = Math.min(config.inclination, 180 - config.inclination);
     const accessReach = accessReachDegrees(config.altitude, currentStation.minimumElevation);
@@ -287,35 +356,59 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     const stationX = ((currentStation.longitude + 180) / 360) * 720;
     const stationY = ((90 - currentStation.latitude) / 180) * 320;
     const paths = [
-      ...groundTrackSegments(BASELINE).map((segment) => `<path class="baseline-track" d="${svgPath(segment)}" />`),
-      ...groundTrackSegments(config).map((segment) => `<path class="modified-track" d="${svgPath(segment)}" />`),
+      ...groundTrackSegments(baseline).map((segment) => `<path class="baseline-track" d="${svgPath(segment)}" />`),
+      ...groundTrackSegments(config, activeLesson === 2 ? modifiedPeriod * 4 : modifiedPeriod * 2).map((segment) => `<path class="modified-track" d="${svgPath(segment)}" />`),
     ].join("");
     elements.groundTrack.innerHTML = `<g class="track-grid">${grid}</g><line class="equator" x1="0" y1="160" x2="720" y2="160" />${paths}<circle class="learning-station" cx="${stationX}" cy="${stationY}" r="6" /><text x="${stationX + 10}" y="${stationY - 8}">${stationLabel()}</text>`;
 
-    elements.metrics.replaceChildren(
-      metricCard("Orbital period", formatMinutes(baselinePeriod), formatMinutes(modifiedPeriod)),
-      metricCard("Horizon footprint (0°)", `${Math.round(baselineFootprint).toLocaleString()} km`, `${Math.round(modifiedFootprint).toLocaleString()} km`),
-      metricCard(`Passes in ${days}d`, baselineAccess.passes, modifiedAccess.passes),
-      metricCard("Total access", formatDuration(baselineAccess.totalSeconds), formatDuration(modifiedAccess.totalSeconds)),
-      metricCard("Average pass", formatDuration(baselineAccess.averagePassSeconds), formatDuration(modifiedAccess.averagePassSeconds)),
-      metricCard("Average revisit", formatDuration(baselineAccess.averageRevisitSeconds), formatDuration(modifiedAccess.averageRevisitSeconds)),
-      metricCard("Longest gap", formatDuration(baselineAccess.longestGapSeconds), formatDuration(modifiedAccess.longestGapSeconds)),
-    );
+    const metricCards = activeLesson === 2
+      ? [
+        metricCard("Orbital period", formatMinutes(baselinePeriod), formatMinutes(modifiedPeriod)),
+        metricCard("Orbits per day", orbitsPerDay(baseline.altitude).toFixed(2), orbitsPerDay(config.altitude).toFixed(2)),
+        metricCard("Westward shift / orbit", `${groundTrackShiftDegrees(baseline.altitude).toFixed(1)}°`, `${groundTrackShiftDegrees(config.altitude).toFixed(1)}°`),
+        metricCard(`Station passes in ${days}d`, baselineAccess.passes, modifiedAccess.passes),
+        metricCard("Average revisit", formatDuration(baselineAccess.averageRevisitSeconds), formatDuration(modifiedAccess.averageRevisitSeconds)),
+        metricCard("Longest gap", formatDuration(baselineAccess.longestGapSeconds), formatDuration(modifiedAccess.longestGapSeconds)),
+        metricCard("Average pass", formatDuration(baselineAccess.averagePassSeconds), formatDuration(modifiedAccess.averagePassSeconds)),
+      ]
+      : [
+        metricCard("Orbital period", formatMinutes(baselinePeriod), formatMinutes(modifiedPeriod)),
+        metricCard("Horizon footprint (0°)", `${Math.round(baselineFootprint).toLocaleString()} km`, `${Math.round(modifiedFootprint).toLocaleString()} km`),
+        metricCard(`Passes in ${days}d`, baselineAccess.passes, modifiedAccess.passes),
+        metricCard("Total access", formatDuration(baselineAccess.totalSeconds), formatDuration(modifiedAccess.totalSeconds)),
+        metricCard("Average pass", formatDuration(baselineAccess.averagePassSeconds), formatDuration(modifiedAccess.averagePassSeconds)),
+        metricCard("Average revisit", formatDuration(baselineAccess.averageRevisitSeconds), formatDuration(modifiedAccess.averageRevisitSeconds)),
+        metricCard("Longest gap", formatDuration(baselineAccess.longestGapSeconds), formatDuration(modifiedAccess.longestGapSeconds)),
+      ];
+    elements.metrics.replaceChildren(...metricCards);
 
     const changes = [];
-    if (config.altitude !== BASELINE.altitude) changes.push(`Altitude changes orbit size, period, viewing footprint, and time above the elevation mask.`);
-    if (config.inclination !== BASELINE.inclination) changes.push(`Inclination limits the subsatellite latitude to about ±${modifiedLatitudeLimit.toFixed(1)}°. At ${config.altitude.toLocaleString()} km, the ${currentStation.minimumElevation}° elevation mask extends visibility about ${accessReach.toFixed(1)}° beyond that ground track, giving a best-case visibility limit near ±${visibilityLatitudeLimit.toFixed(1)}° latitude. The station is at ${currentStation.latitude.toFixed(1)}°.`);
-    if (config.raan !== BASELINE.raan) changes.push("RAAN rotates the orbital plane around Earth. It shifts pass timing and ground-track longitude without changing orbital period.");
-    if (config.altitude >= 35000) changes.push("A circular orbit near 35,786 km is geosynchronous. It is geostationary only when inclination is 0° and the orbit is equatorial.");
-    if (!changes.length) changes.push("The modified orbit currently matches the baseline. Move one control and watch which outcomes change.");
+    if (activeLesson === 2) {
+      const shift = groundTrackShiftDegrees(config.altitude);
+      changes.push(`One orbit takes ${formatMinutes(modifiedPeriod)}. During that time Earth rotates ${shift.toFixed(1)}° east, so the next same-phase ground track appears about ${shift.toFixed(1)}° farther west.`);
+      changes.push(`Altitude changes orbital period and therefore the spacing between successive numbered crossings. RAAN slides the entire pattern east or west but does not change that spacing in this two-body model.`);
+      changes.push(`Revisit occurs only when a later ground track passes within the satellite’s ${currentStation.minimumElevation}° access region around the station. Inclination controls whether those tracks can reach the station’s latitude at all.`);
+    } else {
+      if (config.altitude !== baseline.altitude) changes.push("Altitude changes orbit size, period, viewing footprint, and time above the elevation mask.");
+      if (config.inclination !== baseline.inclination) changes.push(`Inclination limits the subsatellite latitude to about ±${modifiedLatitudeLimit.toFixed(1)}°. At ${config.altitude.toLocaleString()} km, the ${currentStation.minimumElevation}° elevation mask extends visibility about ${accessReach.toFixed(1)}° beyond that ground track, giving a best-case visibility limit near ±${visibilityLatitudeLimit.toFixed(1)}° latitude. The station is at ${currentStation.latitude.toFixed(1)}°.`);
+      if (config.raan !== baseline.raan) changes.push("RAAN rotates the orbital plane around Earth. It shifts pass timing and ground-track longitude without changing orbital period.");
+      if (config.altitude >= 35000) changes.push("A circular orbit near 35,786 km is geosynchronous. It is geostationary only when inclination is 0° and the orbit is equatorial.");
+      if (!changes.length) changes.push("The modified orbit currently matches the baseline. Move one control and watch which outcomes change.");
+    }
     elements.explanation.replaceChildren(...changes.map((text) => Object.assign(document.createElement("p"), { textContent: text })));
 
     const passDifference = modifiedAccess.passes - baselineAccess.passes;
-    elements.insight.textContent = modifiedAccess.passes === 0
-      ? `No ${stationLabel()} access occurs for the modified orbit during this ${days}-day period. The baseline has ${baselineAccess.passes} ${baselineAccess.passes === 1 ? "pass" : "passes"}.`
-      : passDifference === 0
-        ? `At these settings, pass count is unchanged over ${days} days—but timing, duration, or ground-track placement may still differ.`
-        : `This orbit produces ${Math.abs(passDifference)} ${passDifference > 0 ? "more" : "fewer"} ${stationLabel()} passes than the baseline over ${days} days.`;
+    if (activeLesson === 2) {
+      elements.insight.textContent = modifiedAccess.passes === 0
+        ? `The four ground tracks drift west, but none produces ${stationLabel()} access during the selected ${days}-day analysis period.`
+        : `Successive same-phase tracks shift ${groundTrackShiftDegrees(config.altitude).toFixed(1)}° west. ${stationLabel()} receives ${modifiedAccess.passes} passes with an average revisit of ${formatDuration(modifiedAccess.averageRevisitSeconds)}.`;
+    } else {
+      elements.insight.textContent = modifiedAccess.passes === 0
+        ? `No ${stationLabel()} access occurs for the modified orbit during this ${days}-day period. The baseline has ${baselineAccess.passes} ${baselineAccess.passes === 1 ? "pass" : "passes"}.`
+        : passDifference === 0
+          ? `At these settings, pass count is unchanged over ${days} days—but timing, duration, or ground-track placement may still differ.`
+          : `This orbit produces ${Math.abs(passDifference)} ${passDifference > 0 ? "more" : "fewer"} ${stationLabel()} passes than the baseline over ${days} days.`;
+    }
     if (active) renderMapOverlays();
   }
 
@@ -329,13 +422,23 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     elements.altitude.value = String(altitude);
     render();
   });
-  elements.reset.addEventListener("click", () => {
-    elements.altitude.value = String(BASELINE.altitude);
-    elements.altitudeNumber.value = String(BASELINE.altitude);
-    elements.inclination.value = String(BASELINE.inclination);
-    elements.raan.value = String(BASELINE.raan);
-    elements.days.value = "1";
+  function resetLessonControls() {
+    const lesson = LESSONS[activeLesson];
+    elements.altitude.value = String(lesson.baseline.altitude);
+    elements.altitudeNumber.value = String(lesson.baseline.altitude);
+    elements.inclination.value = String(lesson.baseline.inclination);
+    elements.raan.value = String(lesson.baseline.raan);
+    elements.days.value = String(lesson.days);
     elements.footprints.checked = false;
+  }
+  elements.lessonButtons.forEach((button) => button.addEventListener("click", () => {
+    activeLesson = Number(button.dataset.learningLesson);
+    resetLessonControls();
+    animationStartMs = Date.now();
+    render();
+  }));
+  elements.reset.addEventListener("click", () => {
+    resetLessonControls();
     render();
   });
   elements.stationMove.addEventListener("click", () => setStationMoveMode(!stationMoveMode));

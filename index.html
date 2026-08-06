@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <link rel="stylesheet" href="styles.css?v=learning-movable-station-1">
+    <link rel="stylesheet" href="styles.css?v=learning-lesson-2-1">
   </head>
   <body>
     <main>
@@ -225,14 +225,18 @@
       <section id="learning-panel" class="learning-panel" aria-labelledby="learning-title" hidden>
         <aside class="learning-float learning-control-card">
           <div class="learning-mode-badge">Educational model · baseline versus modified orbit</div>
+          <nav class="learning-lesson-tabs" aria-label="Learning lessons">
+            <button type="button" class="active" data-learning-lesson="1" aria-pressed="true"><span>Lesson 1</span>Orbit basics</button>
+            <button type="button" data-learning-lesson="2" aria-pressed="false"><span>Lesson 2</span>Revisit</button>
+          </nav>
           <div class="scenario-header">
             <div>
-              <p class="eyebrow">Interactive lesson 01</p>
+              <p id="learning-lesson-label" class="eyebrow">Interactive lesson 01</p>
               <h2 id="learning-title">Orbit size, tilt, and plane</h2>
             </div>
             <button id="learning-close" class="icon-button scenario-close" type="button" aria-label="Close Orbital Learning Lab">×</button>
           </div>
-          <p class="learning-card-intro">Change one input at a time and compare the cyan orbit with the gray baseline.</p>
+          <p id="learning-card-intro" class="learning-card-intro">Change one input at a time and compare the modified orbit with the gray baseline.</p>
 
           <div class="learning-controls">
             <label for="learning-altitude">Altitude <output id="learning-altitude-value">10,000 km · MEO</output><input id="learning-altitude" type="range" min="200" max="36000" step="1" value="10000" list="learning-altitude-landmarks"><datalist id="learning-altitude-landmarks"><option value="550" label="550"></option><option value="1000" label="1,000"></option><option value="2000" label="2,000"></option><option value="10000" label="10,000"></option><option value="35786" label="GEO"></option></datalist><span class="learning-altitude-entry"><input id="learning-altitude-number" type="number" min="200" max="36000" step="1" value="10000" inputmode="numeric"> km</span></label>
@@ -272,7 +276,7 @@
 
         <aside class="learning-float learning-metrics-card">
           <div class="learning-metrics-heading">
-            <div><p class="eyebrow">Physical outcomes</p><strong>Modified orbit compared with baseline</strong></div>
+            <div><p class="eyebrow">Physical outcomes</p><strong id="learning-metrics-title">Modified orbit compared with baseline</strong></div>
             <div class="learning-map-legend"><span><i class="baseline-key"></i>Baseline</span><span><i class="modified-key"></i>Modified</span></div>
           </div>
           <div id="learning-metrics" class="learning-metrics" aria-live="polite"></div>
@@ -294,6 +298,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=learning-movable-station-2"></script>
+    <script type="module" src="app.js?v=learning-lesson-2-1"></script>
   </body>
 </html>
