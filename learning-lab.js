@@ -180,7 +180,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
   function renderMapOverlays() {
     overlayGroup.clearLayers();
     const displayDurationSeconds = currentDays * 86400;
-    wrappedSegments(groundTrackSegments(BASELINE, displayDurationSeconds)).forEach((segment) => {
+    wrappedSegments(groundTrackSegments(BASELINE, 86400)).forEach((segment) => {
       leaflet.polyline(segment, { className: "learning-baseline-map-track", color: "#9caac0", weight: 3, opacity: 0.9, dashArray: "8 7", interactive: false }).addTo(overlayGroup);
     });
     wrappedSegments(groundTrackSegments(currentConfig, displayDurationSeconds)).forEach((segment) => {
@@ -206,7 +206,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     elements.altitudeValue.textContent = `${config.altitude.toLocaleString()} km · ${orbitRegime(config.altitude)}`;
     elements.inclinationValue.textContent = `${config.inclination}°`;
     elements.raanValue.textContent = `${config.raan}°`;
-    elements.periodNote.textContent = `The map and access metrics cover ${days} ${days === 1 ? "day" : "days"}${config.altitude >= 35000 ? "; near GEO, each sidereal day retraces the same ground-path shape" : ""}.`;
+    elements.periodNote.textContent = `The gray baseline path shows 1 day. The modified path and both access metrics cover ${days} ${days === 1 ? "day" : "days"}${config.altitude >= 35000 ? "; near GEO, each sidereal day retraces the same ground-path shape" : ""}.`;
 
     const baselineAccess = accessMetrics(BASELINE, days);
     const modifiedAccess = accessMetrics(config, days);
