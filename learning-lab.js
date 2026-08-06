@@ -138,7 +138,7 @@ function metricCard(label, baseline, modified) {
 }
 
 export function initializeLearningLab(elements, { map, leaflet }) {
-  const controls = [elements.altitude, elements.inclination, elements.raan, elements.days, elements.footprints];
+  const controls = [elements.inclination, elements.raan, elements.days, elements.footprints];
   const overlayGroup = leaflet.layerGroup();
   let active = false;
   let currentConfig = { ...BASELINE };
@@ -259,6 +259,16 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     if (active) renderMapOverlays();
   }
 
+  elements.altitude.addEventListener("input", () => {
+    elements.altitudeNumber.value = elements.altitude.value;
+    render();
+  });
+  elements.altitudeNumber.addEventListener("input", () => {
+    const altitude = Number(elements.altitudeNumber.value);
+    if (!Number.isFinite(altitude) || altitude < 200 || altitude > 36000) return;
+    elements.altitude.value = String(altitude);
+    render();
+  });
   controls.forEach((control) => control.addEventListener("input", render));
   render();
   return {

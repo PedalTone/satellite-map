@@ -1,5 +1,5 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
-import { initializeLearningLab } from "./learning-lab.js?v=learning-footprint-toggle-1";
+import { initializeLearningLab } from "./learning-lab.js?v=learning-altitude-entry-1";
 
 const map = L.map("map", {
   center: [18, 0],
@@ -121,6 +121,7 @@ const elements = {
 
 const learningElements = {
   altitude: document.querySelector("#learning-altitude"),
+  altitudeNumber: document.querySelector("#learning-altitude-number"),
   altitudeValue: document.querySelector("#learning-altitude-value"),
   inclination: document.querySelector("#learning-inclination"),
   inclinationValue: document.querySelector("#learning-inclination-value"),

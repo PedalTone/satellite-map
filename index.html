@@ -235,7 +235,7 @@
           <p class="learning-card-intro">Change one input at a time and compare the cyan orbit with the gray baseline.</p>
 
           <div class="learning-controls">
-            <label for="learning-altitude">Altitude <output id="learning-altitude-value">10,000 km · MEO</output><input id="learning-altitude" type="range" min="200" max="36000" step="1" value="10000" list="learning-altitude-landmarks"><datalist id="learning-altitude-landmarks"><option value="550" label="LEO"></option><option value="2000" label="LEO edge"></option><option value="10000" label="MEO"></option><option value="35786" label="GEO"></option></datalist></label>
+            <label for="learning-altitude">Altitude <output id="learning-altitude-value">10,000 km · MEO</output><input id="learning-altitude" type="range" min="200" max="36000" step="1" value="10000" list="learning-altitude-landmarks"><datalist id="learning-altitude-landmarks"><option value="550" label="550"></option><option value="1000" label="1,000"></option><option value="2000" label="2,000"></option><option value="10000" label="10,000"></option><option value="35786" label="GEO"></option></datalist><span class="learning-altitude-entry"><input id="learning-altitude-number" type="number" min="200" max="36000" step="1" value="10000" inputmode="numeric"> km</span></label>
             <label for="learning-inclination">Inclination <output id="learning-inclination-value">53°</output><input id="learning-inclination" type="range" min="0" max="100" step="1" value="53"></label>
             <label for="learning-raan">RAAN <output id="learning-raan-value">0°</output><input id="learning-raan" type="range" min="0" max="359" step="1" value="0"></label>
             <label for="learning-days">Analysis period <span><input id="learning-days" type="number" min="1" max="30" step="1" value="1"> days</span></label>
@@ -283,6 +283,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=learning-footprint-toggle-1"></script>
+    <script type="module" src="app.js?v=learning-altitude-entry-1"></script>
   </body>
 </html>
