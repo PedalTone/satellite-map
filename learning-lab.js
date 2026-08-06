@@ -1,7 +1,8 @@
 const EARTH_RADIUS_KM = 6378.137;
 const EARTH_MU_KM3_S2 = 398600.4418;
 const EARTH_ROTATION_RAD_S = 7.2921159e-5;
-const STATION = { latitude: 64.2, longitude: -152.5, minimumElevation: 10 };
+const DEFAULT_STATION = { latitude: 64.2, longitude: -152.5, minimumElevation: 10 };
+let currentStation = { ...DEFAULT_STATION };
 const BASELINE = { altitude: 10000, inclination: 53, raan: 0 };
 
 const radians = (degrees) => degrees * Math.PI / 180;
@@ -38,8 +39,8 @@ function geodetic(position) {
 }
 
 function elevationDegrees(position) {
-  const latitude = radians(STATION.latitude);
-  const longitude = radians(STATION.longitude);
+  const latitude = radians(currentStation.latitude);
+  const longitude = radians(currentStation.longitude);
   const stationUnit = {
     x: Math.cos(latitude) * Math.cos(longitude),
     y: Math.cos(latitude) * Math.sin(longitude),
@@ -61,7 +62,7 @@ function accessMetrics(config, days) {
   const windows = [];
   let start = null;
   for (let elapsed = 0; elapsed <= durationSeconds; elapsed += stepSeconds) {
-    const visible = elevationDegrees(positionAt(config, elapsed)) >= STATION.minimumElevation;
+    const visible = elevationDegrees(positionAt(config, elapsed)) >= currentStation.minimumElevation;
     if (visible && start === null) start = elapsed;
     if (!visible && start !== null) {
       windows.push({ start, end: elapsed });
@@ -150,6 +151,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
   let currentDays = 1;
   let animationStartMs = Date.now();
   let animationTimer;
+  let stationMoveMode = false;
 
   function wrappedSegments(segments) {
     return segments.flatMap((segment) => [-360, 0, 360].map((offset) =>
@@ -170,6 +172,40 @@ export function initializeLearningLab(elements, { map, leaflet }) {
   let modifiedMarker;
   let baselineFootprint;
   let modifiedFootprint;
+  let learningStationMarker;
+
+  function stationLabel() {
+    const isAlaska = Math.abs(currentStation.latitude - DEFAULT_STATION.latitude) < 0.05
+      && Math.abs(currentStation.longitude - DEFAULT_STATION.longitude) < 0.05;
+    return isAlaska ? "Central Alaska" : "Custom station";
+  }
+
+  function syncStationControls() {
+    elements.stationLatitude.value = currentStation.latitude.toFixed(1);
+    elements.stationLongitude.value = currentStation.longitude.toFixed(1);
+    elements.stationElevation.value = String(currentStation.minimumElevation);
+  }
+
+  function setStation(latitude, longitude, minimumElevation = currentStation.minimumElevation) {
+    currentStation = {
+      latitude: Math.max(-90, Math.min(90, latitude)),
+      longitude: ((longitude + 540) % 360) - 180,
+      minimumElevation: Math.max(0, Math.min(90, minimumElevation)),
+    };
+    syncStationControls();
+    render();
+  }
+
+  function setStationMoveMode(enabled) {
+    stationMoveMode = enabled;
+    elements.stationMove.classList.toggle("active", enabled);
+    elements.stationMove.textContent = enabled ? "Tap map or drag marker" : "Move on map";
+    map.getContainer().classList.toggle("learning-station-move-active", enabled);
+    if (learningStationMarker?.dragging) {
+      if (enabled) learningStationMarker.dragging.enable();
+      else learningStationMarker.dragging.disable();
+    }
+  }
 
   function updateAnimatedPositions() {
     if (!active || !baselineMarker || !modifiedMarker) return;
@@ -198,6 +234,20 @@ export function initializeLearningLab(elements, { map, leaflet }) {
       baselineFootprint = leaflet.circle([0, 0], { className: "learning-baseline-footprint", radius: coverageDiameter(BASELINE.altitude) * 500, color: "#9caac0", weight: 1, dashArray: "5 6", fillOpacity: 0.025, interactive: false }).addTo(overlayGroup);
       modifiedFootprint = leaflet.circle([0, 0], { className: "learning-modified-footprint", radius: coverageDiameter(currentConfig.altitude) * 500, color: "#66e0ff", weight: 2, dashArray: "6 7", fillOpacity: 0.055, interactive: false }).addTo(overlayGroup);
     }
+    learningStationMarker = leaflet.marker([currentStation.latitude, currentStation.longitude], {
+      draggable: stationMoveMode,
+      icon: leaflet.divIcon({ className: "learning-station-marker", html: "<span></span>", iconSize: [22, 22], iconAnchor: [11, 11] }),
+    }).addTo(overlayGroup).bindTooltip(`${stationLabel()} · ${currentStation.latitude.toFixed(1)}°, ${currentStation.longitude.toFixed(1)}° · ≥${currentStation.minimumElevation}°`, {
+      permanent: true,
+      direction: "right",
+      className: "learning-station-tooltip",
+      offset: [10, 0],
+    });
+    learningStationMarker.on("dragend", (event) => {
+      const point = event.target.getLatLng();
+      setStationMoveMode(false);
+      setStation(point.lat, point.lng);
+    });
     baselineMarker = leaflet.marker([0, 0], { icon: markerIcon("Baseline", "baseline"), interactive: false }).addTo(overlayGroup);
     modifiedMarker = leaflet.marker([0, 0], { icon: markerIcon("Modified", "modified"), interactive: false }).addTo(overlayGroup);
     updateAnimatedPositions();
@@ -224,8 +274,8 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     const baselineFootprint = coverageDiameter(BASELINE.altitude);
     const modifiedFootprint = coverageDiameter(config.altitude);
     const modifiedLatitudeLimit = Math.min(config.inclination, 180 - config.inclination);
-    const accessReach = accessReachDegrees(config.altitude, STATION.minimumElevation);
-    const northernVisibilityLimit = Math.min(90, modifiedLatitudeLimit + accessReach);
+    const accessReach = accessReachDegrees(config.altitude, currentStation.minimumElevation);
+    const visibilityLatitudeLimit = Math.min(90, modifiedLatitudeLimit + accessReach);
 
     const grid = Array.from({ length: 11 }, (_, index) => {
       const horizontal = index < 5;
@@ -234,13 +284,13 @@ export function initializeLearningLab(elements, { map, leaflet }) {
         ? `<line x1="0" y1="${coordinate}" x2="720" y2="${coordinate}" />`
         : `<line x1="${coordinate}" y1="0" x2="${coordinate}" y2="320" />`;
     }).join("");
-    const stationX = ((STATION.longitude + 180) / 360) * 720;
-    const stationY = ((90 - STATION.latitude) / 180) * 320;
+    const stationX = ((currentStation.longitude + 180) / 360) * 720;
+    const stationY = ((90 - currentStation.latitude) / 180) * 320;
     const paths = [
       ...groundTrackSegments(BASELINE).map((segment) => `<path class="baseline-track" d="${svgPath(segment)}" />`),
       ...groundTrackSegments(config).map((segment) => `<path class="modified-track" d="${svgPath(segment)}" />`),
     ].join("");
-    elements.groundTrack.innerHTML = `<g class="track-grid">${grid}</g><line class="equator" x1="0" y1="160" x2="720" y2="160" />${paths}<circle class="learning-station" cx="${stationX}" cy="${stationY}" r="6" /><text x="${stationX + 10}" y="${stationY - 8}">Central Alaska</text>`;
+    elements.groundTrack.innerHTML = `<g class="track-grid">${grid}</g><line class="equator" x1="0" y1="160" x2="720" y2="160" />${paths}<circle class="learning-station" cx="${stationX}" cy="${stationY}" r="6" /><text x="${stationX + 10}" y="${stationY - 8}">${stationLabel()}</text>`;
 
     elements.metrics.replaceChildren(
       metricCard("Orbital period", formatMinutes(baselinePeriod), formatMinutes(modifiedPeriod)),
@@ -254,7 +304,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
 
     const changes = [];
     if (config.altitude !== BASELINE.altitude) changes.push(`Altitude changes orbit size, period, viewing footprint, and time above the elevation mask.`);
-    if (config.inclination !== BASELINE.inclination) changes.push(`Inclination limits the subsatellite latitude to about ±${modifiedLatitudeLimit.toFixed(1)}°. At ${config.altitude.toLocaleString()} km, the 10° elevation mask extends visibility about ${accessReach.toFixed(1)}° beyond that ground track, giving a best-case northern visibility limit near ${northernVisibilityLimit.toFixed(1)}° N. Central Alaska is at ${STATION.latitude}° N.`);
+    if (config.inclination !== BASELINE.inclination) changes.push(`Inclination limits the subsatellite latitude to about ±${modifiedLatitudeLimit.toFixed(1)}°. At ${config.altitude.toLocaleString()} km, the ${currentStation.minimumElevation}° elevation mask extends visibility about ${accessReach.toFixed(1)}° beyond that ground track, giving a best-case visibility limit near ±${visibilityLatitudeLimit.toFixed(1)}° latitude. The station is at ${currentStation.latitude.toFixed(1)}°.`);
     if (config.raan !== BASELINE.raan) changes.push("RAAN rotates the orbital plane around Earth. It shifts pass timing and ground-track longitude without changing orbital period.");
     if (config.altitude >= 35000) changes.push("A circular orbit near 35,786 km is geosynchronous. It is geostationary only when inclination is 0° and the orbit is equatorial.");
     if (!changes.length) changes.push("The modified orbit currently matches the baseline. Move one control and watch which outcomes change.");
@@ -262,10 +312,10 @@ export function initializeLearningLab(elements, { map, leaflet }) {
 
     const passDifference = modifiedAccess.passes - baselineAccess.passes;
     elements.insight.textContent = modifiedAccess.passes === 0
-      ? `No Central Alaska access occurs for the modified orbit during this ${days}-day period. The baseline has ${baselineAccess.passes} ${baselineAccess.passes === 1 ? "pass" : "passes"}.`
+      ? `No ${stationLabel()} access occurs for the modified orbit during this ${days}-day period. The baseline has ${baselineAccess.passes} ${baselineAccess.passes === 1 ? "pass" : "passes"}.`
       : passDifference === 0
         ? `At these settings, pass count is unchanged over ${days} days—but timing, duration, or ground-track placement may still differ.`
-        : `This orbit produces ${Math.abs(passDifference)} ${passDifference > 0 ? "more" : "fewer"} Central Alaska passes than the baseline over ${days} days.`;
+        : `This orbit produces ${Math.abs(passDifference)} ${passDifference > 0 ? "more" : "fewer"} ${stationLabel()} passes than the baseline over ${days} days.`;
     if (active) renderMapOverlays();
   }
 
@@ -288,7 +338,30 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     elements.footprints.checked = false;
     render();
   });
+  elements.stationMove.addEventListener("click", () => setStationMoveMode(!stationMoveMode));
+  elements.stationLatitude.addEventListener("change", () => {
+    const latitude = Number(elements.stationLatitude.value);
+    if (Number.isFinite(latitude) && latitude >= -90 && latitude <= 90) setStation(latitude, currentStation.longitude);
+  });
+  elements.stationLongitude.addEventListener("change", () => {
+    const longitude = Number(elements.stationLongitude.value);
+    if (Number.isFinite(longitude) && longitude >= -180 && longitude <= 180) setStation(currentStation.latitude, longitude);
+  });
+  elements.stationElevation.addEventListener("change", () => {
+    const elevation = Number(elements.stationElevation.value);
+    if (Number.isFinite(elevation) && elevation >= 0 && elevation <= 90) setStation(currentStation.latitude, currentStation.longitude, elevation);
+  });
+  elements.stationReset.addEventListener("click", () => {
+    setStationMoveMode(false);
+    setStation(DEFAULT_STATION.latitude, DEFAULT_STATION.longitude, DEFAULT_STATION.minimumElevation);
+  });
+  map.on("click", (event) => {
+    if (!active || !stationMoveMode) return;
+    setStationMoveMode(false);
+    setStation(event.latlng.lat, event.latlng.lng);
+  });
   controls.forEach((control) => control.addEventListener("input", render));
+  syncStationControls();
   render();
   return {
     setActive(nextActive) {
@@ -301,6 +374,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
         map.setView([25, -80], 2);
         animationTimer = window.setInterval(updateAnimatedPositions, 250);
       } else {
+        setStationMoveMode(false);
         overlayGroup.remove();
         window.clearInterval(animationTimer);
       }

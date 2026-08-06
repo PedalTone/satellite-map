@@ -1,5 +1,5 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
-import { initializeLearningLab } from "./learning-lab.js?v=learning-reset-1";
+import { initializeLearningLab } from "./learning-lab.js?v=learning-movable-station-1";
 
 const map = L.map("map", {
   center: [18, 0],
@@ -29,6 +29,7 @@ const observerGeodetic = {
 
 for (const longitudeOffset of [-360, 0, 360]) {
   L.circleMarker([groundStation.latitude, groundStation.longitude + longitudeOffset], {
+    className: "live-ground-station",
     radius: 6,
     color: "#ffffff",
     weight: 2,
@@ -131,6 +132,11 @@ const learningElements = {
   footprints: document.querySelector("#learning-footprints"),
   periodNote: document.querySelector("#learning-period-note"),
   reset: document.querySelector("#learning-reset"),
+  stationMove: document.querySelector("#learning-station-move"),
+  stationLatitude: document.querySelector("#learning-station-latitude"),
+  stationLongitude: document.querySelector("#learning-station-longitude"),
+  stationElevation: document.querySelector("#learning-station-elevation"),
+  stationReset: document.querySelector("#learning-station-reset"),
   groundTrack: document.querySelector("#learning-ground-track"),
   insight: document.querySelector("#learning-insight"),
   metrics: document.querySelector("#learning-metrics"),
