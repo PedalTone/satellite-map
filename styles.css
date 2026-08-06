@@ -785,14 +785,15 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
 }
 
 .learning-reset-button {
-  width: 100%;
-  margin-top: 9px;
-  padding: 7px 9px;
+  display: block;
+  width: auto;
+  margin: 8px 0 0 auto;
+  padding: 5px 11px;
   border: 1px solid rgba(102, 224, 255, 0.35);
   border-radius: 9px;
   color: #d9f8ff;
   background: rgba(102, 224, 255, 0.08);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 750;
   cursor: pointer;
 }
