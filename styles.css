@@ -791,7 +791,7 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
 .ground-track-figure figcaption { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 6px; color: var(--muted); font-size: 9px; }
 .ground-track-figure i { display: inline-block; width: 15px; margin-right: 5px; border-top: 2px solid; vertical-align: middle; }
 .baseline-key { color: #9caac0; }
-.modified-key { color: var(--accent); }
+.modified-key { color: #111827; filter: drop-shadow(0 0 1px #fff); }
 #learning-ground-track { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: #0b1b2d; }
 #learning-ground-track .track-grid line { stroke: rgba(255,255,255,.08); stroke-width: 1; }
 #learning-ground-track .equator { stroke: rgba(255,255,255,.18); }

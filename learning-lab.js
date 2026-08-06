@@ -171,7 +171,8 @@ export function initializeLearningLab(elements, { map, leaflet }) {
       leaflet.polyline(segment, { className: "learning-baseline-map-track", color: "#9caac0", weight: 3, opacity: 0.9, dashArray: "8 7", interactive: false }).addTo(overlayGroup);
     });
     wrappedSegments(groundTrackSegments(currentConfig)).forEach((segment) => {
-      leaflet.polyline(segment, { className: "learning-modified-map-track", color: "#66e0ff", weight: 4, opacity: 1, interactive: false }).addTo(overlayGroup);
+      leaflet.polyline(segment, { className: "learning-modified-map-track-halo", color: "#ffffff", weight: 7, opacity: 0.85, interactive: false }).addTo(overlayGroup);
+      leaflet.polyline(segment, { className: "learning-modified-map-track", color: "#111827", weight: 4, opacity: 1, interactive: false }).addTo(overlayGroup);
     });
     baselineFootprint = leaflet.circle([0, 0], { className: "learning-baseline-footprint", radius: coverageDiameter(BASELINE.altitude) * 500, color: "#9caac0", weight: 1, fillOpacity: 0.035, interactive: false }).addTo(overlayGroup);
     modifiedFootprint = leaflet.circle([0, 0], { className: "learning-modified-footprint", radius: coverageDiameter(currentConfig.altitude) * 500, color: "#66e0ff", weight: 2, fillOpacity: 0.07, interactive: false }).addTo(overlayGroup);
