@@ -773,6 +773,13 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
 .learning-controls input[type="range"] { width: 100%; margin: 8px 0 0; accent-color: var(--accent); }
 .learning-controls input[type="number"] { width: 50px; padding: 5px; border: 1px solid var(--line); border-radius: 7px; color: #fff; background: rgba(255,255,255,.07); }
 
+.learning-period-note {
+  margin: 10px 0 0;
+  color: #d9f8ff;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
 .learning-prompt, .learning-insight {
   margin: 14px 0;
   padding: 10px 12px;
@@ -801,7 +808,7 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
 #learning-ground-track .learning-station { fill: #73e6a2; stroke: #fff; stroke-width: 2; }
 #learning-ground-track text { fill: #dfffea; font-size: 10px; font-weight: 700; }
 
-.learning-metrics { display: grid; grid-template-columns: repeat(6, minmax(105px, 1fr)); gap: 7px; }
+.learning-metrics { display: grid; grid-template-columns: repeat(7, minmax(100px, 1fr)); gap: 7px; }
 .learning-metrics div { padding: 9px; border-radius: 9px; background: rgba(255,255,255,.06); }
 .learning-metrics span, .learning-metrics small, .learning-metrics strong { display: block; }
 .learning-metrics span { color: var(--muted); font-size: 9px; }
@@ -1254,7 +1261,7 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
   .learning-control-card { left: 10px; width: 300px; }
   .learning-interpretation-card { right: 10px; width: 280px; }
   .learning-metrics-card { right: 10px; bottom: 10px; left: 10px; }
-  .learning-metrics { overflow-x: auto; grid-template-columns: repeat(6, minmax(110px, 1fr)); }
+  .learning-metrics { overflow-x: auto; grid-template-columns: repeat(7, minmax(110px, 1fr)); }
 }
 
 .satellite-marker {

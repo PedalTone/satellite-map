@@ -1,5 +1,5 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
-import { initializeLearningLab } from "./learning-lab.js?v=learning-geo-altitude-1";
+import { initializeLearningLab } from "./learning-lab.js?v=learning-period-effect-1";
 
 const map = L.map("map", {
   center: [18, 0],
@@ -127,6 +127,7 @@ const learningElements = {
   raan: document.querySelector("#learning-raan"),
   raanValue: document.querySelector("#learning-raan-value"),
   days: document.querySelector("#learning-days"),
+  periodNote: document.querySelector("#learning-period-note"),
   groundTrack: document.querySelector("#learning-ground-track"),
   insight: document.querySelector("#learning-insight"),
   metrics: document.querySelector("#learning-metrics"),

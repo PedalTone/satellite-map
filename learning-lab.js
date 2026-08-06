@@ -202,6 +202,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     elements.altitudeValue.textContent = `${config.altitude.toLocaleString()} km · ${orbitRegime(config.altitude)}`;
     elements.inclinationValue.textContent = `${config.inclination}°`;
     elements.raanValue.textContent = `${config.raan}°`;
+    elements.periodNote.textContent = `Access metrics analyze ${days} ${days === 1 ? "day" : "days"}. The map shows two representative orbits${config.altitude >= 35000 ? ", which repeat each sidereal day near GEO" : ""}.`;
 
     const baselineAccess = accessMetrics(BASELINE, days);
     const modifiedAccess = accessMetrics(config, days);
@@ -229,6 +230,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
       metricCard("Orbital period", formatMinutes(baselinePeriod), formatMinutes(modifiedPeriod)),
       metricCard("Horizon footprint", `${Math.round(baselineFootprint).toLocaleString()} km`, `${Math.round(modifiedFootprint).toLocaleString()} km`),
       metricCard(`Passes in ${days}d`, baselineAccess.passes, modifiedAccess.passes),
+      metricCard("Total access", formatDuration(baselineAccess.totalSeconds), formatDuration(modifiedAccess.totalSeconds)),
       metricCard("Average pass", formatDuration(baselineAccess.averagePassSeconds), formatDuration(modifiedAccess.averagePassSeconds)),
       metricCard("Average revisit", formatDuration(baselineAccess.averageRevisitSeconds), formatDuration(modifiedAccess.averageRevisitSeconds)),
       metricCard("Longest gap", formatDuration(baselineAccess.longestGapSeconds), formatDuration(modifiedAccess.longestGapSeconds)),
