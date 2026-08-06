@@ -2,7 +2,7 @@ const EARTH_RADIUS_KM = 6378.137;
 const EARTH_MU_KM3_S2 = 398600.4418;
 const EARTH_ROTATION_RAD_S = 7.2921159e-5;
 const STATION = { latitude: 64.2, longitude: -152.5, minimumElevation: 10 };
-const BASELINE = { altitude: 550, inclination: 53, raan: 0 };
+const BASELINE = { altitude: 10000, inclination: 53, raan: 0 };
 
 const radians = (degrees) => degrees * Math.PI / 180;
 const degrees = (angle) => angle * 180 / Math.PI;
@@ -142,7 +142,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
   const overlayGroup = leaflet.layerGroup();
   let active = false;
   let currentConfig = { ...BASELINE };
-  let currentDays = 7;
+  let currentDays = 1;
   let animationStartMs = Date.now();
   let animationTimer;
 
@@ -201,7 +201,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
       raan: Number(elements.raan.value),
     };
     currentConfig = config;
-    const days = Math.max(1, Math.min(30, Number(elements.days.value) || 7));
+    const days = Math.max(1, Math.min(30, Number(elements.days.value) || 1));
     currentDays = days;
     elements.altitudeValue.textContent = `${config.altitude.toLocaleString()} km · ${orbitRegime(config.altitude)}`;
     elements.inclinationValue.textContent = `${config.inclination}°`;
