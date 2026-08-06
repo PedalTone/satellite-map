@@ -87,6 +87,11 @@ function coverageDiameter(altitude, minimumElevation = 0) {
   return 2 * EARTH_RADIUS_KM * centralAngle;
 }
 
+function accessReachDegrees(altitude, minimumElevation) {
+  const elevation = radians(minimumElevation);
+  return degrees(Math.acos((EARTH_RADIUS_KM / (EARTH_RADIUS_KM + altitude)) * Math.cos(elevation)) - elevation);
+}
+
 function formatDuration(seconds) {
   if (seconds === null) return "No repeat pass";
   const minutes = Math.round(seconds / 60);
@@ -218,6 +223,9 @@ export function initializeLearningLab(elements, { map, leaflet }) {
     const modifiedPeriod = orbitPeriodSeconds(config.altitude);
     const baselineFootprint = coverageDiameter(BASELINE.altitude);
     const modifiedFootprint = coverageDiameter(config.altitude);
+    const modifiedLatitudeLimit = Math.min(config.inclination, 180 - config.inclination);
+    const accessReach = accessReachDegrees(config.altitude, STATION.minimumElevation);
+    const northernVisibilityLimit = Math.min(90, modifiedLatitudeLimit + accessReach);
 
     const grid = Array.from({ length: 11 }, (_, index) => {
       const horizontal = index < 5;
@@ -236,7 +244,7 @@ export function initializeLearningLab(elements, { map, leaflet }) {
 
     elements.metrics.replaceChildren(
       metricCard("Orbital period", formatMinutes(baselinePeriod), formatMinutes(modifiedPeriod)),
-      metricCard("Horizon footprint", `${Math.round(baselineFootprint).toLocaleString()} km`, `${Math.round(modifiedFootprint).toLocaleString()} km`),
+      metricCard("Horizon footprint (0°)", `${Math.round(baselineFootprint).toLocaleString()} km`, `${Math.round(modifiedFootprint).toLocaleString()} km`),
       metricCard(`Passes in ${days}d`, baselineAccess.passes, modifiedAccess.passes),
       metricCard("Total access", formatDuration(baselineAccess.totalSeconds), formatDuration(modifiedAccess.totalSeconds)),
       metricCard("Average pass", formatDuration(baselineAccess.averagePassSeconds), formatDuration(modifiedAccess.averagePassSeconds)),
@@ -246,16 +254,18 @@ export function initializeLearningLab(elements, { map, leaflet }) {
 
     const changes = [];
     if (config.altitude !== BASELINE.altitude) changes.push(`Altitude changes orbit size, period, viewing footprint, and time above the elevation mask.`);
-    if (config.inclination !== BASELINE.inclination) changes.push(`Inclination changes latitude reach. Central Alaska is at ${STATION.latitude}° N, so low-inclination orbits may never rise above the 10° mask.`);
+    if (config.inclination !== BASELINE.inclination) changes.push(`Inclination limits the subsatellite latitude to about ±${modifiedLatitudeLimit.toFixed(1)}°. At ${config.altitude.toLocaleString()} km, the 10° elevation mask extends visibility about ${accessReach.toFixed(1)}° beyond that ground track, giving a best-case northern visibility limit near ${northernVisibilityLimit.toFixed(1)}° N. Central Alaska is at ${STATION.latitude}° N.`);
     if (config.raan !== BASELINE.raan) changes.push("RAAN rotates the orbital plane around Earth. It shifts pass timing and ground-track longitude without changing orbital period.");
     if (config.altitude >= 35000) changes.push("A circular orbit near 35,786 km is geosynchronous. It is geostationary only when inclination is 0° and the orbit is equatorial.");
     if (!changes.length) changes.push("The modified orbit currently matches the baseline. Move one control and watch which outcomes change.");
     elements.explanation.replaceChildren(...changes.map((text) => Object.assign(document.createElement("p"), { textContent: text })));
 
     const passDifference = modifiedAccess.passes - baselineAccess.passes;
-    elements.insight.textContent = passDifference === 0
-      ? `At these settings, pass count is unchanged over ${days} days—but timing, duration, or ground-track placement may still differ.`
-      : `This orbit produces ${Math.abs(passDifference)} ${passDifference > 0 ? "more" : "fewer"} Central Alaska passes than the baseline over ${days} days.`;
+    elements.insight.textContent = modifiedAccess.passes === 0
+      ? `No Central Alaska access occurs for the modified orbit during this ${days}-day period. The baseline has ${baselineAccess.passes} ${baselineAccess.passes === 1 ? "pass" : "passes"}.`
+      : passDifference === 0
+        ? `At these settings, pass count is unchanged over ${days} days—but timing, duration, or ground-track placement may still differ.`
+        : `This orbit produces ${Math.abs(passDifference)} ${passDifference > 0 ? "more" : "fewer"} Central Alaska passes than the baseline over ${days} days.`;
     if (active) renderMapOverlays();
   }
 
