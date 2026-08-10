@@ -766,17 +766,27 @@ function formatZuluDate(date) {
   return `${date.toISOString().slice(0, 19).replace("T", " ")} Z`;
 }
 
-function formatStationLocalDate(date, timeZone) {
-  return new Intl.DateTimeFormat(undefined, {
+function formatZuluDateParts(date) {
+  const [datePart, timePart] = date.toISOString().slice(0, 19).split("T");
+  return { date: datePart, time: `${timePart} Z` };
+}
+
+function formatStationLocalDateParts(date, timeZone) {
+  const datePart = new Intl.DateTimeFormat(undefined, {
     weekday: "short",
     month: "short",
     day: "numeric",
+    year: "numeric",
+    timeZone,
+  }).format(date);
+  const timePart = new Intl.DateTimeFormat(undefined, {
     hour: "numeric",
     minute: "2-digit",
     second: "2-digit",
     timeZone,
     timeZoneName: "short",
   }).format(date);
+  return { date: datePart, time: timePart };
 }
 
 function groundStationTimeZone() {
@@ -806,11 +816,11 @@ function accessAnalysisFilterValues() {
   };
 }
 
-function accessTableRows(windows, formatDate) {
+function accessTableRows(windows, formatDateParts) {
   if (!windows.length) {
     const row = document.createElement("tr");
     const cell = document.createElement("td");
-    cell.colSpan = 6;
+    cell.colSpan = 8;
     cell.className = "access-analysis-empty-row";
     cell.textContent = "No access windows match the current filters.";
     row.append(cell);
@@ -818,10 +828,14 @@ function accessTableRows(windows, formatDate) {
   }
   return windows.map((window) => {
     const row = document.createElement("tr");
+    const start = formatDateParts(window.start);
+    const end = formatDateParts(window.end);
     const values = [
       String(window.passNumber),
-      formatDate(window.start),
-      formatDate(window.end),
+      start.date,
+      start.time,
+      end.date,
+      end.time,
       formatScenarioDuration(window.durationMs),
       `${window.peak.elevation.toFixed(1)}°`,
       `${Math.round(window.peak.range).toLocaleString()} km`,
@@ -856,8 +870,8 @@ function renderSevenDayAccessResult(item, result) {
     : `${windows.length.toLocaleString()} of ${allWindows.length.toLocaleString()}`;
   elements.accessAnalysisZuluSummary.textContent = `Zulu access windows (${countLabel})`;
   elements.accessAnalysisLocalSummary.textContent = `Ground-station local windows · ${stationTimeZone} (${countLabel})`;
-  elements.accessAnalysisZuluWindowList.replaceChildren(...accessTableRows(windows, formatZuluDate));
-  elements.accessAnalysisLocalWindowList.replaceChildren(...accessTableRows(windows, (date) => formatStationLocalDate(date, stationTimeZone)));
+  elements.accessAnalysisZuluWindowList.replaceChildren(...accessTableRows(windows, formatZuluDateParts));
+  elements.accessAnalysisLocalWindowList.replaceChildren(...accessTableRows(windows, (date) => formatStationLocalDateParts(date, stationTimeZone)));
   elements.accessAnalysisResults.hidden = false;
 }
 

@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <link rel="stylesheet" href="styles.css?v=ground-access-filters-timezones-1">
+    <link rel="stylesheet" href="styles.css?v=ground-access-split-times-1">
   </head>
   <body>
     <main>
@@ -205,7 +205,7 @@
               <div class="access-analysis-table-scroll">
                 <table class="access-analysis-table">
                   <thead>
-                    <tr><th>Pass</th><th>Start</th><th>End</th><th>Duration</th><th>Max elevation</th><th>Peak range</th></tr>
+                    <tr><th>Pass</th><th>Start date</th><th>Start time</th><th>End date</th><th>End time</th><th>Duration</th><th>Max elevation</th><th>Peak range</th></tr>
                   </thead>
                   <tbody id="access-analysis-zulu-window-list"></tbody>
                 </table>
@@ -216,13 +216,13 @@
               <div class="access-analysis-table-scroll">
                 <table class="access-analysis-table">
                   <thead>
-                    <tr><th>Pass</th><th>Start</th><th>End</th><th>Duration</th><th>Max elevation</th><th>Peak range</th></tr>
+                    <tr><th>Pass</th><th>Start date</th><th>Start time</th><th>End date</th><th>End time</th><th>Duration</th><th>Max elevation</th><th>Peak range</th></tr>
                   </thead>
                   <tbody id="access-analysis-local-window-list"></tbody>
                 </table>
               </div>
             </details>
-            <p class="scenario-disclaimer">Approximate access opportunities using the currently loaded orbital elements. Times are shown in your local time zone and are not for operational planning.</p>
+            <p class="scenario-disclaimer">Approximate access opportunities using the currently loaded orbital elements. Times are shown first in Zulu and then in the ground station's local time zone. Not for operational planning.</p>
           </div>
         </section>
 
@@ -380,6 +380,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=ground-access-filters-timezones-1"></script>
+  <script type="module" src="app.js?v=ground-access-split-times-1"></script>
   </body>
 </html>
