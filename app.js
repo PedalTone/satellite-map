@@ -767,6 +767,17 @@ function formatAccessAnalysisDate(date) {
   }).format(date);
 }
 
+function formatAccessTableDate(date) {
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(date);
+}
+
 function formatLocalDateInput(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -799,14 +810,16 @@ function renderSevenDayAccessResult(item, result) {
   elements.accessAnalysisPeriod.textContent = `${formatAccessAnalysisDate(result.start)} through ${formatAccessAnalysisDate(result.end)} · NORAD ${item.id} · Element epoch ${formatAccessAnalysisDate(new Date(item.omm.EPOCH))}`;
   elements.accessAnalysisWindowSummary.textContent = `Access windows (${windows.length.toLocaleString()})`;
   elements.accessAnalysisWindowList.replaceChildren(...windows.map((window, index) => {
-    const row = document.createElement("div");
-    const heading = document.createElement("strong");
-    const timing = document.createElement("span");
-    const geometry = document.createElement("small");
-    heading.textContent = `Pass ${index + 1}`;
-    timing.textContent = `${formatAccessAnalysisDate(window.start)} – ${formatAccessAnalysisDate(window.end)}`;
-    geometry.textContent = `${formatScenarioDuration(window.durationMs)} · max elevation ${window.peak.elevation.toFixed(1)}° · peak range ${Math.round(window.peak.range).toLocaleString()} km`;
-    row.append(heading, timing, geometry);
+    const row = document.createElement("tr");
+    const values = [
+      String(index + 1),
+      formatAccessTableDate(window.start),
+      formatAccessTableDate(window.end),
+      formatScenarioDuration(window.durationMs),
+      `${window.peak.elevation.toFixed(1)}°`,
+      `${Math.round(window.peak.range).toLocaleString()} km`,
+    ];
+    row.append(...values.map((value) => Object.assign(document.createElement("td"), { textContent: value })));
     return row;
   }));
   elements.accessAnalysisResults.hidden = false;
