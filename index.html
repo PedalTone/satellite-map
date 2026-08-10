@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <link rel="stylesheet" href="styles.css?v=ground-access-split-times-1">
+    <link rel="stylesheet" href="styles.css?v=ground-access-next-day-note-1">
   </head>
   <body>
     <main>
@@ -205,22 +205,24 @@
               <div class="access-analysis-table-scroll">
                 <table class="access-analysis-table">
                   <thead>
-                    <tr><th>Pass</th><th>Start date</th><th>Start time</th><th>End date</th><th>End time</th><th>Duration</th><th>Max elevation</th><th>Peak range</th></tr>
+                    <tr><th>Pass</th><th>Start date</th><th>Start time</th><th>End time</th><th>Duration</th><th>Max elevation</th><th>Peak range</th></tr>
                   </thead>
                   <tbody id="access-analysis-zulu-window-list"></tbody>
                 </table>
               </div>
+              <p class="access-analysis-next-day-note">* End time falls on the next calendar day in this table's time zone.</p>
             </details>
             <details class="scenario-window-details" open>
               <summary id="access-analysis-local-summary">Ground-station local access windows</summary>
               <div class="access-analysis-table-scroll">
                 <table class="access-analysis-table">
                   <thead>
-                    <tr><th>Pass</th><th>Start date</th><th>Start time</th><th>End date</th><th>End time</th><th>Duration</th><th>Max elevation</th><th>Peak range</th></tr>
+                    <tr><th>Pass</th><th>Start date</th><th>Start time</th><th>End time</th><th>Duration</th><th>Max elevation</th><th>Peak range</th></tr>
                   </thead>
                   <tbody id="access-analysis-local-window-list"></tbody>
                 </table>
               </div>
+              <p class="access-analysis-next-day-note">* End time falls on the next calendar day in this table's time zone.</p>
             </details>
             <p class="scenario-disclaimer">Approximate access opportunities using the currently loaded orbital elements. Times are shown first in Zulu and then in the ground station's local time zone. Not for operational planning.</p>
           </div>
@@ -380,6 +382,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script type="module" src="app.js?v=ground-access-split-times-1"></script>
+  <script type="module" src="app.js?v=ground-access-next-day-note-1"></script>
   </body>
 </html>

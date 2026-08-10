@@ -820,7 +820,7 @@ function accessTableRows(windows, formatDateParts) {
   if (!windows.length) {
     const row = document.createElement("tr");
     const cell = document.createElement("td");
-    cell.colSpan = 8;
+    cell.colSpan = 7;
     cell.className = "access-analysis-empty-row";
     cell.textContent = "No access windows match the current filters.";
     row.append(cell);
@@ -834,8 +834,7 @@ function accessTableRows(windows, formatDateParts) {
       String(window.passNumber),
       start.date,
       start.time,
-      end.date,
-      end.time,
+      `${end.time}${end.date !== start.date ? "*" : ""}`,
       formatScenarioDuration(window.durationMs),
       `${window.peak.elevation.toFixed(1)}°`,
       `${Math.round(window.peak.range).toLocaleString()} km`,
