@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <link rel="stylesheet" href="styles.css?v=ground-access-table-1">
+    <link rel="stylesheet" href="styles.css?v=ground-access-filters-timezones-1">
   </head>
   <body>
     <main>
@@ -184,6 +184,11 @@
               <input id="access-analysis-start-date" type="date">
             </label>
           </div>
+          <div class="access-analysis-filters" aria-label="Access-window filters">
+            <label for="access-analysis-min-duration">Minimum pass duration <span><input id="access-analysis-min-duration" type="number" min="0" step="0.5" value="0" inputmode="decimal"> min</span></label>
+            <label for="access-analysis-min-peak-elevation">Minimum max elevation <span><input id="access-analysis-min-peak-elevation" type="number" min="0" max="90" step="1" value="0" inputmode="decimal"> °</span></label>
+          </div>
+          <p class="access-analysis-filter-note">Filters may be set before computing or changed afterward; the full result remains available.</p>
           <p id="access-analysis-error" class="scenario-range-error" role="alert" hidden></p>
           <button id="access-analysis-run" class="run-button" type="button">Compute 7-day window</button>
           <div id="access-analysis-results" class="access-analysis-results" hidden>
@@ -196,13 +201,24 @@
             </div>
             <p id="access-analysis-period" class="scenario-period"></p>
             <details class="scenario-window-details" open>
-              <summary id="access-analysis-window-summary">Access windows</summary>
+              <summary id="access-analysis-zulu-summary">Zulu access windows</summary>
               <div class="access-analysis-table-scroll">
                 <table class="access-analysis-table">
                   <thead>
                     <tr><th>Pass</th><th>Start</th><th>End</th><th>Duration</th><th>Max elevation</th><th>Peak range</th></tr>
                   </thead>
-                  <tbody id="access-analysis-window-list"></tbody>
+                  <tbody id="access-analysis-zulu-window-list"></tbody>
+                </table>
+              </div>
+            </details>
+            <details class="scenario-window-details" open>
+              <summary id="access-analysis-local-summary">Ground-station local access windows</summary>
+              <div class="access-analysis-table-scroll">
+                <table class="access-analysis-table">
+                  <thead>
+                    <tr><th>Pass</th><th>Start</th><th>End</th><th>Duration</th><th>Max elevation</th><th>Peak range</th></tr>
+                  </thead>
+                  <tbody id="access-analysis-local-window-list"></tbody>
                 </table>
               </div>
             </details>
@@ -364,6 +380,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=ground-access-table-1"></script>
+    <script type="module" src="app.js?v=ground-access-filters-timezones-1"></script>
   </body>
 </html>

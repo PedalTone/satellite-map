@@ -1,4 +1,5 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
+import tzLookup from "https://cdn.jsdelivr.net/npm/tz-lookup@6.1.25/+esm";
 import { initializeLearningLab } from "./learning-lab.js?v=learning-lesson-2-1";
 
 const map = L.map("map", {
@@ -93,6 +94,8 @@ const elements = {
   accessAnalysisStationReset: document.querySelector("#access-analysis-station-reset"),
   accessAnalysisNorad: document.querySelector("#access-analysis-norad"),
   accessAnalysisStartDate: document.querySelector("#access-analysis-start-date"),
+  accessAnalysisMinDuration: document.querySelector("#access-analysis-min-duration"),
+  accessAnalysisMinPeakElevation: document.querySelector("#access-analysis-min-peak-elevation"),
   loadedNoradOptions: document.querySelector("#loaded-norad-options"),
   accessAnalysisRun: document.querySelector("#access-analysis-run"),
   accessAnalysisError: document.querySelector("#access-analysis-error"),
@@ -103,8 +106,10 @@ const elements = {
   accessAnalysisAverage: document.querySelector("#access-analysis-average"),
   accessAnalysisLongestGap: document.querySelector("#access-analysis-longest-gap"),
   accessAnalysisPeriod: document.querySelector("#access-analysis-period"),
-  accessAnalysisWindowSummary: document.querySelector("#access-analysis-window-summary"),
-  accessAnalysisWindowList: document.querySelector("#access-analysis-window-list"),
+  accessAnalysisZuluSummary: document.querySelector("#access-analysis-zulu-summary"),
+  accessAnalysisZuluWindowList: document.querySelector("#access-analysis-zulu-window-list"),
+  accessAnalysisLocalSummary: document.querySelector("#access-analysis-local-summary"),
+  accessAnalysisLocalWindowList: document.querySelector("#access-analysis-local-window-list"),
   scenarioRun: document.querySelector("#scenario-run"),
   scenarioAnalysisDays: document.querySelector("#scenario-analysis-days"),
   scenarioSatelliteCount: document.querySelector("#scenario-satellite-count"),
@@ -189,6 +194,7 @@ let recommendationCrosslinkLayers = [];
 let learningLabController;
 let activeAnalysisTool = "access";
 let accessAnalysisMapMode = false;
+let lastAccessAnalysisResult = null;
 let accessAnalysisStation = {
   latitude: groundStation.latitude,
   longitude: groundStation.longitude,
@@ -236,6 +242,7 @@ function renderAccessAnalysisStation() {
 }
 
 function invalidateAccessAnalysisResults() {
+  lastAccessAnalysisResult = null;
   elements.accessAnalysisResults.hidden = true;
   elements.accessAnalysisError.hidden = true;
 }
@@ -755,7 +762,11 @@ function calculateSevenDayAccess(item, startDate) {
   return { start: startDate, end: new Date(endMs), windows };
 }
 
-function formatAccessAnalysisDate(date) {
+function formatZuluDate(date) {
+  return `${date.toISOString().slice(0, 19).replace("T", " ")} Z`;
+}
+
+function formatStationLocalDate(date, timeZone) {
   return new Intl.DateTimeFormat(undefined, {
     weekday: "short",
     month: "short",
@@ -763,19 +774,13 @@ function formatAccessAnalysisDate(date) {
     hour: "numeric",
     minute: "2-digit",
     second: "2-digit",
+    timeZone,
     timeZoneName: "short",
   }).format(date);
 }
 
-function formatAccessTableDate(date) {
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-  }).format(date);
+function groundStationTimeZone() {
+  return tzLookup(accessAnalysisStation.latitude, accessAnalysisStation.longitude);
 }
 
 function formatLocalDateInput(date) {
@@ -794,35 +799,71 @@ function parseLocalStartDate(value) {
   return date;
 }
 
-function renderSevenDayAccessResult(item, result) {
-  const { windows } = result;
-  const totalDurationMs = windows.reduce((sum, window) => sum + window.durationMs, 0);
-  const averageDurationMs = windows.length ? totalDurationMs / windows.length : 0;
-  const gaps = windows.slice(1).map((window, index) => window.start.getTime() - windows[index].end.getTime());
-  const longestGapMs = gaps.length ? Math.max(...gaps) : null;
-  elements.accessAnalysisAnswer.textContent = windows.length
-    ? `${item.label} has ${windows.length} access ${windows.length === 1 ? "window" : "windows"} above ${accessAnalysisStation.minimumElevation}° during the selected seven-day period.`
-    : `${item.label} has no access above ${accessAnalysisStation.minimumElevation}° from this ground station during the selected seven-day period.`;
-  elements.accessAnalysisPassCount.textContent = windows.length.toLocaleString();
-  elements.accessAnalysisTotal.textContent = formatScenarioDuration(totalDurationMs);
-  elements.accessAnalysisAverage.textContent = windows.length ? formatScenarioDuration(averageDurationMs) : "—";
-  elements.accessAnalysisLongestGap.textContent = longestGapMs === null ? "—" : formatScenarioDuration(longestGapMs);
-  elements.accessAnalysisPeriod.textContent = `${formatAccessAnalysisDate(result.start)} through ${formatAccessAnalysisDate(result.end)} · NORAD ${item.id} · Element epoch ${formatAccessAnalysisDate(new Date(item.omm.EPOCH))}`;
-  elements.accessAnalysisWindowSummary.textContent = `Access windows (${windows.length.toLocaleString()})`;
-  elements.accessAnalysisWindowList.replaceChildren(...windows.map((window, index) => {
+function accessAnalysisFilterValues() {
+  return {
+    minimumDurationMs: Math.max(0, Number(elements.accessAnalysisMinDuration.value) || 0) * 60_000,
+    minimumPeakElevation: Math.max(0, Math.min(90, Number(elements.accessAnalysisMinPeakElevation.value) || 0)),
+  };
+}
+
+function accessTableRows(windows, formatDate) {
+  if (!windows.length) {
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.colSpan = 6;
+    cell.className = "access-analysis-empty-row";
+    cell.textContent = "No access windows match the current filters.";
+    row.append(cell);
+    return [row];
+  }
+  return windows.map((window) => {
     const row = document.createElement("tr");
     const values = [
-      String(index + 1),
-      formatAccessTableDate(window.start),
-      formatAccessTableDate(window.end),
+      String(window.passNumber),
+      formatDate(window.start),
+      formatDate(window.end),
       formatScenarioDuration(window.durationMs),
       `${window.peak.elevation.toFixed(1)}°`,
       `${Math.round(window.peak.range).toLocaleString()} km`,
     ];
     row.append(...values.map((value) => Object.assign(document.createElement("td"), { textContent: value })));
     return row;
-  }));
+  });
+}
+
+function renderSevenDayAccessResult(item, result) {
+  const filters = accessAnalysisFilterValues();
+  const allWindows = result.windows.map((window, index) => ({ ...window, passNumber: index + 1 }));
+  const windows = allWindows.filter((window) => window.durationMs >= filters.minimumDurationMs
+    && window.peak.elevation >= filters.minimumPeakElevation);
+  const stationTimeZone = groundStationTimeZone();
+  const totalDurationMs = windows.reduce((sum, window) => sum + window.durationMs, 0);
+  const averageDurationMs = windows.length ? totalDurationMs / windows.length : 0;
+  const gaps = windows.slice(1).map((window, index) => window.start.getTime() - windows[index].end.getTime());
+  const longestGapMs = gaps.length ? Math.max(...gaps) : null;
+  elements.accessAnalysisAnswer.textContent = allWindows.length === 0
+    ? `${item.label} has no access above ${accessAnalysisStation.minimumElevation}° from this ground station during the selected seven-day period.`
+    : windows.length === allWindows.length
+      ? `${item.label} has ${windows.length} access ${windows.length === 1 ? "window" : "windows"} above ${accessAnalysisStation.minimumElevation}° during the selected seven-day period.`
+      : `Showing ${windows.length} of ${allWindows.length} access windows after applying the duration and maximum-elevation filters.`;
+  elements.accessAnalysisPassCount.textContent = windows.length.toLocaleString();
+  elements.accessAnalysisTotal.textContent = formatScenarioDuration(totalDurationMs);
+  elements.accessAnalysisAverage.textContent = windows.length ? formatScenarioDuration(averageDurationMs) : "—";
+  elements.accessAnalysisLongestGap.textContent = longestGapMs === null ? "—" : formatScenarioDuration(longestGapMs);
+  elements.accessAnalysisPeriod.textContent = `${formatZuluDate(result.start)} through ${formatZuluDate(result.end)} · Ground-station zone ${stationTimeZone} · NORAD ${item.id} · Element epoch ${formatZuluDate(new Date(item.omm.EPOCH))}`;
+  const countLabel = windows.length === allWindows.length
+    ? windows.length.toLocaleString()
+    : `${windows.length.toLocaleString()} of ${allWindows.length.toLocaleString()}`;
+  elements.accessAnalysisZuluSummary.textContent = `Zulu access windows (${countLabel})`;
+  elements.accessAnalysisLocalSummary.textContent = `Ground-station local windows · ${stationTimeZone} (${countLabel})`;
+  elements.accessAnalysisZuluWindowList.replaceChildren(...accessTableRows(windows, formatZuluDate));
+  elements.accessAnalysisLocalWindowList.replaceChildren(...accessTableRows(windows, (date) => formatStationLocalDate(date, stationTimeZone)));
   elements.accessAnalysisResults.hidden = false;
+}
+
+function applyAccessAnalysisFilters() {
+  if (!lastAccessAnalysisResult) return;
+  renderSevenDayAccessResult(lastAccessAnalysisResult.item, lastAccessAnalysisResult.result);
 }
 
 async function runSevenDayAccessAnalysis() {
@@ -850,8 +891,11 @@ async function runSevenDayAccessAnalysis() {
   elements.accessAnalysisResults.hidden = true;
   await new Promise((resolve) => requestAnimationFrame(resolve));
   try {
-    renderSevenDayAccessResult(item, calculateSevenDayAccess(item, startDate));
+    const result = calculateSevenDayAccess(item, startDate);
+    lastAccessAnalysisResult = { item, result };
+    renderSevenDayAccessResult(item, result);
   } catch (error) {
+    lastAccessAnalysisResult = null;
     console.error(error);
     elements.accessAnalysisError.textContent = "The access calculation failed for this satellite’s current elements.";
     elements.accessAnalysisError.hidden = false;
@@ -1896,6 +1940,8 @@ elements.accessAnalysisStationReset.addEventListener("click", () => {
 });
 elements.accessAnalysisNorad.addEventListener("input", invalidateAccessAnalysisResults);
 elements.accessAnalysisStartDate.addEventListener("input", invalidateAccessAnalysisResults);
+elements.accessAnalysisMinDuration.addEventListener("input", applyAccessAnalysisFilters);
+elements.accessAnalysisMinPeakElevation.addEventListener("input", applyAccessAnalysisFilters);
 elements.accessAnalysisRun.addEventListener("click", runSevenDayAccessAnalysis);
 map.on("click", (event) => {
   if (document.body.dataset.appTab !== "analysis" || activeAnalysisTool !== "access" || !accessAnalysisMapMode) return;
