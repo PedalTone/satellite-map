@@ -1004,16 +1004,16 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
 .access-analysis-results[hidden] { display: none; }
 .access-analysis-results .scenario-window-details + .scenario-window-details { margin-top: 10px; }
 .access-analysis-table-scroll { margin-top: 10px; overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
-.access-analysis-table { width: 100%; min-width: 850px; border-collapse: collapse; font-size: 9px; white-space: nowrap; text-align: left; }
-.access-analysis-table th, .access-analysis-table td { padding: 8px 9px; border-bottom: 1px solid var(--line); text-align: left; }
-.access-analysis-table th { position: sticky; top: 0; color: #d9f8ff; background: #101d2f; font-size: 8px; letter-spacing: .05em; text-transform: uppercase; }
+.access-analysis-table { width: 100%; min-width: 980px; border-collapse: collapse; font-size: 12px; white-space: nowrap; text-align: left; }
+.access-analysis-table th, .access-analysis-table td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+.access-analysis-table th { position: sticky; top: 0; color: #d9f8ff; background: #101d2f; font-size: 10px; letter-spacing: .05em; text-transform: uppercase; }
 .access-analysis-table td { color: #dbe6f6; background: rgba(255,255,255,.025); }
 .access-analysis-table tbody tr:nth-child(even) td { background: rgba(255,255,255,.055); }
 .access-analysis-table tbody tr:hover td { background: rgba(102,224,255,.09); }
 .access-analysis-table th:first-child, .access-analysis-table td:first-child { position: sticky; left: 0; z-index: 1; color: #fff; background: #142235; font-weight: 800; }
 .access-analysis-table tbody tr:last-child td { border-bottom: 0; }
 .access-analysis-table .access-analysis-empty-row { position: static; color: var(--muted); background: rgba(255,255,255,.025); font-weight: 600; text-align: left; }
-.access-analysis-next-day-note { margin: 6px 2px 0; color: var(--muted); font-size: 8px; text-align: left; }
+.access-analysis-next-day-note { margin: 7px 2px 0; color: var(--muted); font-size: 10px; text-align: left; }
 .access-analysis-map-mode { cursor: crosshair; }
 .access-analysis-station-marker { filter: drop-shadow(0 2px 7px rgba(0,0,0,.55)); }
 .access-analysis-station-tooltip { border: 1px solid rgba(255,207,102,.5); color: #fff3cb; background: rgba(5,13,25,.92); font-size: 10px; font-weight: 750; box-shadow: 0 3px 12px rgba(0,0,0,.4); }
