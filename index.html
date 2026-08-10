@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <link rel="stylesheet" href="styles.css?v=ground-access-analysis-1">
+    <link rel="stylesheet" href="styles.css?v=ground-access-start-date-1">
   </head>
   <body>
     <main>
@@ -154,10 +154,10 @@
 
         <section id="ground-access-analysis" class="analysis-tool" aria-labelledby="ground-access-title">
           <h3 id="ground-access-title">Seven-Day Ground Access</h3>
-          <p class="scenario-question">Choose a ground station and a loaded NORAD ID to calculate every access window during the next seven days.</p>
+          <p class="scenario-question">Choose a ground station, loaded NORAD ID, and start date to calculate every access window during that seven-day period.</p>
           <div class="scenario-assumptions">
             <span>SGP4 propagation</span>
-            <span>7 days from now</span>
+            <span>7 days from selected start</span>
             <span>30-second scan</span>
             <span>Refined rise/set times</span>
           </div>
@@ -173,13 +173,19 @@
             </div>
             <button id="access-analysis-station-reset" class="access-analysis-reset" type="button">Reset to Central Alaska</button>
           </div>
-          <label class="access-analysis-satellite" for="access-analysis-norad">
-            Satellite NORAD ID (loaded set)
-            <input id="access-analysis-norad" type="text" inputmode="numeric" pattern="[0-9]*" list="loaded-norad-options" placeholder="Enter a loaded NORAD ID" autocomplete="off">
-            <datalist id="loaded-norad-options"></datalist>
-          </label>
+          <div class="access-analysis-request-fields">
+            <label class="access-analysis-satellite" for="access-analysis-norad">
+              Satellite NORAD ID (loaded set)
+              <input id="access-analysis-norad" type="text" inputmode="numeric" pattern="[0-9]*" list="loaded-norad-options" placeholder="Enter a loaded NORAD ID" autocomplete="off">
+              <datalist id="loaded-norad-options"></datalist>
+            </label>
+            <label class="access-analysis-satellite" for="access-analysis-start-date">
+              Start date
+              <input id="access-analysis-start-date" type="date">
+            </label>
+          </div>
           <p id="access-analysis-error" class="scenario-range-error" role="alert" hidden></p>
-          <button id="access-analysis-run" class="run-button" type="button">Compute next 7 days</button>
+          <button id="access-analysis-run" class="run-button" type="button">Compute 7-day window</button>
           <div id="access-analysis-results" class="access-analysis-results" hidden>
             <p id="access-analysis-answer" class="scenario-answer"></p>
             <div class="scenario-metrics access-analysis-metrics">
@@ -351,6 +357,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=ground-access-analysis-1"></script>
+    <script type="module" src="app.js?v=ground-access-start-date-1"></script>
   </body>
 </html>

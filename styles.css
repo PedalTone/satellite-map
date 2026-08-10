@@ -992,7 +992,8 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
   font-size: 11px;
 }
 .access-analysis-reset { display: block; margin: 9px 0 0 auto; }
-.access-analysis-satellite { display: grid; gap: 5px; margin: 0 0 12px; letter-spacing: .04em; text-transform: uppercase; }
+.access-analysis-request-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.access-analysis-satellite { display: grid; align-content: start; gap: 5px; letter-spacing: .04em; text-transform: uppercase; }
 .access-analysis-satellite input { letter-spacing: 0; text-transform: none; }
 .access-analysis-results { margin-top: 18px; }
 .access-analysis-results[hidden] { display: none; }

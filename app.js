@@ -92,6 +92,7 @@ const elements = {
   accessAnalysisElevation: document.querySelector("#access-analysis-elevation"),
   accessAnalysisStationReset: document.querySelector("#access-analysis-station-reset"),
   accessAnalysisNorad: document.querySelector("#access-analysis-norad"),
+  accessAnalysisStartDate: document.querySelector("#access-analysis-start-date"),
   loadedNoradOptions: document.querySelector("#loaded-norad-options"),
   accessAnalysisRun: document.querySelector("#access-analysis-run"),
   accessAnalysisError: document.querySelector("#access-analysis-error"),
@@ -766,6 +767,22 @@ function formatAccessAnalysisDate(date) {
   }).format(date);
 }
 
+function formatLocalDateInput(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function parseLocalStartDate(value) {
+  const parts = value.split("-").map(Number);
+  if (parts.length !== 3 || parts.some((part) => !Number.isInteger(part))) return null;
+  const [year, month, day] = parts;
+  const date = new Date(year, month - 1, day, 0, 0, 0, 0);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+  return date;
+}
+
 function renderSevenDayAccessResult(item, result) {
   const { windows } = result;
   const totalDurationMs = windows.reduce((sum, window) => sum + window.durationMs, 0);
@@ -773,13 +790,13 @@ function renderSevenDayAccessResult(item, result) {
   const gaps = windows.slice(1).map((window, index) => window.start.getTime() - windows[index].end.getTime());
   const longestGapMs = gaps.length ? Math.max(...gaps) : null;
   elements.accessAnalysisAnswer.textContent = windows.length
-    ? `${item.label} has ${windows.length} access ${windows.length === 1 ? "window" : "windows"} above ${accessAnalysisStation.minimumElevation}° during the next seven days.`
-    : `${item.label} has no access above ${accessAnalysisStation.minimumElevation}° from this ground station during the next seven days.`;
+    ? `${item.label} has ${windows.length} access ${windows.length === 1 ? "window" : "windows"} above ${accessAnalysisStation.minimumElevation}° during the selected seven-day period.`
+    : `${item.label} has no access above ${accessAnalysisStation.minimumElevation}° from this ground station during the selected seven-day period.`;
   elements.accessAnalysisPassCount.textContent = windows.length.toLocaleString();
   elements.accessAnalysisTotal.textContent = formatScenarioDuration(totalDurationMs);
   elements.accessAnalysisAverage.textContent = windows.length ? formatScenarioDuration(averageDurationMs) : "—";
   elements.accessAnalysisLongestGap.textContent = longestGapMs === null ? "—" : formatScenarioDuration(longestGapMs);
-  elements.accessAnalysisPeriod.textContent = `${formatAccessAnalysisDate(result.start)} through ${formatAccessAnalysisDate(result.end)} · NORAD ${item.id} · Elements ${ageDescription(item.omm.EPOCH)}`;
+  elements.accessAnalysisPeriod.textContent = `${formatAccessAnalysisDate(result.start)} through ${formatAccessAnalysisDate(result.end)} · NORAD ${item.id} · Element epoch ${formatAccessAnalysisDate(new Date(item.omm.EPOCH))}`;
   elements.accessAnalysisWindowSummary.textContent = `Access windows (${windows.length.toLocaleString()})`;
   elements.accessAnalysisWindowList.replaceChildren(...windows.map((window, index) => {
     const row = document.createElement("div");
@@ -798,6 +815,7 @@ function renderSevenDayAccessResult(item, result) {
 async function runSevenDayAccessAnalysis() {
   const noradId = elements.accessAnalysisNorad.value.trim();
   const item = trackedSatellites.find((candidate) => candidate.id === noradId);
+  const startDate = parseLocalStartDate(elements.accessAnalysisStartDate.value);
   elements.accessAnalysisError.hidden = true;
   if (!/^\d+$/.test(noradId)) {
     elements.accessAnalysisError.textContent = "Enter a numeric NORAD catalog ID.";
@@ -809,19 +827,24 @@ async function runSevenDayAccessAnalysis() {
     elements.accessAnalysisError.hidden = false;
     return;
   }
+  if (!startDate) {
+    elements.accessAnalysisError.textContent = "Choose a valid start date.";
+    elements.accessAnalysisError.hidden = false;
+    return;
+  }
   elements.accessAnalysisRun.disabled = true;
   elements.accessAnalysisRun.textContent = "Computing 7 days…";
   elements.accessAnalysisResults.hidden = true;
   await new Promise((resolve) => requestAnimationFrame(resolve));
   try {
-    renderSevenDayAccessResult(item, calculateSevenDayAccess(item, new Date()));
+    renderSevenDayAccessResult(item, calculateSevenDayAccess(item, startDate));
   } catch (error) {
     console.error(error);
     elements.accessAnalysisError.textContent = "The access calculation failed for this satellite’s current elements.";
     elements.accessAnalysisError.hidden = false;
   } finally {
     elements.accessAnalysisRun.disabled = false;
-    elements.accessAnalysisRun.textContent = "Compute next 7 days";
+    elements.accessAnalysisRun.textContent = "Compute 7-day window";
   }
 }
 
@@ -1859,6 +1882,7 @@ elements.accessAnalysisStationReset.addEventListener("click", () => {
   setAccessAnalysisStation(groundStation.latitude, groundStation.longitude, groundStation.minimumElevation, true);
 });
 elements.accessAnalysisNorad.addEventListener("input", invalidateAccessAnalysisResults);
+elements.accessAnalysisStartDate.addEventListener("input", invalidateAccessAnalysisResults);
 elements.accessAnalysisRun.addEventListener("click", runSevenDayAccessAnalysis);
 map.on("click", (event) => {
   if (document.body.dataset.appTab !== "analysis" || activeAnalysisTool !== "access" || !accessAnalysisMapMode) return;
@@ -1912,6 +1936,7 @@ elements.clearSelection.addEventListener("click", () => {
 
 learningLabController = initializeLearningLab(learningElements, { map, leaflet: L });
 syncAccessAnalysisStationInputs();
+elements.accessAnalysisStartDate.value = formatLocalDateInput(new Date());
 setAnalysisTool("access");
 
 loadSatellites();
