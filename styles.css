@@ -747,6 +747,9 @@ body[data-app-tab="learning"] .recommendation-crosslink-halo {
   display: none;
 }
 
+body[data-app-tab="analysis"] .live-ground-station,
+body[data-app-tab="analysis"] .station-tooltip { display: none; }
+
 body[data-app-tab="learning"] .topbar h1 { font-size: 0; }
 body[data-app-tab="learning"] .topbar h1::after { content: "Orbital Learning Lab"; font-size: 23px; }
 body[data-app-tab="learning"] .topbar .eyebrow { font-size: 0; }
@@ -924,6 +927,83 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
 }
 
 .scenario-close { flex: none; }
+
+.analysis-tool-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin: 16px 0 14px;
+}
+
+.analysis-tool-tabs button {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--muted);
+  background: rgba(255,255,255,.04);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.analysis-tool-tabs button.active {
+  border-color: rgba(102,224,255,.55);
+  color: #fff;
+  background: rgba(102,224,255,.12);
+}
+
+.analysis-tool[hidden] { display: none; }
+.analysis-tool > h3 { margin: 0; font-size: 17px; }
+
+.access-analysis-station {
+  margin-bottom: 12px;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(255,255,255,.035);
+}
+
+.access-analysis-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11px; }
+.access-analysis-heading button, .access-analysis-reset {
+  padding: 6px 8px;
+  border: 1px solid rgba(255,207,102,.4);
+  border-radius: 8px;
+  color: #fff3cb;
+  background: rgba(255,207,102,.08);
+  font: inherit;
+  font-size: 9px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.access-analysis-heading button.active { color: #07111f; background: #ffcf66; }
+.access-analysis-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 10px; }
+.access-analysis-fields label, .access-analysis-satellite { color: var(--muted); font-size: 9px; font-weight: 700; }
+.access-analysis-fields label span { display: flex; align-items: center; gap: 3px; margin-top: 4px; color: #dbe6f6; }
+.access-analysis-fields input, .access-analysis-satellite input {
+  min-width: 0;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: #fff;
+  background: rgba(255,255,255,.07);
+  font: inherit;
+  font-size: 11px;
+}
+.access-analysis-reset { display: block; margin: 9px 0 0 auto; }
+.access-analysis-satellite { display: grid; gap: 5px; margin: 0 0 12px; letter-spacing: .04em; text-transform: uppercase; }
+.access-analysis-satellite input { letter-spacing: 0; text-transform: none; }
+.access-analysis-results { margin-top: 18px; }
+.access-analysis-results[hidden] { display: none; }
+.access-analysis-window-list { display: grid; gap: 7px; margin-top: 10px; }
+.access-analysis-window-list > div { display: grid; gap: 3px; padding: 9px; border: 1px solid var(--line); border-radius: 9px; background: rgba(255,255,255,.035); }
+.access-analysis-window-list strong { color: #fff; font-size: 11px; }
+.access-analysis-window-list span { color: #dbe6f6; font-size: 10px; line-height: 1.4; }
+.access-analysis-window-list small { color: var(--muted); font-size: 9px; }
+.access-analysis-map-mode { cursor: crosshair; }
+.access-analysis-station-marker { filter: drop-shadow(0 2px 7px rgba(0,0,0,.55)); }
+.access-analysis-station-tooltip { border: 1px solid rgba(255,207,102,.5); color: #fff3cb; background: rgba(5,13,25,.92); font-size: 10px; font-weight: 750; box-shadow: 0 3px 12px rgba(0,0,0,.4); }
 
 .scenario-question {
   margin: 18px 0 12px;

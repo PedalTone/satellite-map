@@ -83,6 +83,27 @@ const elements = {
   mapButton: document.querySelector('[data-tab="map"]'),
   scenarioPanel: document.querySelector("#scenario-panel"),
   scenarioClose: document.querySelector("#scenario-close"),
+  analysisToolButtons: [...document.querySelectorAll("[data-analysis-tool]")],
+  groundAccessAnalysis: document.querySelector("#ground-access-analysis"),
+  connectivityAnalysis: document.querySelector("#connectivity-analysis"),
+  accessAnalysisMapSelect: document.querySelector("#access-analysis-map-select"),
+  accessAnalysisLatitude: document.querySelector("#access-analysis-latitude"),
+  accessAnalysisLongitude: document.querySelector("#access-analysis-longitude"),
+  accessAnalysisElevation: document.querySelector("#access-analysis-elevation"),
+  accessAnalysisStationReset: document.querySelector("#access-analysis-station-reset"),
+  accessAnalysisNorad: document.querySelector("#access-analysis-norad"),
+  loadedNoradOptions: document.querySelector("#loaded-norad-options"),
+  accessAnalysisRun: document.querySelector("#access-analysis-run"),
+  accessAnalysisError: document.querySelector("#access-analysis-error"),
+  accessAnalysisResults: document.querySelector("#access-analysis-results"),
+  accessAnalysisAnswer: document.querySelector("#access-analysis-answer"),
+  accessAnalysisPassCount: document.querySelector("#access-analysis-pass-count"),
+  accessAnalysisTotal: document.querySelector("#access-analysis-total"),
+  accessAnalysisAverage: document.querySelector("#access-analysis-average"),
+  accessAnalysisLongestGap: document.querySelector("#access-analysis-longest-gap"),
+  accessAnalysisPeriod: document.querySelector("#access-analysis-period"),
+  accessAnalysisWindowSummary: document.querySelector("#access-analysis-window-summary"),
+  accessAnalysisWindowList: document.querySelector("#access-analysis-window-list"),
   scenarioRun: document.querySelector("#scenario-run"),
   scenarioAnalysisDays: document.querySelector("#scenario-analysis-days"),
   scenarioSatelliteCount: document.querySelector("#scenario-satellite-count"),
@@ -165,6 +186,14 @@ let visualizedRecommendationIds = [];
 let visualizedRecommendationLinks = [];
 let recommendationCrosslinkLayers = [];
 let learningLabController;
+let activeAnalysisTool = "access";
+let accessAnalysisMapMode = false;
+let accessAnalysisStation = {
+  latitude: groundStation.latitude,
+  longitude: groundStation.longitude,
+  minimumElevation: groundStation.minimumElevation,
+};
+const accessAnalysisStationLayer = L.layerGroup();
 const trackColors = ["#66e0ff", "#ff7a90", "#a98bff", "#73e6a2", "#ffad5c", "#f3e56b"];
 const earthEquatorialRadiusKm = 6378.137;
 const earthFlattening = 1 / 298.257223563;
@@ -182,11 +211,82 @@ function currentSimulationDate() {
   return new Date(simulationTimeMs);
 }
 
+function syncAccessAnalysisStationInputs() {
+  elements.accessAnalysisLatitude.value = String(Number(accessAnalysisStation.latitude.toFixed(4)));
+  elements.accessAnalysisLongitude.value = String(Number(accessAnalysisStation.longitude.toFixed(4)));
+  elements.accessAnalysisElevation.value = String(accessAnalysisStation.minimumElevation);
+}
+
+function renderAccessAnalysisStation() {
+  accessAnalysisStationLayer.clearLayers();
+  for (const longitudeOffset of [-360, 0, 360]) {
+    L.circleMarker([accessAnalysisStation.latitude, accessAnalysisStation.longitude + longitudeOffset], {
+      className: "access-analysis-station-marker",
+      radius: 7,
+      color: "#ffffff",
+      weight: 3,
+      fillColor: "#ffcf66",
+      fillOpacity: 1,
+    }).addTo(accessAnalysisStationLayer).bindTooltip(
+      `Analysis station · ${accessAnalysisStation.latitude.toFixed(2)}°, ${accessAnalysisStation.longitude.toFixed(2)}° · ≥${accessAnalysisStation.minimumElevation}°`,
+      { permanent: true, direction: "right", className: "access-analysis-station-tooltip", offset: [9, 0] }
+    );
+  }
+}
+
+function invalidateAccessAnalysisResults() {
+  elements.accessAnalysisResults.hidden = true;
+  elements.accessAnalysisError.hidden = true;
+}
+
+function setAccessAnalysisStation(latitude, longitude, minimumElevation = accessAnalysisStation.minimumElevation, syncInputs = false) {
+  accessAnalysisStation = {
+    latitude: Math.max(-90, Math.min(90, latitude)),
+    longitude: ((longitude + 540) % 360) - 180,
+    minimumElevation: Math.max(0, Math.min(90, minimumElevation)),
+  };
+  if (syncInputs) syncAccessAnalysisStationInputs();
+  invalidateAccessAnalysisResults();
+  renderAccessAnalysisStation();
+}
+
+function setAccessAnalysisMapMode(enabled) {
+  accessAnalysisMapMode = enabled;
+  elements.accessAnalysisMapSelect.classList.toggle("active", enabled);
+  elements.accessAnalysisMapSelect.textContent = enabled ? "Tap a point on map" : "Select on map";
+  map.getContainer().classList.toggle("access-analysis-map-mode", enabled);
+}
+
+function setAnalysisTool(tool) {
+  activeAnalysisTool = tool;
+  elements.groundAccessAnalysis.hidden = tool !== "access";
+  elements.connectivityAnalysis.hidden = tool !== "connectivity";
+  elements.analysisToolButtons.forEach((button) => {
+    const selected = button.dataset.analysisTool === tool;
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+  if (document.body.dataset.appTab === "analysis" && tool === "access") {
+    renderAccessAnalysisStation();
+    if (!map.hasLayer(accessAnalysisStationLayer)) accessAnalysisStationLayer.addTo(map);
+  } else {
+    setAccessAnalysisMapMode(false);
+    accessAnalysisStationLayer.remove();
+  }
+}
+
 function showAppTab(tab) {
   elements.scenarioPanel.hidden = tab !== "analysis";
   elements.learningPanel.hidden = tab !== "learning";
   document.body.dataset.appTab = tab;
   learningLabController?.setActive(tab === "learning");
+  if (tab === "analysis" && activeAnalysisTool === "access") {
+    renderAccessAnalysisStation();
+    if (!map.hasLayer(accessAnalysisStationLayer)) accessAnalysisStationLayer.addTo(map);
+  } else {
+    setAccessAnalysisMapMode(false);
+    accessAnalysisStationLayer.remove();
+  }
   document.querySelectorAll(".app-tab").forEach((button) => {
     button.classList.toggle("active", button.dataset.tab === tab);
   });
@@ -559,6 +659,170 @@ function calculatePosition(item, date) {
     groundElevation: satellite.radiansToDegrees(lookAngles.elevation),
     eci: result.position,
   };
+}
+
+function accessAnalysisObserver() {
+  return {
+    latitude: satellite.degreesToRadians(accessAnalysisStation.latitude),
+    longitude: satellite.degreesToRadians(accessAnalysisStation.longitude),
+    height: 0,
+  };
+}
+
+function accessAnalysisLookAngles(item, date, observer) {
+  const result = satellite.propagate(item.satrec, date);
+  if (!result?.position) return null;
+  const gmst = satellite.gstime(date);
+  const ecfPosition = satellite.eciToEcf(result.position, gmst);
+  const lookAngles = satellite.ecfToLookAngles(observer, ecfPosition);
+  return {
+    elevation: satellite.radiansToDegrees(lookAngles.elevation),
+    azimuth: satellite.radiansToDegrees(lookAngles.azimuth),
+    range: lookAngles.rangeSat,
+  };
+}
+
+function refineAccessBoundary(item, observer, minimumElevation, lowerMs, upperMs) {
+  let lower = lowerMs;
+  let upper = upperMs;
+  const lowerVisible = (accessAnalysisLookAngles(item, new Date(lower), observer)?.elevation ?? -90) >= minimumElevation;
+  for (let iteration = 0; iteration < 16 && upper - lower > 1000; iteration += 1) {
+    const midpoint = Math.floor((lower + upper) / 2);
+    const midpointVisible = (accessAnalysisLookAngles(item, new Date(midpoint), observer)?.elevation ?? -90) >= minimumElevation;
+    if (midpointVisible === lowerVisible) lower = midpoint;
+    else upper = midpoint;
+  }
+  return Math.round((lower + upper) / 2);
+}
+
+function peakAccessGeometry(item, observer, startMs, endMs) {
+  const sampleStepMs = 30_000;
+  let bestTimeMs = startMs;
+  let bestLook = accessAnalysisLookAngles(item, new Date(startMs), observer) ?? { elevation: -90, azimuth: 0, range: Infinity };
+  for (let timeMs = startMs + sampleStepMs; timeMs <= endMs; timeMs += sampleStepMs) {
+    const look = accessAnalysisLookAngles(item, new Date(timeMs), observer);
+    if (look && look.elevation > bestLook.elevation) {
+      bestLook = look;
+      bestTimeMs = timeMs;
+    }
+  }
+  let lower = Math.max(startMs, bestTimeMs - sampleStepMs);
+  let upper = Math.min(endMs, bestTimeMs + sampleStepMs);
+  for (let iteration = 0; iteration < 18; iteration += 1) {
+    const first = lower + (upper - lower) / 3;
+    const second = upper - (upper - lower) / 3;
+    const firstElevation = accessAnalysisLookAngles(item, new Date(first), observer)?.elevation ?? -90;
+    const secondElevation = accessAnalysisLookAngles(item, new Date(second), observer)?.elevation ?? -90;
+    if (firstElevation < secondElevation) lower = first;
+    else upper = second;
+  }
+  bestTimeMs = Math.round((lower + upper) / 2);
+  bestLook = accessAnalysisLookAngles(item, new Date(bestTimeMs), observer) ?? bestLook;
+  return { time: new Date(bestTimeMs), ...bestLook };
+}
+
+function calculateSevenDayAccess(item, startDate) {
+  const observer = accessAnalysisObserver();
+  const minimumElevation = accessAnalysisStation.minimumElevation;
+  const stepMs = 30_000;
+  const startMs = startDate.getTime();
+  const endMs = startMs + 7 * 86400_000;
+  const windows = [];
+  let previousMs = startMs;
+  let previousVisible = (accessAnalysisLookAngles(item, startDate, observer)?.elevation ?? -90) >= minimumElevation;
+  let windowStartMs = previousVisible ? startMs : null;
+
+  for (let timeMs = startMs + stepMs; timeMs <= endMs; timeMs += stepMs) {
+    const visible = (accessAnalysisLookAngles(item, new Date(timeMs), observer)?.elevation ?? -90) >= minimumElevation;
+    if (visible !== previousVisible) {
+      const boundaryMs = refineAccessBoundary(item, observer, minimumElevation, previousMs, timeMs);
+      if (visible) windowStartMs = boundaryMs;
+      else if (windowStartMs !== null) {
+        windows.push({ start: new Date(windowStartMs), end: new Date(boundaryMs) });
+        windowStartMs = null;
+      }
+    }
+    previousVisible = visible;
+    previousMs = timeMs;
+  }
+  if (windowStartMs !== null) windows.push({ start: new Date(windowStartMs), end: new Date(endMs) });
+
+  for (const window of windows) {
+    window.durationMs = window.end.getTime() - window.start.getTime();
+    window.peak = peakAccessGeometry(item, observer, window.start.getTime(), window.end.getTime());
+  }
+  return { start: startDate, end: new Date(endMs), windows };
+}
+
+function formatAccessAnalysisDate(date) {
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZoneName: "short",
+  }).format(date);
+}
+
+function renderSevenDayAccessResult(item, result) {
+  const { windows } = result;
+  const totalDurationMs = windows.reduce((sum, window) => sum + window.durationMs, 0);
+  const averageDurationMs = windows.length ? totalDurationMs / windows.length : 0;
+  const gaps = windows.slice(1).map((window, index) => window.start.getTime() - windows[index].end.getTime());
+  const longestGapMs = gaps.length ? Math.max(...gaps) : null;
+  elements.accessAnalysisAnswer.textContent = windows.length
+    ? `${item.label} has ${windows.length} access ${windows.length === 1 ? "window" : "windows"} above ${accessAnalysisStation.minimumElevation}° during the next seven days.`
+    : `${item.label} has no access above ${accessAnalysisStation.minimumElevation}° from this ground station during the next seven days.`;
+  elements.accessAnalysisPassCount.textContent = windows.length.toLocaleString();
+  elements.accessAnalysisTotal.textContent = formatScenarioDuration(totalDurationMs);
+  elements.accessAnalysisAverage.textContent = windows.length ? formatScenarioDuration(averageDurationMs) : "—";
+  elements.accessAnalysisLongestGap.textContent = longestGapMs === null ? "—" : formatScenarioDuration(longestGapMs);
+  elements.accessAnalysisPeriod.textContent = `${formatAccessAnalysisDate(result.start)} through ${formatAccessAnalysisDate(result.end)} · NORAD ${item.id} · Elements ${ageDescription(item.omm.EPOCH)}`;
+  elements.accessAnalysisWindowSummary.textContent = `Access windows (${windows.length.toLocaleString()})`;
+  elements.accessAnalysisWindowList.replaceChildren(...windows.map((window, index) => {
+    const row = document.createElement("div");
+    const heading = document.createElement("strong");
+    const timing = document.createElement("span");
+    const geometry = document.createElement("small");
+    heading.textContent = `Pass ${index + 1}`;
+    timing.textContent = `${formatAccessAnalysisDate(window.start)} – ${formatAccessAnalysisDate(window.end)}`;
+    geometry.textContent = `${formatScenarioDuration(window.durationMs)} · max elevation ${window.peak.elevation.toFixed(1)}° · peak range ${Math.round(window.peak.range).toLocaleString()} km`;
+    row.append(heading, timing, geometry);
+    return row;
+  }));
+  elements.accessAnalysisResults.hidden = false;
+}
+
+async function runSevenDayAccessAnalysis() {
+  const noradId = elements.accessAnalysisNorad.value.trim();
+  const item = trackedSatellites.find((candidate) => candidate.id === noradId);
+  elements.accessAnalysisError.hidden = true;
+  if (!/^\d+$/.test(noradId)) {
+    elements.accessAnalysisError.textContent = "Enter a numeric NORAD catalog ID.";
+    elements.accessAnalysisError.hidden = false;
+    return;
+  }
+  if (!item) {
+    elements.accessAnalysisError.textContent = `NORAD ${noradId} is not in the currently loaded satellite set. Add it to the satellite set and refresh the ephemeris data.`;
+    elements.accessAnalysisError.hidden = false;
+    return;
+  }
+  elements.accessAnalysisRun.disabled = true;
+  elements.accessAnalysisRun.textContent = "Computing 7 days…";
+  elements.accessAnalysisResults.hidden = true;
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+  try {
+    renderSevenDayAccessResult(item, calculateSevenDayAccess(item, new Date()));
+  } catch (error) {
+    console.error(error);
+    elements.accessAnalysisError.textContent = "The access calculation failed for this satellite’s current elements.";
+    elements.accessAnalysisError.hidden = false;
+  } finally {
+    elements.accessAnalysisRun.disabled = false;
+    elements.accessAnalysisRun.textContent = "Compute next 7 days";
+  }
 }
 
 function earthLineOfSightClearance(firstPosition, secondPosition) {
@@ -1532,6 +1796,12 @@ async function loadSatellites() {
       accessLine: null,
       nextAccess: null,
     }));
+    elements.loadedNoradOptions.replaceChildren(...trackedSatellites.map((item) => {
+      const option = document.createElement("option");
+      option.value = item.id;
+      option.label = item.label;
+      return option;
+    }));
 
     updatePositions();
     updateEphemerisEpochDisplay(trackedSatellites);
@@ -1559,6 +1829,41 @@ elements.scenarioButton.addEventListener("click", () => {
 });
 elements.scenarioClose.addEventListener("click", () => {
   showAppTab("map");
+});
+elements.analysisToolButtons.forEach((button) => button.addEventListener("click", () => {
+  setAnalysisTool(button.dataset.analysisTool);
+}));
+elements.accessAnalysisMapSelect.addEventListener("click", () => {
+  setAccessAnalysisMapMode(!accessAnalysisMapMode);
+});
+elements.accessAnalysisLatitude.addEventListener("input", () => {
+  const latitude = Number(elements.accessAnalysisLatitude.value);
+  if (Number.isFinite(latitude) && latitude >= -90 && latitude <= 90) {
+    setAccessAnalysisStation(latitude, accessAnalysisStation.longitude);
+  }
+});
+elements.accessAnalysisLongitude.addEventListener("input", () => {
+  const longitude = Number(elements.accessAnalysisLongitude.value);
+  if (Number.isFinite(longitude) && longitude >= -180 && longitude <= 180) {
+    setAccessAnalysisStation(accessAnalysisStation.latitude, longitude);
+  }
+});
+elements.accessAnalysisElevation.addEventListener("input", () => {
+  const minimumElevation = Number(elements.accessAnalysisElevation.value);
+  if (Number.isFinite(minimumElevation) && minimumElevation >= 0 && minimumElevation <= 90) {
+    setAccessAnalysisStation(accessAnalysisStation.latitude, accessAnalysisStation.longitude, minimumElevation);
+  }
+});
+elements.accessAnalysisStationReset.addEventListener("click", () => {
+  setAccessAnalysisMapMode(false);
+  setAccessAnalysisStation(groundStation.latitude, groundStation.longitude, groundStation.minimumElevation, true);
+});
+elements.accessAnalysisNorad.addEventListener("input", invalidateAccessAnalysisResults);
+elements.accessAnalysisRun.addEventListener("click", runSevenDayAccessAnalysis);
+map.on("click", (event) => {
+  if (document.body.dataset.appTab !== "analysis" || activeAnalysisTool !== "access" || !accessAnalysisMapMode) return;
+  setAccessAnalysisMapMode(false);
+  setAccessAnalysisStation(event.latlng.lat, event.latlng.lng, accessAnalysisStation.minimumElevation, true);
 });
 elements.learningButton.addEventListener("click", () => showAppTab("learning"));
 elements.learningClose.addEventListener("click", () => showAppTab("map"));
@@ -1606,5 +1911,7 @@ elements.clearSelection.addEventListener("click", () => {
 });
 
 learningLabController = initializeLearningLab(learningElements, { map, leaflet: L });
+syncAccessAnalysisStationInputs();
+setAnalysisTool("access");
 
 loadSatellites();

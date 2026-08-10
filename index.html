@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <link rel="stylesheet" href="styles.css?v=learning-lesson-2-1">
+    <link rel="stylesheet" href="styles.css?v=ground-access-analysis-1">
   </head>
   <body>
     <main>
@@ -143,10 +143,62 @@
         <div class="scenario-header">
           <div>
             <p class="eyebrow">Feasibility analysis</p>
-            <h2 id="scenario-title">Multi-Satellite Connectivity</h2>
+            <h2 id="scenario-title">Analysis Lab</h2>
           </div>
           <button id="scenario-close" class="icon-button scenario-close" type="button" aria-label="Close Analysis">×</button>
         </div>
+        <nav class="analysis-tool-tabs" aria-label="Analysis tools">
+          <button type="button" class="active" data-analysis-tool="access" aria-pressed="true">Ground Access</button>
+          <button type="button" data-analysis-tool="connectivity" aria-pressed="false">Connectivity</button>
+        </nav>
+
+        <section id="ground-access-analysis" class="analysis-tool" aria-labelledby="ground-access-title">
+          <h3 id="ground-access-title">Seven-Day Ground Access</h3>
+          <p class="scenario-question">Choose a ground station and a loaded NORAD ID to calculate every access window during the next seven days.</p>
+          <div class="scenario-assumptions">
+            <span>SGP4 propagation</span>
+            <span>7 days from now</span>
+            <span>30-second scan</span>
+            <span>Refined rise/set times</span>
+          </div>
+          <div class="access-analysis-station">
+            <div class="access-analysis-heading">
+              <strong>Ground station</strong>
+              <button id="access-analysis-map-select" type="button">Select on map</button>
+            </div>
+            <div class="access-analysis-fields">
+              <label for="access-analysis-latitude">Latitude <span><input id="access-analysis-latitude" type="number" min="-90" max="90" step="0.1" value="64.2" inputmode="decimal"> °</span></label>
+              <label for="access-analysis-longitude">Longitude <span><input id="access-analysis-longitude" type="number" min="-180" max="180" step="0.1" value="-152.5" inputmode="decimal"> °</span></label>
+              <label for="access-analysis-elevation">Minimum elevation <span><input id="access-analysis-elevation" type="number" min="0" max="90" step="1" value="10" inputmode="numeric"> °</span></label>
+            </div>
+            <button id="access-analysis-station-reset" class="access-analysis-reset" type="button">Reset to Central Alaska</button>
+          </div>
+          <label class="access-analysis-satellite" for="access-analysis-norad">
+            Satellite NORAD ID (loaded set)
+            <input id="access-analysis-norad" type="text" inputmode="numeric" pattern="[0-9]*" list="loaded-norad-options" placeholder="Enter a loaded NORAD ID" autocomplete="off">
+            <datalist id="loaded-norad-options"></datalist>
+          </label>
+          <p id="access-analysis-error" class="scenario-range-error" role="alert" hidden></p>
+          <button id="access-analysis-run" class="run-button" type="button">Compute next 7 days</button>
+          <div id="access-analysis-results" class="access-analysis-results" hidden>
+            <p id="access-analysis-answer" class="scenario-answer"></p>
+            <div class="scenario-metrics access-analysis-metrics">
+              <div><span>Access windows</span><strong id="access-analysis-pass-count">—</strong></div>
+              <div><span>Total access</span><strong id="access-analysis-total">—</strong></div>
+              <div><span>Average pass</span><strong id="access-analysis-average">—</strong></div>
+              <div><span>Longest gap</span><strong id="access-analysis-longest-gap">—</strong></div>
+            </div>
+            <p id="access-analysis-period" class="scenario-period"></p>
+            <details class="scenario-window-details" open>
+              <summary id="access-analysis-window-summary">Access windows</summary>
+              <div id="access-analysis-window-list" class="access-analysis-window-list"></div>
+            </details>
+            <p class="scenario-disclaimer">Approximate access opportunities using the currently loaded orbital elements. Times are shown in your local time zone and are not for operational planning.</p>
+          </div>
+        </section>
+
+        <section id="connectivity-analysis" class="analysis-tool" hidden>
+          <h3>Multi-Satellite Connectivity</h3>
         <p class="scenario-question">
           During the selected analysis period, when can a user-selected number of satellites form a connected space network while at least one has Central Alaska access at 10° or higher?
         </p>
@@ -220,6 +272,7 @@
           <div id="scenario-group-list" class="scenario-group-list"></div>
           <p class="scenario-disclaimer">Approximate geometric feasibility based on the currently loaded orbital elements. Not for operational planning.</p>
         </div>
+        </section>
       </section>
 
       <section id="learning-panel" class="learning-panel" aria-labelledby="learning-title" hidden>
@@ -298,6 +351,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script type="module" src="app.js?v=learning-lesson-2-1"></script>
+    <script type="module" src="app.js?v=ground-access-analysis-1"></script>
   </body>
 </html>
