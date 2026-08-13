@@ -60,7 +60,27 @@ Outputs:
 - Maximum pass elevation
 - Revisit interval
 
-### Module 3: Earth occlusion and crosslinks
+### Module 3: Beta angle and solar illumination
+
+**Question:** Why can the same orbit move between eclipse seasons and continuous sunlight?
+
+Inputs:
+
+- Season/date
+- Altitude
+- Inclination
+- RAAN
+
+Outputs:
+
+- Signed beta angle and annual beta trend
+- Altitude-dependent critical beta angle
+- Sunlit and eclipsed time per orbit
+- Solar-power and thermal implications of low versus high beta
+
+This lesson explicitly distinguishes the geometry that sets beta (Sun direction and orbit-plane orientation) from altitude, which changes eclipse geometry but does not directly set beta.
+
+### Module 4: Earth occlusion and crosslinks
 
 **Question:** When can two satellites see each other through space?
 
@@ -77,7 +97,7 @@ Outputs:
 - Closest approach to Earth
 - Link start and end times
 
-### Module 4: Eccentric orbits
+### Module 5: Eccentric orbits
 
 **Question:** Why does a satellite move faster at perigee and remain longer near apogee?
 
@@ -94,7 +114,7 @@ Outputs:
 - Unequal ground-track timing
 - Coverage and access asymmetry
 
-### Module 5: Constellation revisit
+### Module 6: Constellation revisit
 
 **Question:** How do satellites, planes, and phasing reduce coverage gaps?
 
@@ -124,4 +144,4 @@ Outputs:
 
 ## Current implementation
 
-Lessons 1 and 2 use a two-body circular-orbit teaching model. Lesson 1 compares orbit size, tilt, and plane placement. Lesson 2 follows successive same-phase ground tracks to connect orbital period and Earth rotation to ground-track drift and ground-station revisit. Both intentionally emphasize intuition and remain clearly separated from the real-satellite SGP4 calculations used elsewhere in the application.
+Lessons 1–3 use a two-body circular-orbit teaching model. Lesson 1 compares orbit size, tilt, and plane placement. Lesson 2 follows successive same-phase ground tracks to connect orbital period and Earth rotation to ground-track drift and ground-station revisit. Lesson 3 connects season and orbit-plane orientation to beta angle, eclipse duration, solar power, and thermal conditions. It uses an approximate solar ephemeris and a cylindrical Earth-shadow model while clearly noting that real beta histories also depend on orbital-plane precession. All lessons emphasize intuition and remain separated from the real-satellite SGP4 calculations used elsewhere in the application.

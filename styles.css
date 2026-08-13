@@ -706,7 +706,7 @@ body.summary-expanded .detail-panel {
 
 .learning-lesson-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   margin: 0 0 12px;
 }
@@ -821,9 +821,11 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
 .learning-controls output, .learning-controls label > span { float: right; color: #fff; }
 .learning-controls input[type="range"] { width: 100%; margin: 8px 0 0; accent-color: var(--accent); }
 .learning-controls input[type="number"] { width: 50px; padding: 5px; border: 1px solid var(--line); border-radius: 7px; color: #fff; background: rgba(255,255,255,.07); }
+.learning-controls input[type="date"] { width: calc(100% - 12px); margin-top: 8px; padding: 5px; border: 1px solid var(--line); border-radius: 7px; color: #fff; color-scheme: dark; background: rgba(255,255,255,.07); }
 .learning-controls .learning-altitude-entry { display: flex; float: none; align-items: center; justify-content: flex-end; gap: 5px; margin-top: 6px; color: var(--muted); font-size: 9px; }
 .learning-controls .learning-altitude-entry input { width: 78px; }
 .learning-controls .learning-check { display: flex; grid-column: 1 / -1; align-items: center; gap: 7px; color: #dbe6f6; }
+.learning-controls [hidden], .learning-station-controls[hidden] { display: none; }
 .learning-check input { accent-color: var(--accent); }
 
 .learning-period-note {
@@ -909,10 +911,39 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
 .learning-metrics strong { margin: 3px 0; font-size: 14px; }
 .learning-metrics small { color: #70829c; font-size: 8px; }
 
+.learning-beta-visual {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(240px, .75fr);
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.learning-beta-visual[hidden] { display: none; }
+.learning-beta-visual section { min-width: 0; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,.045); }
+.learning-beta-visual section > strong { display: block; margin-bottom: 7px; color: #fff; font-size: 12px; }
+#learning-beta-season-chart { display: block; width: 100%; height: 105px; border-radius: 8px; background: rgba(2,9,18,.6); }
+#learning-beta-season-chart .beta-eclipse-band { fill: rgba(255, 207, 102, .10); }
+#learning-beta-season-chart .beta-axis { stroke: rgba(255,255,255,.28); stroke-width: 1; }
+#learning-beta-season-chart .beta-season-line { fill: none; stroke: #66e0ff; stroke-width: 4; }
+#learning-beta-season-chart .beta-date-line { stroke: #ffcf66; stroke-width: 2; stroke-dasharray: 5 5; }
+#learning-beta-season-chart .beta-date-point { fill: #ffcf66; stroke: #fff; stroke-width: 2; }
+#learning-beta-season-chart text { fill: #aebbd0; font-size: 16px; font-weight: 700; }
+.learning-sunlight-bar { display: flex; height: 38px; overflow: hidden; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; background: #080d16; }
+.learning-sunlight-bar span { display: grid; min-width: 0; place-items: center; overflow: hidden; color: #07101b; font-size: 10px; font-weight: 800; white-space: nowrap; }
+.learning-sunlight-bar .sunlit { background: #ffd66b; }
+.learning-sunlight-bar .eclipse { color: #dbe6f6; background: #26344a; }
+#learning-beta-visual-note { margin: 8px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+
 .learning-interpretation-card .learning-insight { margin: 8px 0 10px; }
 .learning-explanation { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 10px; }
 .learning-explanation summary { color: #fff; font-size: 11px; font-weight: 750; cursor: pointer; }
 .learning-explanation p { margin: 8px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+
+body[data-learning-lesson="3"] .learning-control-card { width: 350px; }
+body[data-learning-lesson="3"] .learning-card-intro { font-size: 12px; line-height: 1.5; }
+body[data-learning-lesson="3"] .learning-controls label { font-size: 11px; }
+body[data-learning-lesson="3"] .learning-period-note { font-size: 10px; }
+body[data-learning-lesson="3"] .learning-insight { font-size: 12px; }
+body[data-learning-lesson="3"] .learning-explanation p { font-size: 11px; }
 
 .scenario-header {
   display: flex;
@@ -1446,6 +1477,7 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
   .learning-interpretation-card { right: 10px; width: 280px; }
   .learning-metrics-card { right: 10px; bottom: 10px; left: 10px; }
   .learning-metrics { overflow-x: auto; grid-template-columns: repeat(7, minmax(110px, 1fr)); }
+  .learning-beta-visual { grid-template-columns: 1fr 1fr; }
 }
 
 .satellite-marker {
@@ -1518,6 +1550,7 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
     max-height: 205px;
     padding: 11px;
   }
+  body[data-learning-lesson="3"] .learning-control-card { max-height: 275px; }
   .learning-control-card .learning-mode-badge,
   .learning-control-card .learning-card-intro,
   .learning-control-card .learning-prompt { display: none; }
@@ -1530,6 +1563,7 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
     max-height: 128px;
     padding: 10px;
   }
+  body[data-learning-lesson="3"] .learning-interpretation-card { top: calc(355px + env(safe-area-inset-top)); }
   .learning-interpretation-card .learning-explanation,
   .learning-interpretation-card .scenario-disclaimer { display: none; }
   .learning-interpretation-card .learning-insight { margin-bottom: 0; font-size: 10px; }
@@ -1544,6 +1578,10 @@ body[data-app-tab="learning"] .topbar .eyebrow::after { content: "Educational wo
   .learning-map-legend { display: none; }
   .learning-metrics { display: flex; overflow-x: auto; }
   .learning-metrics div { min-width: 108px; }
+  .learning-beta-visual { display: flex; overflow-x: auto; }
+  .learning-beta-visual section { min-width: 270px; }
+  .learning-beta-visual section { scroll-snap-align: start; }
+  .learning-beta-visual { scroll-snap-type: x proximity; }
   body[data-app-tab="learning"] .topbar h1::after { font-size: 18px; }
   .metrics { grid-template-columns: repeat(2, 1fr); }
   .satellite-label { font-size: 10px; }

@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <link rel="stylesheet" href="styles.css?v=ground-access-larger-table-text-1">
+    <link rel="stylesheet" href="styles.css?v=learning-beta-angle-2">
   </head>
   <body>
     <main>
@@ -312,6 +312,7 @@
           <nav class="learning-lesson-tabs" aria-label="Learning lessons">
             <button type="button" class="active" data-learning-lesson="1" aria-pressed="true"><span>Lesson 1</span>Orbit basics</button>
             <button type="button" data-learning-lesson="2" aria-pressed="false"><span>Lesson 2</span>Revisit</button>
+            <button type="button" data-learning-lesson="3" aria-pressed="false"><span>Lesson 3</span>Sunlight</button>
           </nav>
           <div class="scenario-header">
             <div>
@@ -326,13 +327,14 @@
             <label for="learning-altitude">Altitude <output id="learning-altitude-value">10,000 km · MEO</output><input id="learning-altitude" type="range" min="200" max="36000" step="1" value="10000" list="learning-altitude-landmarks"><datalist id="learning-altitude-landmarks"><option value="550" label="550"></option><option value="1000" label="1,000"></option><option value="2000" label="2,000"></option><option value="10000" label="10,000"></option><option value="35786" label="GEO"></option></datalist><span class="learning-altitude-entry"><input id="learning-altitude-number" type="number" min="200" max="36000" step="1" value="10000" inputmode="numeric"> km</span></label>
             <label for="learning-inclination">Inclination <output id="learning-inclination-value">53°</output><input id="learning-inclination" type="range" min="0" max="100" step="1" value="53"></label>
             <label for="learning-raan">RAAN <output id="learning-raan-value">0°</output><input id="learning-raan" type="range" min="0" max="359" step="1" value="0"></label>
-            <label for="learning-days">Analysis period <span><input id="learning-days" type="number" min="1" max="30" step="1" value="1"> days</span></label>
-            <label class="learning-check" for="learning-footprints"><input id="learning-footprints" type="checkbox"> Show coverage footprints</label>
+            <label id="learning-days-control" for="learning-days">Analysis period <span><input id="learning-days" type="number" min="1" max="30" step="1" value="1"> days</span></label>
+            <label id="learning-season-control" for="learning-season-date" hidden>Season / date <input id="learning-season-date" type="date" value="2026-03-20"></label>
+            <label id="learning-footprints-control" class="learning-check" for="learning-footprints"><input id="learning-footprints" type="checkbox"> Show coverage footprints</label>
           </div>
           <p id="learning-period-note" class="learning-period-note">The gray baseline and modified path show 1 day.</p>
           <button id="learning-reset" class="learning-reset-button" type="button">Reset</button>
 
-          <div class="learning-station-controls">
+          <div id="learning-station-controls" class="learning-station-controls">
             <div class="learning-station-heading"><strong>Ground station</strong><button id="learning-station-move" type="button">Move on map</button></div>
             <div class="learning-station-fields">
               <label for="learning-station-latitude">Latitude<input id="learning-station-latitude" type="number" min="-90" max="90" step="0.1" value="64.2" inputmode="decimal">°</label>
@@ -363,6 +365,17 @@
             <div><p class="eyebrow">Physical outcomes</p><strong id="learning-metrics-title">Modified orbit compared with baseline</strong></div>
             <div class="learning-map-legend"><span><i class="baseline-key"></i>Baseline</span><span><i class="modified-key"></i>Modified</span></div>
           </div>
+          <div id="learning-beta-visual" class="learning-beta-visual" hidden>
+            <section>
+              <strong>How beta changes through the year</strong>
+              <svg id="learning-beta-season-chart" viewBox="0 0 720 180" role="img" aria-label="Beta angle across the selected year"></svg>
+            </section>
+            <section>
+              <strong>One orbit: sunlight versus Earth shadow</strong>
+              <div id="learning-sunlight-bar" class="learning-sunlight-bar" role="img" aria-label="Sunlit and eclipsed portions of one orbit"></div>
+              <p id="learning-beta-visual-note"></p>
+            </section>
+          </div>
           <div id="learning-metrics" class="learning-metrics" aria-live="polite"></div>
         </aside>
 
@@ -382,6 +395,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script type="module" src="app.js?v=ground-access-next-day-note-1"></script>
+  <script type="module" src="app.js?v=learning-beta-angle-2"></script>
   </body>
 </html>

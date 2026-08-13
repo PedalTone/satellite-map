@@ -1,6 +1,6 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
 import tzLookup from "https://cdn.jsdelivr.net/npm/tz-lookup@6.1.25/+esm";
-import { initializeLearningLab } from "./learning-lab.js?v=learning-lesson-2-1";
+import { initializeLearningLab } from "./learning-lab.js?v=learning-beta-angle-2";
 
 const map = L.map("map", {
   center: [18, 0],
@@ -162,7 +162,11 @@ const learningElements = {
   raan: document.querySelector("#learning-raan"),
   raanValue: document.querySelector("#learning-raan-value"),
   days: document.querySelector("#learning-days"),
+  daysControl: document.querySelector("#learning-days-control"),
+  seasonControl: document.querySelector("#learning-season-control"),
+  seasonDate: document.querySelector("#learning-season-date"),
   footprints: document.querySelector("#learning-footprints"),
+  footprintsControl: document.querySelector("#learning-footprints-control"),
   periodNote: document.querySelector("#learning-period-note"),
   reset: document.querySelector("#learning-reset"),
   stationMove: document.querySelector("#learning-station-move"),
@@ -170,7 +174,12 @@ const learningElements = {
   stationLongitude: document.querySelector("#learning-station-longitude"),
   stationElevation: document.querySelector("#learning-station-elevation"),
   stationReset: document.querySelector("#learning-station-reset"),
+  stationControls: document.querySelector("#learning-station-controls"),
   groundTrack: document.querySelector("#learning-ground-track"),
+  betaVisual: document.querySelector("#learning-beta-visual"),
+  betaSeasonChart: document.querySelector("#learning-beta-season-chart"),
+  sunlightBar: document.querySelector("#learning-sunlight-bar"),
+  betaVisualNote: document.querySelector("#learning-beta-visual-note"),
   insight: document.querySelector("#learning-insight"),
   metrics: document.querySelector("#learning-metrics"),
   explanation: document.querySelector("#learning-explanation"),
