@@ -11,11 +11,14 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <link rel="stylesheet" href="styles.css?v=learning-beta-angle-2">
+    <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Widgets/widgets.css">
+    <link rel="stylesheet" href="styles.css?v=map-3d-satellites-1">
   </head>
-  <body>
+  <body data-app-tab="map" data-view-mode="2d">
     <main>
       <div id="map" aria-label="Live satellite map"></div>
+      <div id="globe" aria-label="Live 3D satellite globe" hidden></div>
+      <div id="globe-hint" class="globe-hint" hidden>Drag to rotate · pinch or scroll to zoom · tap a satellite to select it</div>
 
       <header class="topbar">
         <div>
@@ -88,6 +91,11 @@
       </section>
 
       <section class="map-overlays" aria-label="Map overlays">
+        <div class="view-mode-toggle" role="group" aria-label="Map view mode">
+          <span>View</span>
+          <button id="view-2d" class="active" type="button" aria-pressed="true">2D Map</button>
+          <button id="view-3d" type="button" aria-pressed="false">3D Globe</button>
+        </div>
         <label class="track-legend" for="ground-track-toggle">
           <span class="track-sample"></span>
           <span>Ground paths</span>
@@ -395,6 +403,7 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <script type="module" src="app.js?v=learning-beta-angle-2"></script>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Cesium.js"></script>
+  <script type="module" src="app.js?v=map-3d-satellites-1"></script>
   </body>
 </html>

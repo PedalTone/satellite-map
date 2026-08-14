@@ -1,6 +1,7 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
 import tzLookup from "https://cdn.jsdelivr.net/npm/tz-lookup@6.1.25/+esm";
 import { initializeLearningLab } from "./learning-lab.js?v=learning-beta-angle-2";
+import { initializeGlobeView } from "./globe-view.js?v=map-3d-satellites-1";
 
 const map = L.map("map", {
   center: [18, 0],
@@ -75,6 +76,11 @@ const elements = {
   groundTrackToggle: document.querySelector("#ground-track-toggle"),
   footprintToggle: document.querySelector("#footprint-toggle"),
   footprintDiameter: document.querySelector("#footprint-diameter"),
+  map: document.querySelector("#map"),
+  globe: document.querySelector("#globe"),
+  globeHint: document.querySelector("#globe-hint"),
+  view2d: document.querySelector("#view-2d"),
+  view3d: document.querySelector("#view-3d"),
   speedSelect: document.querySelector("#speed-select"),
   simulationTime: document.querySelector("#simulation-time"),
   accessList: document.querySelector("#access-list"),
@@ -204,6 +210,8 @@ let learningLabController;
 let activeAnalysisTool = "access";
 let accessAnalysisMapMode = false;
 let lastAccessAnalysisResult = null;
+let currentViewMode = localStorage.getItem("satelliteViewMode") === "3d" ? "3d" : "2d";
+let globeController;
 let accessAnalysisStation = {
   latitude: groundStation.latitude,
   longitude: groundStation.longitude,
@@ -296,6 +304,7 @@ function showAppTab(tab) {
   elements.scenarioPanel.hidden = tab !== "analysis";
   elements.learningPanel.hidden = tab !== "learning";
   document.body.dataset.appTab = tab;
+  applyViewMode();
   learningLabController?.setActive(tab === "learning");
   if (tab === "analysis" && activeAnalysisTool === "access") {
     renderAccessAnalysisStation();
@@ -307,6 +316,27 @@ function showAppTab(tab) {
   document.querySelectorAll(".app-tab").forEach((button) => {
     button.classList.toggle("active", button.dataset.tab === tab);
   });
+}
+
+function applyViewMode() {
+  const showGlobe = currentViewMode === "3d" && document.body.dataset.appTab === "map";
+  document.body.dataset.viewMode = showGlobe ? "3d" : "2d";
+  elements.map.hidden = showGlobe;
+  elements.globe.hidden = !showGlobe;
+  elements.globeHint.hidden = !showGlobe;
+  elements.view2d.classList.toggle("active", currentViewMode === "2d");
+  elements.view3d.classList.toggle("active", currentViewMode === "3d");
+  elements.view2d.setAttribute("aria-pressed", String(currentViewMode === "2d"));
+  elements.view3d.setAttribute("aria-pressed", String(currentViewMode === "3d"));
+  globeController?.setVisible(showGlobe);
+  if (showGlobe) globeController?.update(trackedSatellites, selectedIds, visualizedRecommendationIds);
+  else window.setTimeout(() => map.invalidateSize(), 0);
+}
+
+function setViewMode(mode) {
+  currentViewMode = mode === "3d" ? "3d" : "2d";
+  localStorage.setItem("satelliteViewMode", currentViewMode);
+  applyViewMode();
 }
 
 function updateSimulationClock(date) {
@@ -1702,6 +1732,7 @@ function updatePositions() {
       item.accessLine = null;
     }
   }
+  globeController?.update(trackedSatellites, selectedIds, visualizedRecommendationIds);
   updateRecommendationCrosslinks();
   if (Date.now() - lastAccessPanelRenderMs >= 1000) updateAccessPanel(now);
   updateDetailPanel();
@@ -1869,6 +1900,7 @@ async function loadSatellites() {
   clearInterval(updateTimer);
   clearInterval(groundTrackTimer);
   clearRecommendationVisualization(false);
+  globeController?.clear();
   for (const item of trackedSatellites) {
     item.marker?.remove();
     removeFootprintLayers(item);
@@ -1995,6 +2027,8 @@ elements.accessToggle.addEventListener("click", () => {
 elements.speedSelect.addEventListener("change", (event) => {
   setSimulationSpeed(Number(event.target.value));
 });
+elements.view2d.addEventListener("click", () => setViewMode("2d"));
+elements.view3d.addEventListener("click", () => setViewMode("3d"));
 elements.groundTrackToggle.addEventListener("change", (event) => {
   setGroundTrackVisibility(event.target.checked);
 });
@@ -2015,9 +2049,11 @@ elements.clearSelection.addEventListener("click", () => {
   updatePositions();
 });
 
+globeController = initializeGlobeView(elements.globe, { onSelect: toggleSelection });
 learningLabController = initializeLearningLab(learningElements, { map, leaflet: L });
 syncAccessAnalysisStationInputs();
 elements.accessAnalysisStartDate.value = formatLocalDateInput(new Date());
 setAnalysisTool("access");
+applyViewMode();
 
 loadSatellites();

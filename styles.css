@@ -12,7 +12,7 @@
 
 * { box-sizing: border-box; }
 
-html, body, main, #map {
+html, body, main, #map, #globe {
   width: 100%;
   height: 100%;
   margin: 0;
@@ -21,7 +21,27 @@ html, body, main, #map {
 
 button { font: inherit; }
 
-#map { background: #07111f; }
+#map, #globe { position: absolute; inset: 0; background: #07111f; }
+#map[hidden], #globe[hidden] { display: none; }
+.cesium-viewer, .cesium-viewer-cesiumWidgetContainer, .cesium-widget, .cesium-widget canvas { width: 100%; height: 100%; }
+.cesium-viewer .cesium-widget-credits { right: 6px; bottom: 4px; font-size: 9px; }
+
+.globe-hint {
+  position: fixed;
+  z-index: 1000;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  max-width: min(340px, calc(100vw - 32px));
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: #dbe6f6;
+  background: var(--panel);
+  font-size: 11px;
+  backdrop-filter: blur(16px);
+  pointer-events: none;
+}
+.globe-hint[hidden] { display: none; }
 
 .leaflet-container { font-family: inherit; }
 .leaflet-control-attribution { font-size: 9px; }
@@ -396,6 +416,25 @@ button { font: inherit; }
   display: grid;
   gap: 6px;
 }
+
+.view-mode-toggle {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  backdrop-filter: blur(16px);
+}
+.view-mode-toggle > span { padding: 0 5px; color: var(--muted); font-size: 10px; font-weight: 750; text-transform: uppercase; }
+.view-mode-toggle button { padding: 6px 8px; border: 0; border-radius: 11px; color: var(--muted); background: transparent; font-size: 10px; font-weight: 800; cursor: pointer; }
+.view-mode-toggle button.active { color: #041018; background: var(--accent); }
+body[data-app-tab="analysis"] .view-mode-toggle,
+body[data-app-tab="learning"] .view-mode-toggle { display: none; }
+body[data-view-mode="3d"] .track-legend,
+body[data-view-mode="3d"] .footprint-control { display: none; }
 
 .track-legend,
 .footprint-control {
