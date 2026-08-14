@@ -213,6 +213,9 @@ button { font: inherit; }
 }
 
 .ephemeris-request:hover { background: rgba(35, 138, 165, 0.28); }
+.ephemeris-request:disabled { cursor: wait; opacity: .72; }
+.refresh-data-button { border-color: rgba(115, 230, 162, 0.52); background: rgba(40, 145, 93, 0.18); }
+.refresh-data-button:hover { background: rgba(40, 145, 93, 0.3); }
 
 .ephemeris-control time {
   color: var(--muted);
@@ -456,7 +459,7 @@ button { font: inherit; }
 .map-overlays {
   position: fixed;
   z-index: 1000;
-  top: calc(260px + env(safe-area-inset-top));
+  top: calc(325px + env(safe-area-inset-top));
   left: 16px;
   display: grid;
   gap: 6px;
@@ -619,7 +622,7 @@ body[data-view-mode="3d"] .footprint-control { display: none; }
   backdrop-filter: blur(20px);
 }
 
-body.summary-expanded .map-overlays { top: calc(550px + env(safe-area-inset-top)); }
+body.summary-expanded .map-overlays { top: calc(615px + env(safe-area-inset-top)); }
 
 body.summary-expanded .detail-panel {
   top: calc(675px + env(safe-area-inset-top));

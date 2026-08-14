@@ -1984,13 +1984,24 @@ async function loadSatellites() {
     const missingCount = payload.missing?.length ?? 0;
     const suffix = missingCount ? ` · ${missingCount} unavailable` : "";
     setStatus(`${trackedSatellites.length} satellites · updated ${new Date(payload.generatedAt).toLocaleString()}${suffix}`);
+    return true;
   } catch (error) {
     console.error(error);
     setStatus("Satellite data is not ready. Run the updater or GitHub Action.", true);
+    return false;
   }
 }
 
-elements.refreshButton.addEventListener("click", loadSatellites);
+elements.refreshButton.addEventListener("click", async () => {
+  elements.refreshButton.disabled = true;
+  elements.refreshButton.textContent = "Checking…";
+  const refreshed = await loadSatellites();
+  elements.refreshButton.textContent = refreshed ? "Checked — map updated" : "Check failed — try again";
+  window.setTimeout(() => {
+    elements.refreshButton.textContent = "Check for new satellites";
+    elements.refreshButton.disabled = false;
+  }, 2500);
+});
 elements.groupSearchOpen.addEventListener("click", () => {
   elements.groupSearchError.hidden = true;
   elements.groupSearchTerm.value = localStorage.getItem("satelliteGroupSearchTerm") ?? "";

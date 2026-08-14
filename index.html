@@ -31,7 +31,6 @@
             <button id="scenario-button" class="app-tab" type="button" data-tab="analysis">Analysis</button>
             <button id="learning-button" class="app-tab" type="button" data-tab="learning">Learn</button>
           </nav>
-          <button id="refresh-button" class="icon-button" type="button" aria-label="Reload satellite list">↻</button>
         </div>
       </header>
 
@@ -44,6 +43,7 @@
         <div class="ephemeris-control">
           <a class="ephemeris-request" href="https://github.com/PedalTone/satellite-map/actions/workflows/refresh-satellite-data.yml" target="_blank" rel="noopener noreferrer">Request / Update Ephemeris</a>
           <button id="group-search-open" class="ephemeris-request" type="button">Load by common name</button>
+          <button id="refresh-button" class="ephemeris-request refresh-data-button" type="button">Check for new satellites</button>
           <time id="ephemeris-epoch">Elements: loading…</time>
           <span id="satellite-set-label" class="satellite-set-label">Set: packaged list</span>
         </div>
@@ -430,6 +430,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Cesium.js"></script>
-  <script type="module" src="app.js?v=common-name-loader-1"></script>
+  <script type="module" src="app.js?v=common-name-loader-2"></script>
   </body>
 </html>
