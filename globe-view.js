@@ -146,8 +146,12 @@ export function initializeGlobeView(container, { onSelect, groundStation }) {
             name: `${item.label} ground path`,
             polyline: {
               positions: [],
-              width: 3,
-              material: colorFromCss(item.color, Cesium.Color.CYAN).withAlpha(0.78),
+              width: 5,
+              material: new Cesium.PolylineGlowMaterialProperty({
+                color: colorFromCss(item.color, Cesium.Color.CYAN).withAlpha(0.96),
+                glowPower: 0.18,
+                taperPower: 0.8,
+              }),
               arcType: Cesium.ArcType.GEODESIC,
             },
           });
