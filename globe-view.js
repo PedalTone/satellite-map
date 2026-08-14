@@ -42,7 +42,12 @@ export function initializeGlobeView(container, { onSelect, groundStation }) {
     }));
     viewer.scene.globe.baseColor = colorFromCss("#9cc9d7", Cesium.Color.LIGHTBLUE);
     viewer.scene.globe.depthTestAgainstTerrain = true;
+    viewer.scene.globe.enableLighting = true;
+    viewer.scene.globe.dynamicAtmosphereLighting = true;
+    viewer.scene.globe.dynamicAtmosphereLightingFromSun = true;
     viewer.scene.skyAtmosphere.show = true;
+    viewer.scene.sun.show = true;
+    viewer.clock.shouldAnimate = false;
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = 6_500_000;
     viewer.scene.screenSpaceCameraController.maximumZoomDistance = 60_000_000;
     viewer.camera.setView({
@@ -83,10 +88,12 @@ export function initializeGlobeView(container, { onSelect, groundStation }) {
     selectedIds = [],
     highlightedIds = [],
     groundTracksVisible = true,
+    simulationDate = new Date(),
   } = {}) {
     if (!visible) return;
     const activeViewer = ensureViewer();
     if (!activeViewer) return;
+    activeViewer.clock.currentTime = Cesium.JulianDate.fromDate(simulationDate);
     const activeIds = new Set();
     for (const item of items) {
       if (!item.position) continue;

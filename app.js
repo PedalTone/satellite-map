@@ -1,7 +1,7 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
 import tzLookup from "https://cdn.jsdelivr.net/npm/tz-lookup@6.1.25/+esm";
 import { initializeLearningLab } from "./learning-lab.js?v=learning-beta-angle-2";
-import { initializeGlobeView } from "./globe-view.js?v=map-3d-controls-1";
+import { initializeGlobeView } from "./globe-view.js?v=map-3d-sunlight-1";
 
 const map = L.map("map", {
   center: [18, 0],
@@ -337,6 +337,7 @@ function applyViewMode() {
     selectedIds,
     highlightedIds: visualizedRecommendationIds,
     groundTracksVisible,
+    simulationDate: currentSimulationDate(),
   });
   else window.setTimeout(() => map.invalidateSize(), 0);
 }
@@ -627,6 +628,7 @@ function setGroundTrackVisibility(visible) {
     selectedIds,
     highlightedIds: visualizedRecommendationIds,
     groundTracksVisible,
+    simulationDate: currentSimulationDate(),
   });
 }
 
@@ -1751,6 +1753,7 @@ function updatePositions() {
     selectedIds,
     highlightedIds: visualizedRecommendationIds,
     groundTracksVisible,
+    simulationDate: now,
   });
   updateRecommendationCrosslinks();
   if (Date.now() - lastAccessPanelRenderMs >= 1000) updateAccessPanel(now);
