@@ -1,7 +1,7 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
 import tzLookup from "https://cdn.jsdelivr.net/npm/tz-lookup@6.1.25/+esm";
 import { initializeLearningLab } from "./learning-lab.js?v=learning-beta-angle-2";
-import { initializeGlobeView } from "./globe-view.js?v=map-3d-context-2";
+import { initializeGlobeView } from "./globe-view.js?v=map-3d-controls-1";
 
 const map = L.map("map", {
   center: [18, 0],
@@ -81,6 +81,9 @@ const elements = {
   globeHint: document.querySelector("#globe-hint"),
   view2d: document.querySelector("#view-2d"),
   view3d: document.querySelector("#view-3d"),
+  globeZoomControls: document.querySelector("#globe-zoom-controls"),
+  globeZoomOut: document.querySelector("#globe-zoom-out"),
+  globeZoomIn: document.querySelector("#globe-zoom-in"),
   speedSelect: document.querySelector("#speed-select"),
   simulationTime: document.querySelector("#simulation-time"),
   accessList: document.querySelector("#access-list"),
@@ -324,6 +327,7 @@ function applyViewMode() {
   elements.map.hidden = showGlobe;
   elements.globe.hidden = !showGlobe;
   elements.globeHint.hidden = !showGlobe;
+  elements.globeZoomControls.hidden = !showGlobe;
   elements.view2d.classList.toggle("active", currentViewMode === "2d");
   elements.view3d.classList.toggle("active", currentViewMode === "3d");
   elements.view2d.setAttribute("aria-pressed", String(currentViewMode === "2d"));
@@ -2045,6 +2049,8 @@ elements.speedSelect.addEventListener("change", (event) => {
 });
 elements.view2d.addEventListener("click", () => setViewMode("2d"));
 elements.view3d.addEventListener("click", () => setViewMode("3d"));
+elements.globeZoomOut.addEventListener("click", () => globeController?.zoomOut());
+elements.globeZoomIn.addEventListener("click", () => globeController?.zoomIn());
 elements.groundTrackToggle.addEventListener("change", (event) => {
   setGroundTrackVisibility(event.target.checked);
 });

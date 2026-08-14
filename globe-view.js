@@ -231,6 +231,16 @@ export function initializeGlobeView(container, { onSelect, groundStation }) {
     viewer?.scene.requestRender();
   }
 
+  function zoom(direction) {
+    const activeViewer = ensureViewer();
+    if (!activeViewer) return;
+    const height = activeViewer.camera.positionCartographic.height;
+    const amount = Math.max(350_000, height * 0.28);
+    if (direction === "in") activeViewer.camera.zoomIn(amount);
+    else activeViewer.camera.zoomOut(amount);
+    activeViewer.scene.requestRender();
+  }
+
   function clear() {
     if (viewer) {
       for (const entity of entities.values()) viewer.entities.remove(entity);
@@ -246,5 +256,11 @@ export function initializeGlobeView(container, { onSelect, groundStation }) {
     accessEntities.clear();
   }
 
-  return { clear, setVisible, update };
+  return {
+    clear,
+    setVisible,
+    update,
+    zoomIn: () => zoom("in"),
+    zoomOut: () => zoom("out"),
+  };
 }

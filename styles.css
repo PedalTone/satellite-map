@@ -435,6 +435,35 @@ body[data-app-tab="analysis"] .view-mode-toggle,
 body[data-app-tab="learning"] .view-mode-toggle { display: none; }
 body[data-view-mode="3d"] .footprint-control { display: none; }
 
+.globe-zoom-controls {
+  display: grid;
+  grid-template-columns: 1fr 34px 34px;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 6px 5px 11px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: var(--muted);
+  background: var(--panel);
+  font-size: 10px;
+  font-weight: 750;
+  text-transform: uppercase;
+  backdrop-filter: blur(16px);
+}
+.globe-zoom-controls[hidden] { display: none; }
+.globe-zoom-controls button {
+  width: 34px;
+  height: 30px;
+  border: 0;
+  border-radius: 11px;
+  color: #07111f;
+  background: var(--accent);
+  font-size: 20px;
+  font-weight: 850;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .track-legend,
 .footprint-control {
   display: flex;
