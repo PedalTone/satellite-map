@@ -197,6 +197,8 @@ button { font: inherit; }
 }
 
 .ephemeris-request {
+  display: block;
+  width: 100%;
   padding: 6px 7px;
   border: 1px solid rgba(102, 224, 255, 0.42);
   border-radius: 9px;
@@ -207,6 +209,7 @@ button { font: inherit; }
   line-height: 1.25;
   text-align: center;
   text-decoration: none;
+  cursor: pointer;
 }
 
 .ephemeris-request:hover { background: rgba(35, 138, 165, 0.28); }
@@ -216,6 +219,48 @@ button { font: inherit; }
   font-size: 8px;
   line-height: 1.35;
 }
+
+.satellite-set-label {
+  overflow: hidden;
+  color: #d9f8ff;
+  font-size: 8px;
+  font-weight: 750;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group-search-dialog {
+  width: min(440px, calc(100vw - 24px));
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(102, 224, 255, 0.3);
+  border-radius: 20px;
+  color: #eaf2ff;
+  background: rgba(7, 17, 31, 0.98);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.62);
+}
+.group-search-dialog::backdrop { background: rgba(1, 7, 15, 0.72); backdrop-filter: blur(5px); }
+.group-search-dialog form { display: grid; gap: 13px; padding: 22px; }
+.group-search-heading { display: flex; align-items: start; justify-content: space-between; gap: 14px; }
+.group-search-heading h2 { margin: 3px 0 0; font-size: 24px; }
+.group-search-dialog p { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.5; }
+.group-search-dialog p strong { color: #fff; }
+.group-search-dialog label { color: #d9f8ff; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.group-search-dialog input {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  color: #fff;
+  background: rgba(255,255,255,.07);
+  font: inherit;
+  font-size: 17px;
+}
+.group-search-dialog input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.group-search-dialog .group-search-note,
+.group-search-dialog .group-search-handoff { font-size: 14px; }
+.group-search-dialog .group-search-handoff { color: #d9f8ff; }
 
 .satellite-summary {
   display: grid;

@@ -1,0 +1,71 @@
+name: Load satellite group
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: satellite-group-loader
+  cancel-in-progress: false
+
+jobs:
+  load-group:
+    if: github.event.issue.user.login == github.repository_owner && startsWith(github.event.issue.title, '[Satellite Group] ')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Read requested common name
+        id: request
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          term="${ISSUE_TITLE#\[Satellite Group\] }"
+          echo "term=$term" >> "$GITHUB_OUTPUT"
+
+      - name: Load matching CelesTrak payloads
+        id: load
+        env:
+          COMMON_NAME: ${{ steps.request.outputs.term }}
+        run: |
+          set +e
+          python3 scripts/load_satellite_group.py "$COMMON_NAME" > /tmp/group-load-result.txt 2>&1
+          status=$?
+          set -e
+          cat /tmp/group-load-result.txt
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Commit satellite group
+        if: steps.load.outputs.status == '0'
+        env:
+          COMMON_NAME: ${{ steps.request.outputs.term }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add satellites.txt data/satellite-data.json
+          git commit -m "Load satellite group: $COMMON_NAME"
+          git pull --rebase origin main
+          git push origin main
+
+      - name: Report result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          LOAD_STATUS: ${{ steps.load.outputs.status }}
+          COMMON_NAME: ${{ steps.request.outputs.term }}
+        run: |
+          result=$(cat /tmp/group-load-result.txt)
+          if [ "$LOAD_STATUS" = "0" ]; then
+            printf 'Loaded `%s` successfully.\n\n%s\n\nThe map deployment has started and should be ready in about two minutes.\n' "$COMMON_NAME" "$result" > /tmp/group-comment.md
+          else
+            printf 'Could not load `%s`.\n\n```text\n%s\n```\n\nTry a more specific CelesTrak common name.\n' "$COMMON_NAME" "$result" > /tmp/group-comment.md
+          fi
+          gh issue comment "$ISSUE_NUMBER" --body-file /tmp/group-comment.md
+          gh issue close "$ISSUE_NUMBER"

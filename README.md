@@ -15,6 +15,19 @@ Edit `satellites.txt` with one satellite per line:
 
 Labels are optional. Separate the number and label with a comma, tab, or spaces. Blank lines and lines beginning with `#` are ignored.
 
+## Load a group by common name
+
+On the Map screen, choose **Load by common name** and enter a specific shared name used by CelesTrak, such as `PRAETORIAN`. The app opens a prefilled GitHub issue; submit that request while signed in as the repository owner.
+
+The owner-only `Load satellite group` workflow then:
+
+1. Queries CelesTrak once for matching current GP/OMM records and once for matching SATCAT metadata.
+2. Keeps active payloads, creates numeric display labels from their names, and rejects searches returning more than 100 satellites.
+3. Replaces `satellites.txt` and `data/satellite-data.json`.
+4. Pushes the result, deploys GitHub Pages, comments on the request, and closes it.
+
+This GitHub bridge is required because CelesTrak does not allow the static GitHub Pages app to read its name-query response directly across origins. Use a specific name rather than a very broad constellation name.
+
 ## First-time GitHub setup
 
 Create an empty GitHub repository, then run these commands from this folder:
@@ -38,7 +51,7 @@ After the first push succeeds, run:
 ./scripts/install_autosync.sh
 ```
 
-The installer adds a macOS LaunchAgent that watches `satellites.txt`. Each save creates a small Git commit and pushes it to `main`. That push triggers a fresh CelesTrak download and GitHub Pages deployment.
+The installer adds a macOS LaunchAgent that watches `satellites.txt`. Each save creates a small Git commit and pushes it to `main`. Any owner push that changes `satellites.txt` triggers a fresh CelesTrak download and GitHub Pages deployment.
 
 Review sync activity at:
 
@@ -70,7 +83,8 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 
 ## Data behavior
 
-- The deployed workflow refreshes orbital data after list changes and every six hours.
+- The deployed workflow refreshes orbital data after owner list changes and every six hours.
+- A main-screen common-name loader can replace the set through an owner-only GitHub request without exposing credentials in the public website.
 - The webpage recalculates current positions continuously without repeatedly contacting CelesTrak.
 - Simulation speeds of real time, 10×, 50×, and 100× make orbital motion easier to compare.
 - A central-Alaska ground station shows current and upcoming access using a 10° minimum elevation mask.

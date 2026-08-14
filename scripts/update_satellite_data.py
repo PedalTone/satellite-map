@@ -73,17 +73,17 @@ def fetch_satcat(catalog_number):
     return fetch_json(SATCAT_URL, catalog_number)
 
 
-def load_previous_data():
+def load_previous_payload():
     try:
-        payload = json.loads(OUTPUT_FILE.read_text())
-        return {str(item["noradId"]): item for item in payload.get("satellites", [])}
+        return json.loads(OUTPUT_FILE.read_text())
     except (FileNotFoundError, json.JSONDecodeError, KeyError):
-        return {}
+        return {"satellites": []}
 
 
 def main():
     entries = read_satellite_list()
-    previous_data = load_previous_data()
+    previous_payload = load_previous_payload()
+    previous_data = {str(item["noradId"]): item for item in previous_payload.get("satellites", [])}
     satellites = []
     missing = []
 
@@ -122,6 +122,8 @@ def main():
         "satellites": satellites,
         "missing": missing,
     }
+    if previous_payload.get("sourceQuery"):
+        payload["sourceQuery"] = previous_payload["sourceQuery"]
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_FILE.write_text(json.dumps(payload, indent=2) + "\n")
     print(f"Wrote {len(satellites)} satellites to {OUTPUT_FILE.relative_to(ROOT)}")

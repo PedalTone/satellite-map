@@ -72,6 +72,13 @@ const elements = {
   dataAge: document.querySelector("#data-age"),
   refreshButton: document.querySelector("#refresh-button"),
   ephemerisEpoch: document.querySelector("#ephemeris-epoch"),
+  satelliteSetLabel: document.querySelector("#satellite-set-label"),
+  groupSearchOpen: document.querySelector("#group-search-open"),
+  groupSearchDialog: document.querySelector("#group-search-dialog"),
+  groupSearchForm: document.querySelector("#group-search-form"),
+  groupSearchClose: document.querySelector("#group-search-close"),
+  groupSearchTerm: document.querySelector("#group-search-term"),
+  groupSearchError: document.querySelector("#group-search-error"),
   clearSelection: document.querySelector("#clear-selection"),
   groundTrackToggle: document.querySelector("#ground-track-toggle"),
   footprintToggle: document.querySelector("#footprint-toggle"),
@@ -1938,6 +1945,9 @@ async function loadSatellites() {
     const response = await fetch(`data/satellite-data.json?t=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`Data request returned ${response.status}`);
     const payload = await response.json();
+    elements.satelliteSetLabel.textContent = payload.sourceQuery
+      ? `Set: ${payload.sourceQuery}`
+      : "Set: satellites.txt";
 
     trackedSatellites = payload.satellites.map((entry, index) => ({
       ...entry,
@@ -1981,6 +1991,28 @@ async function loadSatellites() {
 }
 
 elements.refreshButton.addEventListener("click", loadSatellites);
+elements.groupSearchOpen.addEventListener("click", () => {
+  elements.groupSearchError.hidden = true;
+  elements.groupSearchTerm.value = localStorage.getItem("satelliteGroupSearchTerm") ?? "";
+  elements.groupSearchDialog.showModal();
+  elements.groupSearchTerm.focus();
+});
+elements.groupSearchClose.addEventListener("click", () => elements.groupSearchDialog.close());
+elements.groupSearchForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const commonName = elements.groupSearchTerm.value.trim().replace(/\s+/g, " ");
+  if (commonName.length < 2 || commonName.length > 80) {
+    elements.groupSearchError.textContent = "Enter a common name containing 2–80 characters.";
+    elements.groupSearchError.hidden = false;
+    return;
+  }
+  const requestUrl = new URL("https://github.com/PedalTone/satellite-map/issues/new");
+  requestUrl.searchParams.set("title", `[Satellite Group] ${commonName}`);
+  requestUrl.searchParams.set("body", `Common name: ${commonName}\n\nRequested from the Satellite Map common-name loader. This request will replace the current satellite set with matching active CelesTrak payloads and refresh their ephemeris data.`);
+  localStorage.setItem("satelliteGroupSearchTerm", commonName);
+  window.location.assign(requestUrl.toString());
+  elements.groupSearchDialog.close();
+});
 elements.scenarioButton.addEventListener("click", () => {
   showAppTab("analysis");
 });

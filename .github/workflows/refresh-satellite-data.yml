@@ -1,6 +1,9 @@
 name: Refresh satellite data
 
 on:
+  push:
+    branches: [main]
+    paths: [satellites.txt]
   schedule:
     - cron: "17 */6 * * *"
   workflow_dispatch:
@@ -16,6 +19,7 @@ concurrency:
 
 jobs:
   refresh-and-deploy:
+    if: github.event_name != 'push' || github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
