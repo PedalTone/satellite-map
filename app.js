@@ -1,7 +1,7 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
 import tzLookup from "https://cdn.jsdelivr.net/npm/tz-lookup@6.1.25/+esm";
 import { initializeLearningLab } from "./learning-lab.js?v=learning-beta-angle-2";
-import { initializeGlobeView } from "./globe-view.js?v=map-3d-context-1";
+import { initializeGlobeView } from "./globe-view.js?v=map-3d-context-2";
 
 const map = L.map("map", {
   center: [18, 0],
