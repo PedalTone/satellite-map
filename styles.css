@@ -433,7 +433,6 @@ button { font: inherit; }
 .view-mode-toggle button.active { color: #041018; background: var(--accent); }
 body[data-app-tab="analysis"] .view-mode-toggle,
 body[data-app-tab="learning"] .view-mode-toggle { display: none; }
-body[data-view-mode="3d"] .track-legend,
 body[data-view-mode="3d"] .footprint-control { display: none; }
 
 .track-legend,
@@ -1576,6 +1575,15 @@ body[data-learning-lesson="3"] .learning-explanation p { font-size: 11px; }
 }
 
 @media (max-width: 480px) {
+  .globe-hint {
+    right: 8px;
+    bottom: calc(30px + env(safe-area-inset-bottom));
+    left: 8px;
+    max-width: none;
+    padding: 7px 9px;
+    font-size: 10px;
+    text-align: center;
+  }
   .topbar { align-items: flex-start; }
   .topbar h1 { font-size: 19px; }
   .topbar-actions { gap: 5px; }

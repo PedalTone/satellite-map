@@ -1,7 +1,7 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
 import tzLookup from "https://cdn.jsdelivr.net/npm/tz-lookup@6.1.25/+esm";
 import { initializeLearningLab } from "./learning-lab.js?v=learning-beta-angle-2";
-import { initializeGlobeView } from "./globe-view.js?v=map-3d-satellites-1";
+import { initializeGlobeView } from "./globe-view.js?v=map-3d-context-1";
 
 const map = L.map("map", {
   center: [18, 0],
@@ -329,7 +329,11 @@ function applyViewMode() {
   elements.view2d.setAttribute("aria-pressed", String(currentViewMode === "2d"));
   elements.view3d.setAttribute("aria-pressed", String(currentViewMode === "3d"));
   globeController?.setVisible(showGlobe);
-  if (showGlobe) globeController?.update(trackedSatellites, selectedIds, visualizedRecommendationIds);
+  if (showGlobe) globeController?.update(trackedSatellites, {
+    selectedIds,
+    highlightedIds: visualizedRecommendationIds,
+    groundTracksVisible,
+  });
   else window.setTimeout(() => map.invalidateSize(), 0);
 }
 
@@ -584,6 +588,8 @@ function updateGroundTracks() {
       if (position) points.push([position.latitude, position.longitude]);
     }
 
+    item.trackPoints = points;
+
     item.trackLayers = splitAtDateLine(points).map((segment) => {
       const layer = L.polyline(segment, {
         className: "live-ground-track",
@@ -613,6 +619,11 @@ function setGroundTrackVisibility(visible) {
       if (!visible && map.hasLayer(layer)) layer.remove();
     }
   }
+  globeController?.update(trackedSatellites, {
+    selectedIds,
+    highlightedIds: visualizedRecommendationIds,
+    groundTracksVisible,
+  });
 }
 
 function formatAccessTime(date, referenceDate) {
@@ -1732,7 +1743,11 @@ function updatePositions() {
       item.accessLine = null;
     }
   }
-  globeController?.update(trackedSatellites, selectedIds, visualizedRecommendationIds);
+  globeController?.update(trackedSatellites, {
+    selectedIds,
+    highlightedIds: visualizedRecommendationIds,
+    groundTracksVisible,
+  });
   updateRecommendationCrosslinks();
   if (Date.now() - lastAccessPanelRenderMs >= 1000) updateAccessPanel(now);
   updateDetailPanel();
@@ -1925,6 +1940,7 @@ async function loadSatellites() {
       marker: null,
       position: null,
       trackLayers: [],
+      trackPoints: [],
       footprintLayers: [],
       accessLineHalo: null,
       accessLine: null,
@@ -2049,7 +2065,7 @@ elements.clearSelection.addEventListener("click", () => {
   updatePositions();
 });
 
-globeController = initializeGlobeView(elements.globe, { onSelect: toggleSelection });
+globeController = initializeGlobeView(elements.globe, { onSelect: toggleSelection, groundStation });
 learningLabController = initializeLearningLab(learningElements, { map, leaflet: L });
 syncAccessAnalysisStationInputs();
 elements.accessAnalysisStartDate.value = formatLocalDateInput(new Date());

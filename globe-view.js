@@ -8,10 +8,13 @@ function colorFromCss(value, fallback) {
   }
 }
 
-export function initializeGlobeView(container, { onSelect }) {
+export function initializeGlobeView(container, { onSelect, groundStation }) {
   let viewer;
   let visible = false;
   const entities = new Map();
+  const trackEntities = new Map();
+  const trackSources = new Map();
+  const accessEntities = new Map();
 
   function ensureViewer() {
     if (viewer || !window.Cesium) return viewer;
@@ -43,7 +46,30 @@ export function initializeGlobeView(container, { onSelect }) {
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = 6_500_000;
     viewer.scene.screenSpaceCameraController.maximumZoomDistance = 60_000_000;
     viewer.camera.setView({
-      destination: Cesium.Cartesian3.fromDegrees(-25, 24, 22_000_000),
+      destination: Cesium.Cartesian3.fromDegrees(-110, 38, 22_000_000),
+    });
+    viewer.entities.add({
+      name: `${groundStation.name} Ground Station`,
+      position: Cesium.Cartesian3.fromDegrees(groundStation.longitude, groundStation.latitude, 0),
+      point: {
+        pixelSize: 12,
+        color: colorFromCss("#73e6a2", Cesium.Color.LIME),
+        outlineColor: Cesium.Color.WHITE,
+        outlineWidth: 3,
+        disableDepthTestDistance: 0,
+      },
+      label: {
+        text: `${groundStation.name} GS · ${groundStation.minimumElevation}° mask`,
+        show: container.clientWidth > 480,
+        font: "700 14px -apple-system, BlinkMacSystemFont, sans-serif",
+        fillColor: colorFromCss("#dfffea", Cesium.Color.WHITE),
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 4,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        pixelOffset: new Cesium.Cartesian2(14, -12),
+        horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+        disableDepthTestDistance: 0,
+      },
     });
     viewer.screenSpaceEventHandler.setInputAction((movement) => {
       const picked = viewer.scene.pick(movement.position);
@@ -53,7 +79,11 @@ export function initializeGlobeView(container, { onSelect }) {
     return viewer;
   }
 
-  function update(items, selectedIds = [], highlightedIds = []) {
+  function update(items, {
+    selectedIds = [],
+    highlightedIds = [],
+    groundTracksVisible = true,
+  } = {}) {
     if (!visible) return;
     const activeViewer = ensureViewer();
     if (!activeViewer) return;
@@ -62,9 +92,15 @@ export function initializeGlobeView(container, { onSelect }) {
       if (!item.position) continue;
       activeIds.add(item.id);
       const selected = selectedIds.includes(item.id) || highlightedIds.includes(item.id);
+      const hasAccess = item.position.groundElevation >= groundStation.minimumElevation;
       const pointColor = selected
-        ? Cesium.Color.fromCssColorString("#ffd166")
-        : colorFromCss(item.color, Cesium.Color.CYAN);
+        ? colorFromCss("#ffd166", Cesium.Color.YELLOW)
+        : hasAccess
+          ? Cesium.Color.BLACK
+          : colorFromCss(item.color, Cesium.Color.CYAN);
+      const outlineColor = hasAccess && !selected
+        ? colorFromCss("#73e6a2", Cesium.Color.LIME)
+        : Cesium.Color.WHITE;
       let entity = entities.get(item.id);
       if (!entity) {
         entity = activeViewer.entities.add({
@@ -96,15 +132,90 @@ export function initializeGlobeView(container, { onSelect }) {
       } else {
         entity.position = Cesium.Cartesian3.fromDegrees(item.position.longitude, item.position.latitude, item.position.altitude * 1000);
         entity.point.color = pointColor;
-        entity.point.pixelSize = selected ? 14 : 10;
+        entity.point.outlineColor = outlineColor;
+        entity.point.outlineWidth = hasAccess && !selected ? 4 : 2;
+        entity.point.pixelSize = selected ? 14 : hasAccess ? 12 : 10;
         entity.label.show = selected;
         entity.label.text = `${item.label} · ${Math.round(item.position.altitude).toLocaleString()} km`;
+      }
+
+      let trackEntity = trackEntities.get(item.id);
+      if (groundTracksVisible && item.trackPoints?.length > 1) {
+        if (!trackEntity) {
+          trackEntity = activeViewer.entities.add({
+            name: `${item.label} ground path`,
+            polyline: {
+              positions: [],
+              width: 3,
+              material: colorFromCss(item.color, Cesium.Color.CYAN).withAlpha(0.78),
+              arcType: Cesium.ArcType.GEODESIC,
+            },
+          });
+          trackEntities.set(item.id, trackEntity);
+        }
+        trackEntity.show = true;
+        if (trackSources.get(item.id) !== item.trackPoints) {
+          trackEntity.polyline.positions = Cesium.Cartesian3.fromDegreesArrayHeights(
+            item.trackPoints.flatMap(([latitude, longitude]) => [longitude, latitude, 5_000])
+          );
+          trackSources.set(item.id, item.trackPoints);
+        }
+      } else if (trackEntity) {
+        trackEntity.show = false;
+      }
+
+      let accessPair = accessEntities.get(item.id);
+      if (hasAccess) {
+        const positions = [
+          Cesium.Cartesian3.fromDegrees(groundStation.longitude, groundStation.latitude, 0),
+          Cesium.Cartesian3.fromDegrees(item.position.longitude, item.position.latitude, item.position.altitude * 1000),
+        ];
+        if (!accessPair) {
+          const halo = activeViewer.entities.add({
+            name: `${groundStation.name} access to ${item.label}`,
+            polyline: {
+              positions,
+              width: 7,
+              material: Cesium.Color.BLACK.withAlpha(0.9),
+              arcType: Cesium.ArcType.NONE,
+            },
+          });
+          const line = activeViewer.entities.add({
+            name: `${groundStation.name} access to ${item.label}`,
+            polyline: {
+              positions,
+              width: 3,
+              material: colorFromCss("#73e6a2", Cesium.Color.LIME),
+              arcType: Cesium.ArcType.NONE,
+            },
+          });
+          accessPair = { halo, line };
+          accessEntities.set(item.id, accessPair);
+        } else {
+          accessPair.halo.polyline.positions = positions;
+          accessPair.line.polyline.positions = positions;
+          accessPair.halo.show = true;
+          accessPair.line.show = true;
+        }
+      } else if (accessPair) {
+        accessPair.halo.show = false;
+        accessPair.line.show = false;
       }
     }
     for (const [id, entity] of entities) {
       if (activeIds.has(id)) continue;
       activeViewer.entities.remove(entity);
       entities.delete(id);
+      const trackEntity = trackEntities.get(id);
+      if (trackEntity) activeViewer.entities.remove(trackEntity);
+      trackEntities.delete(id);
+      trackSources.delete(id);
+      const accessPair = accessEntities.get(id);
+      if (accessPair) {
+        activeViewer.entities.remove(accessPair.halo);
+        activeViewer.entities.remove(accessPair.line);
+      }
+      accessEntities.delete(id);
     }
     activeViewer.scene.requestRender();
   }
@@ -117,8 +228,18 @@ export function initializeGlobeView(container, { onSelect }) {
   }
 
   function clear() {
-    if (viewer) viewer.entities.removeAll();
+    if (viewer) {
+      for (const entity of entities.values()) viewer.entities.remove(entity);
+      for (const entity of trackEntities.values()) viewer.entities.remove(entity);
+      for (const pair of accessEntities.values()) {
+        viewer.entities.remove(pair.halo);
+        viewer.entities.remove(pair.line);
+      }
+    }
     entities.clear();
+    trackEntities.clear();
+    trackSources.clear();
+    accessEntities.clear();
   }
 
   return { clear, setVisible, update };
