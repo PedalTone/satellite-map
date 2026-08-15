@@ -84,6 +84,7 @@ const elements = {
   detailPanel: document.querySelector("#detail-panel"),
   timeControl: document.querySelector(".time-control"),
   accessPanel: document.querySelector(".access-panel"),
+  accessHorizon: document.querySelector("#access-horizon"),
   statusText: document.querySelector("#status-text"),
   statusCount: document.querySelector("#status-count"),
   statusDot: document.querySelector("#status-dot"),
@@ -292,6 +293,7 @@ const earthEquatorialRadiusKm = 6378.137;
 const earthFlattening = 1 / 298.257223563;
 const earthPolarRadiusKm = earthEquatorialRadiusKm * (1 - earthFlattening);
 const scenarioStepMs = 2 * 60_000;
+const accessForecastHours = 12;
 
 elements.groundTrackToggle.checked = groundTracksVisible;
 elements.footprintToggle.checked = footprintsVisible;
@@ -746,7 +748,7 @@ function formatAccessTime(date, referenceDate) {
 
 function calculateAccessWindow(item, startDate) {
   const stepMs = 60_000;
-  const steps = 12 * 60;
+  const steps = accessForecastHours * 60;
   let previousDate = startDate;
   let previousElevation = calculatePosition(item, previousDate)?.groundElevation ?? -90;
   let accessStart = previousElevation >= groundStation.minimumElevation ? startDate : null;
@@ -777,6 +779,7 @@ function updateAccessWindows(startDate = currentSimulationDate()) {
 }
 
 function updateAccessPanel(date) {
+  elements.accessHorizon.textContent = `Forecast window: next ${accessForecastHours} hours`;
   const rows = [...trackedSatellites].sort((first, second) => {
     const firstActive = first.position?.groundElevation >= groundStation.minimumElevation;
     const secondActive = second.position?.groundElevation >= groundStation.minimumElevation;
@@ -798,7 +801,7 @@ function updateAccessPanel(date) {
       const end = formatAccessTime(item.nextAccess.end, date);
       timing.textContent = `${start}–${end}`;
     } else {
-      timing.textContent = "No pass in 12 hr";
+      timing.textContent = `No pass in ${accessForecastHours} hr`;
     }
 
     row.append(name, timing);
