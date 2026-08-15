@@ -8,7 +8,9 @@ Every visit begins with a satellite-set chooser rather than loading the owner-ma
 
 Preset data lives in `data/presets/` and is rebuilt by `scripts/build_preset_data.py`. The scheduled refresh workflow updates the current published set and every preset before deployment. If a preset refresh temporarily fails, the last packaged version is preserved.
 
-The chooser also accepts a custom list of up to 100 NORAD catalog IDs separated by spaces, commas, or new lines. Custom lists open a prefilled GitHub issue for owner authorization because CelesTrak does not allow the static site to request arbitrary records directly. The `Load satellite NORAD IDs` workflow validates the list, downloads current records, replaces the published set, deploys the map, reports the result, and closes the request.
+The chooser also accepts a custom list of up to 100 NORAD catalog IDs separated by spaces, commas, or new lines. Custom lists load privately in the visitor's browser from a sharded catalog of active payloads with public current CelesTrak GP data. No GitHub account or owner approval is required, and one visitor's selection never changes the published set for anyone else.
+
+The catalog lives in `data/catalog/`. The daily `Refresh public satellite catalog` workflow rebuilds it with `scripts/build_satellite_catalog.py`. The browser downloads only the catalog shards needed for the entered IDs rather than the complete active-payload catalog.
 
 ## Edit the satellite list
 
@@ -93,6 +95,7 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 
 - The deployed workflow refreshes orbital data after owner list changes and every six hours.
 - The entry screen waits for the visitor to choose a packaged satellite set and shows staged loading progress before revealing the map.
+- Any visitor can load up to 100 active satellites by NORAD catalog ID without repository access or owner approval; the selection remains local to that browser session.
 - A main-screen common-name loader can replace the set through an owner-only GitHub request without exposing credentials in the public website.
 - The webpage recalculates current positions continuously without repeatedly contacting CelesTrak.
 - Simulation speeds of real time, 10×, 50×, and 100× make orbital motion easier to compare.

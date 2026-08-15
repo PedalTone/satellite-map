@@ -279,6 +279,7 @@ const learningElements = {
 
 let trackedSatellites = [];
 let currentSatelliteDataUrl = elements.satellitePresetSelect.value;
+let currentCustomNoradIds = null;
 let selectedIds = [];
 let updateTimer;
 let groundTrackTimer;
@@ -2080,7 +2081,7 @@ function updatePresetDescription() {
   elements.customNoradFields.hidden = !customSelected;
   elements.satellitePresetDescription.textContent = selectedOption?.dataset.description ?? "Choose a satellite set to explore.";
   elements.satelliteLoaderSubmit.textContent = customSelected
-    ? "Continue to GitHub"
+    ? "Load custom satellites"
     : trackedSatellites.length ? "Load selected set" : "Load satellites";
 }
 
@@ -2092,17 +2093,6 @@ function parseNoradIds(value) {
   const ids = [...new Set(tokens.map((token) => String(Number(token))))];
   if (ids.length > 100) throw new Error("Enter no more than 100 unique NORAD catalog IDs.");
   return ids;
-}
-
-function requestCustomNoradSet(ids) {
-  localStorage.setItem("customNoradIds", ids.join(" "));
-  const requestUrl = new URL("https://github.com/PedalTone/satellite-map/issues/new");
-  requestUrl.searchParams.set("title", `[Satellite IDs] ${ids.length} satellite${ids.length === 1 ? "" : "s"}`);
-  requestUrl.searchParams.set(
-    "body",
-    `NORAD IDs:\n${ids.join(" ")}\n\nRequested from the Satellite Map custom NORAD loader. This request will replace the current published satellite set and refresh its orbital data.`
-  );
-  window.location.assign(requestUrl.toString());
 }
 
 function showSatelliteLoader() {
@@ -2125,6 +2115,77 @@ function hideSatelliteLoader() {
   window.setTimeout(() => map.invalidateSize(), 0);
 }
 
+async function applySatellitePayload(payload, source, onProgress = () => {}) {
+  if (!Array.isArray(payload.satellites) || payload.satellites.length === 0) {
+    throw new Error("The selected set does not contain any satellites");
+  }
+  onProgress(56, `Preparing ${payload.satellites.length} orbital records…`);
+  const nextSatellites = payload.satellites.map((entry, index) => ({
+    ...entry,
+    id: String(entry.noradId),
+    color: trackColors[index % trackColors.length],
+    satrec: satellite.json2satrec(entry.omm),
+    marker: null,
+    position: null,
+    trackLayers: [],
+    trackPoints: [],
+    footprintLayers: [],
+    accessLineHalo: null,
+    accessLine: null,
+    nextAccess: null,
+  }));
+
+  clearInterval(updateTimer);
+  clearInterval(groundTrackTimer);
+  clearRecommendationVisualization(false);
+  globeController?.clear();
+  for (const item of trackedSatellites) {
+    item.marker?.remove();
+    removeFootprintLayers(item);
+    item.accessLineHalo?.remove();
+    item.accessLine?.remove();
+    for (const layers of item.trackLayers ?? []) {
+      layers.halo.remove();
+      layers.color.remove();
+    }
+  }
+  trackedSatellites = nextSatellites;
+  selectedIds = [];
+  currentSatelliteDataUrl = typeof source === "string" ? source : null;
+  currentCustomNoradIds = Array.isArray(source) ? [...source] : null;
+  const selectedOption = typeof source === "string"
+    ? [...elements.satellitePresetSelect.options].find((option) => option.value === source)
+    : null;
+  const setName = payload.presetName || payload.sourceQuery || selectedOption?.textContent || "Packaged list";
+  elements.satelliteSetLabel.textContent = `Set: ${setName}`;
+  onProgress(72, "Placing satellites on the map…");
+  elements.loadedNoradOptions.replaceChildren(...trackedSatellites.map((item) => {
+    const option = document.createElement("option");
+    option.value = item.id;
+    option.label = item.label;
+    return option;
+  }));
+
+  updatePositions();
+  updateEphemerisEpochDisplay(trackedSatellites);
+  updateSatelliteSummary();
+  onProgress(88, "Calculating ground paths and access…");
+  updateGroundTracks();
+  updateAccessWindows();
+  elements.scenarioRun.disabled = trackedSatellites.length < 3;
+  updateTimer = setInterval(updatePositions, 250);
+  groundTrackTimer = setInterval(() => {
+    updateGroundTracks();
+    updateAccessWindows();
+  }, 10_000);
+  const missingCount = payload.missing?.length ?? 0;
+  const suffix = missingCount ? ` · ${missingCount} unavailable` : "";
+  setStatus(`${trackedSatellites.length} satellites · updated ${new Date(payload.generatedAt).toLocaleString()}${suffix}`);
+  elements.statusCount.textContent = `${trackedSatellites.length} loaded`;
+  onProgress(100, `${trackedSatellites.length} satellites ready`);
+  return true;
+}
+
 async function loadSatellites(dataUrl = currentSatelliteDataUrl, onProgress = () => {}) {
   setStatus("Loading satellite data…");
   elements.statusCount.textContent = "Loading…";
@@ -2137,71 +2198,7 @@ async function loadSatellites(dataUrl = currentSatelliteDataUrl, onProgress = ()
     if (!response.ok) throw new Error(`Data request returned ${response.status}`);
     onProgress(38, "Satellite data received…");
     const payload = await response.json();
-    if (!Array.isArray(payload.satellites) || payload.satellites.length === 0) {
-      throw new Error("The selected set does not contain any satellites");
-    }
-    onProgress(56, `Preparing ${payload.satellites.length} orbital records…`);
-    const nextSatellites = payload.satellites.map((entry, index) => ({
-      ...entry,
-      id: String(entry.noradId),
-      color: trackColors[index % trackColors.length],
-      satrec: satellite.json2satrec(entry.omm),
-      marker: null,
-      position: null,
-      trackLayers: [],
-      trackPoints: [],
-      footprintLayers: [],
-      accessLineHalo: null,
-      accessLine: null,
-      nextAccess: null,
-    }));
-
-    clearInterval(updateTimer);
-    clearInterval(groundTrackTimer);
-    clearRecommendationVisualization(false);
-    globeController?.clear();
-    for (const item of trackedSatellites) {
-      item.marker?.remove();
-      removeFootprintLayers(item);
-      item.accessLineHalo?.remove();
-      item.accessLine?.remove();
-      for (const layers of item.trackLayers ?? []) {
-        layers.halo.remove();
-        layers.color.remove();
-      }
-    }
-    trackedSatellites = nextSatellites;
-    selectedIds = [];
-    currentSatelliteDataUrl = dataUrl;
-    const selectedOption = [...elements.satellitePresetSelect.options].find((option) => option.value === dataUrl);
-    const setName = payload.presetName || payload.sourceQuery || selectedOption?.textContent || "Packaged list";
-    elements.satelliteSetLabel.textContent = `Set: ${setName}`;
-    onProgress(72, "Placing satellites on the map…");
-    elements.loadedNoradOptions.replaceChildren(...trackedSatellites.map((item) => {
-      const option = document.createElement("option");
-      option.value = item.id;
-      option.label = item.label;
-      return option;
-    }));
-
-    updatePositions();
-    updateEphemerisEpochDisplay(trackedSatellites);
-    updateSatelliteSummary();
-    onProgress(88, "Calculating ground paths and access…");
-    updateGroundTracks();
-    updateAccessWindows();
-    elements.scenarioRun.disabled = trackedSatellites.length < 3;
-    updateTimer = setInterval(updatePositions, 250);
-    groundTrackTimer = setInterval(() => {
-      updateGroundTracks();
-      updateAccessWindows();
-    }, 10_000);
-    const missingCount = payload.missing?.length ?? 0;
-    const suffix = missingCount ? ` · ${missingCount} unavailable` : "";
-    setStatus(`${trackedSatellites.length} satellites · updated ${new Date(payload.generatedAt).toLocaleString()}${suffix}`);
-    elements.statusCount.textContent = `${trackedSatellites.length} loaded`;
-    onProgress(100, `${trackedSatellites.length} satellites ready`);
-    return true;
+    return await applySatellitePayload(payload, dataUrl, onProgress);
   } catch (error) {
     console.error(error);
     setStatus(trackedSatellites.length
@@ -2212,32 +2209,92 @@ async function loadSatellites(dataUrl = currentSatelliteDataUrl, onProgress = ()
   }
 }
 
+async function loadCustomNoradSet(ids, onProgress = () => {}) {
+  setStatus("Loading custom satellite data…");
+  elements.statusCount.textContent = "Loading…";
+  onProgress(8, "Opening the active satellite catalog…");
+  try {
+    const manifestUrl = new URL("data/catalog/manifest.json", window.location.href);
+    manifestUrl.searchParams.set("t", String(Date.now()));
+    const manifestResponse = await fetch(manifestUrl, { cache: "no-store" });
+    if (!manifestResponse.ok) throw new Error(`Catalog request returned ${manifestResponse.status}`);
+    const manifest = await manifestResponse.json();
+    const availableShards = new Set(manifest.shards ?? []);
+    const shardSize = Number(manifest.shardSize) || 1000;
+    const shardNames = [...new Set(ids.map((id) => `${String(Math.floor(Number(id) / shardSize)).padStart(3, "0")}.json`))];
+    onProgress(24, `Loading ${shardNames.length} catalog section${shardNames.length === 1 ? "" : "s"}…`);
+    const shardPayloads = await Promise.all(shardNames.map(async (shardName) => {
+      if (!availableShards.has(shardName)) return { satellites: [] };
+      const shardUrl = new URL(`data/catalog/${shardName}`, window.location.href);
+      shardUrl.searchParams.set("t", String(Date.now()));
+      const response = await fetch(shardUrl, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Catalog section ${shardName} returned ${response.status}`);
+      return response.json();
+    }));
+    onProgress(44, "Matching NORAD catalog IDs…");
+    const satellitesById = new Map(
+      shardPayloads.flatMap((payload) => payload.satellites ?? []).map((item) => [String(item.noradId), item])
+    );
+    const missing = ids.filter((id) => !satellitesById.has(id));
+    const satellites = ids.map((id) => satellitesById.get(id)).filter(Boolean);
+    if (!satellites.length) {
+      throw new Error("None of those IDs have public current orbital data in the active catalog.");
+    }
+    const payload = {
+      generatedAt: manifest.generatedAt,
+      presetName: `Custom NORAD set · ${satellites.length}`,
+      satellites,
+      missing,
+    };
+    localStorage.setItem("customNoradIds", ids.join(" "));
+    return await applySatellitePayload(payload, ids, onProgress);
+  } catch (error) {
+    console.error(error);
+    setStatus(trackedSatellites.length
+      ? "The custom set could not be loaded. The previous set is still available."
+      : "The custom set could not be loaded. Try different NORAD IDs.", true);
+    elements.statusCount.textContent = trackedSatellites.length ? `${trackedSatellites.length} loaded` : "Unavailable";
+    throw error;
+  }
+}
+
 elements.satellitePresetSelect.addEventListener("change", updatePresetDescription);
 elements.satelliteLoaderForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   elements.satelliteLoaderError.hidden = true;
+  elements.satelliteLoaderError.textContent = "";
   const selectedDataUrl = elements.satellitePresetSelect.value;
+  let customIds = null;
   if (selectedDataUrl === "custom-norad") {
     try {
-      requestCustomNoradSet(parseNoradIds(elements.customNoradIds.value));
+      customIds = parseNoradIds(elements.customNoradIds.value);
     } catch (error) {
       elements.satelliteLoaderError.textContent = error.message;
       elements.satelliteLoaderError.hidden = false;
       elements.customNoradIds.focus();
+      return;
     }
-    return;
   }
   elements.satelliteLoaderProgress.hidden = false;
   elements.satellitePresetSelect.disabled = true;
   elements.satelliteLoaderSubmit.disabled = true;
   elements.satelliteLoaderSubmit.textContent = "Loading…";
   setLoaderProgress(0, "Preparing satellite data…");
-  const loaded = await loadSatellites(selectedDataUrl, setLoaderProgress);
+  let loaded = false;
+  try {
+    loaded = customIds
+      ? await loadCustomNoradSet(customIds, setLoaderProgress)
+      : await loadSatellites(selectedDataUrl, setLoaderProgress);
+  } catch (error) {
+    elements.satelliteLoaderError.textContent = error.message;
+  }
   if (loaded) {
     window.setTimeout(hideSatelliteLoader, 350);
     return;
   }
-  elements.satelliteLoaderError.textContent = "That satellite set could not be loaded. Check your connection, choose another set, or try again.";
+  if (!elements.satelliteLoaderError.textContent) {
+    elements.satelliteLoaderError.textContent = "That satellite set could not be loaded. Check your connection, choose another set, or try again.";
+  }
   elements.satelliteLoaderError.hidden = false;
   elements.satellitePresetSelect.disabled = false;
   elements.satelliteLoaderSubmit.disabled = false;
@@ -2249,7 +2306,14 @@ elements.satelliteSetChange.addEventListener("click", showSatelliteLoader);
 elements.refreshButton.addEventListener("click", async () => {
   elements.refreshButton.disabled = true;
   elements.refreshButton.textContent = "Checking…";
-  const refreshed = await loadSatellites();
+  let refreshed = false;
+  try {
+    refreshed = currentCustomNoradIds
+      ? await loadCustomNoradSet(currentCustomNoradIds)
+      : await loadSatellites();
+  } catch (error) {
+    refreshed = false;
+  }
   elements.refreshButton.textContent = refreshed ? "Checked — map updated" : "Check failed — try again";
   window.setTimeout(() => {
     elements.refreshButton.textContent = "Check for new satellites";
