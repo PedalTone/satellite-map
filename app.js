@@ -1934,7 +1934,9 @@ function updateDetailPanel() {
 
   const primary = selected[selected.length - 1];
   const position = primary.position;
-  elements.detailName.textContent = primary.label;
+  elements.detailName.textContent = primary.omm.OBJECT_NAME
+    || primary.catalog?.OBJECT_NAME
+    || primary.label;
   elements.altitude.textContent = position ? `${position.altitude.toFixed(1)} km` : "Unavailable";
   elements.speed.textContent = position ? `${position.speed.toFixed(2)} km/s` : "Unavailable";
   elements.latitude.textContent = position ? formatCoordinate(position.latitude, "N", "S") : "—";
