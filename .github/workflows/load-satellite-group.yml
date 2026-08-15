@@ -5,6 +5,7 @@ on:
     types: [opened]
 
 permissions:
+  actions: write
   contents: write
   issues: write
 
@@ -46,6 +47,7 @@ jobs:
         if: steps.load.outputs.status == '0'
         env:
           COMMON_NAME: ${{ steps.request.outputs.term }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -53,6 +55,7 @@ jobs:
           git commit -m "Load satellite group: $COMMON_NAME"
           git pull --rebase origin main
           git push origin main
+          gh workflow run deploy.yml --ref main
 
       - name: Report result
         env:
