@@ -1,0 +1,64 @@
+name: Load satellite NORAD IDs
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  actions: write
+  contents: write
+  issues: write
+
+concurrency:
+  group: satellite-data-loader
+  cancel-in-progress: false
+
+jobs:
+  load-ids:
+    if: github.event.issue.user.login == github.repository_owner && startsWith(github.event.issue.title, '[Satellite IDs] ')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Load requested NORAD IDs
+        id: load
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          set +e
+          python3 scripts/load_satellite_ids.py "$ISSUE_BODY" > /tmp/id-load-result.txt 2>&1
+          status=$?
+          set -e
+          cat /tmp/id-load-result.txt
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Commit custom satellite set
+        if: steps.load.outputs.status == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add satellites.txt data/satellite-data.json
+          git commit -m "Load custom NORAD satellite set"
+          git pull --rebase origin main
+          git push origin main
+          gh workflow run deploy.yml --ref main
+
+      - name: Report result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          LOAD_STATUS: ${{ steps.load.outputs.status }}
+        run: |
+          result=$(cat /tmp/id-load-result.txt)
+          if [ "$LOAD_STATUS" = "0" ]; then
+            printf 'Custom NORAD set loaded successfully.\n\n%s\n\nThe map deployment has started and should be ready in about two minutes.\n' "$result" > /tmp/id-comment.md
+          else
+            printf 'The custom NORAD set could not be loaded.\n\n```text\n%s\n```\n\nCheck the catalog IDs and submit the request again.\n' "$result" > /tmp/id-comment.md
+          fi
+          gh issue comment "$ISSUE_NUMBER" --body-file /tmp/id-comment.md
+          gh issue close "$ISSUE_NUMBER"

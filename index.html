@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Widgets/widgets.css">
-    <link rel="stylesheet" href="styles.css?v=satellite-roster-1">
+    <link rel="stylesheet" href="styles.css?v=custom-norad-1">
   </head>
   <body data-app-tab="map" data-view-mode="2d" class="awaiting-satellite-load">
     <section id="satellite-loader" class="satellite-loader" role="dialog" aria-modal="true" aria-labelledby="satellite-loader-title">
@@ -35,8 +35,14 @@
             <option value="data/presets/earth-observation.json" data-description="A compact set of well-known weather and Earth-imaging missions.">Earth observation · 7 satellites</option>
             <option value="data/presets/gps.json" data-description="The operational GPS constellation for comparing orbital planes and coverage.">GPS operational constellation</option>
             <option value="data/presets/starlink.json" data-description="A stable 25-satellite sample that keeps the map readable.">Starlink sample · 25 satellites</option>
+            <option value="custom-norad" data-description="Provide up to 100 NORAD catalog IDs. GitHub owner authorization is required to fetch and publish the set.">Custom NORAD IDs</option>
             <option value="data/satellite-data.json" data-description="The currently published owner-managed set.">Current published set</option>
           </select>
+          <div id="custom-norad-fields" class="custom-norad-fields" hidden>
+            <label for="custom-norad-ids">NORAD catalog IDs</label>
+            <textarea id="custom-norad-ids" rows="4" spellcheck="false" autocomplete="off" placeholder="25544, 20580&#10;41866 49260"></textarea>
+            <p>Separate IDs with a space, comma, or new line. Duplicates are removed automatically. Continue to GitHub and submit the prefilled request.</p>
+          </div>
           <p id="satellite-preset-description" class="satellite-preset-description">Six recognizable spacecraft across human spaceflight, astronomy, weather, and Earth observation.</p>
           <button id="satellite-loader-submit" class="satellite-loader-submit" type="submit">Load satellites</button>
         </form>
@@ -476,6 +482,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Cesium.js"></script>
-  <script type="module" src="app.js?v=satellite-roster-1"></script>
+  <script type="module" src="app.js?v=custom-norad-1"></script>
   </body>
 </html>

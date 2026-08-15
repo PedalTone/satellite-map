@@ -10,7 +10,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: satellite-group-loader
+  group: satellite-data-loader
   cancel-in-progress: false
 
 jobs:

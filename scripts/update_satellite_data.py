@@ -124,6 +124,8 @@ def main():
     }
     if previous_payload.get("sourceQuery"):
         payload["sourceQuery"] = previous_payload["sourceQuery"]
+    if previous_payload.get("sourceNoradIds"):
+        payload["sourceNoradIds"] = previous_payload["sourceNoradIds"]
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_FILE.write_text(json.dumps(payload, indent=2) + "\n")
     print(f"Wrote {len(satellites)} satellites to {OUTPUT_FILE.relative_to(ROOT)}")

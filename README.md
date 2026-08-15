@@ -8,6 +8,8 @@ Every visit begins with a satellite-set chooser rather than loading the owner-ma
 
 Preset data lives in `data/presets/` and is rebuilt by `scripts/build_preset_data.py`. The scheduled refresh workflow updates the current published set and every preset before deployment. If a preset refresh temporarily fails, the last packaged version is preserved.
 
+The chooser also accepts a custom list of up to 100 NORAD catalog IDs separated by spaces, commas, or new lines. Custom lists open a prefilled GitHub issue for owner authorization because CelesTrak does not allow the static site to request arbitrary records directly. The `Load satellite NORAD IDs` workflow validates the list, downloads current records, replaces the published set, deploys the map, reports the result, and closes the request.
+
 ## Edit the satellite list
 
 Edit `satellites.txt` with one satellite per line:

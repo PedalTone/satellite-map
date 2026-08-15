@@ -81,6 +81,8 @@ const elements = {
   satelliteLoader: document.querySelector("#satellite-loader"),
   satelliteLoaderForm: document.querySelector("#satellite-loader-form"),
   satellitePresetSelect: document.querySelector("#satellite-preset-select"),
+  customNoradFields: document.querySelector("#custom-norad-fields"),
+  customNoradIds: document.querySelector("#custom-norad-ids"),
   satellitePresetDescription: document.querySelector("#satellite-preset-description"),
   satelliteLoaderSubmit: document.querySelector("#satellite-loader-submit"),
   satelliteLoaderProgress: document.querySelector("#satellite-loader-progress"),
@@ -2074,7 +2076,33 @@ function setLoaderProgress(value, message) {
 
 function updatePresetDescription() {
   const selectedOption = elements.satellitePresetSelect.selectedOptions[0];
+  const customSelected = selectedOption?.value === "custom-norad";
+  elements.customNoradFields.hidden = !customSelected;
   elements.satellitePresetDescription.textContent = selectedOption?.dataset.description ?? "Choose a satellite set to explore.";
+  elements.satelliteLoaderSubmit.textContent = customSelected
+    ? "Continue to GitHub"
+    : trackedSatellites.length ? "Load selected set" : "Load satellites";
+}
+
+function parseNoradIds(value) {
+  const tokens = value.trim().split(/[\s,]+/).filter(Boolean);
+  if (!tokens.length) throw new Error("Enter at least one NORAD catalog ID.");
+  const invalid = tokens.find((token) => !/^\d{1,9}$/.test(token));
+  if (invalid) throw new Error(`“${invalid}” is not a valid NORAD catalog ID.`);
+  const ids = [...new Set(tokens.map((token) => String(Number(token))))];
+  if (ids.length > 100) throw new Error("Enter no more than 100 unique NORAD catalog IDs.");
+  return ids;
+}
+
+function requestCustomNoradSet(ids) {
+  localStorage.setItem("customNoradIds", ids.join(" "));
+  const requestUrl = new URL("https://github.com/PedalTone/satellite-map/issues/new");
+  requestUrl.searchParams.set("title", `[Satellite IDs] ${ids.length} satellite${ids.length === 1 ? "" : "s"}`);
+  requestUrl.searchParams.set(
+    "body",
+    `NORAD IDs:\n${ids.join(" ")}\n\nRequested from the Satellite Map custom NORAD loader. This request will replace the current published satellite set and refresh its orbital data.`
+  );
+  window.location.assign(requestUrl.toString());
 }
 
 function showSatelliteLoader() {
@@ -2083,7 +2111,8 @@ function showSatelliteLoader() {
   elements.satelliteLoaderProgress.hidden = true;
   elements.satellitePresetSelect.disabled = false;
   elements.satelliteLoaderSubmit.disabled = false;
-  elements.satelliteLoaderSubmit.textContent = trackedSatellites.length ? "Load selected set" : "Load satellites";
+  elements.customNoradIds.value = localStorage.getItem("customNoradIds") ?? elements.customNoradIds.value;
+  updatePresetDescription();
   document.body.classList.add("awaiting-satellite-load");
   elements.main.setAttribute("inert", "");
   window.setTimeout(() => elements.satellitePresetSelect.focus(), 0);
@@ -2187,12 +2216,22 @@ elements.satellitePresetSelect.addEventListener("change", updatePresetDescriptio
 elements.satelliteLoaderForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   elements.satelliteLoaderError.hidden = true;
+  const selectedDataUrl = elements.satellitePresetSelect.value;
+  if (selectedDataUrl === "custom-norad") {
+    try {
+      requestCustomNoradSet(parseNoradIds(elements.customNoradIds.value));
+    } catch (error) {
+      elements.satelliteLoaderError.textContent = error.message;
+      elements.satelliteLoaderError.hidden = false;
+      elements.customNoradIds.focus();
+    }
+    return;
+  }
   elements.satelliteLoaderProgress.hidden = false;
   elements.satellitePresetSelect.disabled = true;
   elements.satelliteLoaderSubmit.disabled = true;
   elements.satelliteLoaderSubmit.textContent = "Loading…";
   setLoaderProgress(0, "Preparing satellite data…");
-  const selectedDataUrl = elements.satellitePresetSelect.value;
   const loaded = await loadSatellites(selectedDataUrl, setLoaderProgress);
   if (loaded) {
     window.setTimeout(hideSatelliteLoader, 350);
@@ -2340,6 +2379,7 @@ elements.accessAnalysisStartDate.value = formatLocalDateInput(new Date());
 setAnalysisTool("access");
 applyViewMode();
 
+elements.customNoradIds.value = localStorage.getItem("customNoradIds") ?? "";
 updatePresetDescription();
 elements.main.setAttribute("inert", "");
 setStatus("Choose a satellite set to begin.");

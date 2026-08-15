@@ -155,21 +155,41 @@ body.awaiting-satellite-load main { visibility: hidden; }
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.satellite-loader-form select {
+.satellite-loader-form select,
+.custom-norad-fields textarea {
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  min-height: 52px;
-  padding: 0 44px 0 15px;
   border: 1px solid rgba(102, 224, 255, 0.35);
   border-radius: 14px;
   color: #fff;
   background: rgba(255, 255, 255, 0.07);
   font: inherit;
   font-size: 17px;
+}
+.satellite-loader-form select {
+  min-height: 52px;
+  padding: 0 44px 0 15px;
   cursor: pointer;
 }
+.custom-norad-fields {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(102, 224, 255, 0.18);
+  border-radius: 14px;
+  background: rgba(102, 224, 255, 0.045);
+}
+.custom-norad-fields[hidden] { display: none; }
+.custom-norad-fields textarea {
+  min-height: 104px;
+  padding: 12px 13px;
+  resize: vertical;
+  line-height: 1.45;
+}
+.custom-norad-fields p { margin: 0; color: #8fa2ba; font-size: 12px; line-height: 1.4; }
 .satellite-loader-form select:focus,
+.custom-norad-fields textarea:focus,
 .satellite-loader-submit:focus-visible { outline: 3px solid rgba(102, 224, 255, 0.45); outline-offset: 3px; }
 .satellite-preset-description {
   min-height: 42px;
