@@ -293,7 +293,7 @@ const earthEquatorialRadiusKm = 6378.137;
 const earthFlattening = 1 / 298.257223563;
 const earthPolarRadiusKm = earthEquatorialRadiusKm * (1 - earthFlattening);
 const scenarioStepMs = 2 * 60_000;
-const accessForecastHours = 12;
+const accessForecastHours = 72;
 
 elements.groundTrackToggle.checked = groundTracksVisible;
 elements.footprintToggle.checked = footprintsVisible;
