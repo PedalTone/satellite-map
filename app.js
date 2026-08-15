@@ -50,6 +50,8 @@ const elements = {
   statusPanelContent: document.querySelector("#status-panel-content"),
   mapOverlays: document.querySelector(".map-overlays"),
   detailPanel: document.querySelector("#detail-panel"),
+  timeControl: document.querySelector(".time-control"),
+  accessPanel: document.querySelector(".access-panel"),
   statusText: document.querySelector("#status-text"),
   statusCount: document.querySelector("#status-count"),
   statusDot: document.querySelector("#status-dot"),
@@ -178,6 +180,15 @@ const leftPanelObserver = new ResizeObserver(() => requestAnimationFrame(updateL
 leftPanelObserver.observe(elements.statusPanel);
 leftPanelObserver.observe(elements.mapOverlays);
 window.addEventListener("resize", updateLeftPanelLayout);
+
+function updateRightPanelLayout() {
+  const timeBottom = elements.timeControl.getBoundingClientRect().bottom;
+  document.documentElement.style.setProperty("--access-panel-top", `${Math.ceil(timeBottom + 14)}px`);
+}
+
+const rightPanelObserver = new ResizeObserver(() => requestAnimationFrame(updateRightPanelLayout));
+rightPanelObserver.observe(elements.timeControl);
+window.addEventListener("resize", updateRightPanelLayout);
 
 const learningElements = {
   lessonButtons: [...document.querySelectorAll("[data-learning-lesson]")],
@@ -2107,7 +2118,7 @@ elements.summaryToggle.addEventListener("click", () => {
 });
 elements.accessToggle.addEventListener("click", () => {
   const expanded = elements.accessToggle.getAttribute("aria-expanded") !== "true";
-  setPanelExpanded(elements.accessToggle, elements.accessList, expanded);
+  setPanelExpanded(elements.accessToggle, elements.accessList, expanded, "access-expanded");
 });
 elements.speedSelect.addEventListener("change", (event) => {
   setSimulationSpeed(Number(event.target.value));

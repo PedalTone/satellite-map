@@ -340,8 +340,13 @@ body.status-expanded .status-panel { width: min(190px, calc(100vw - 32px)); }
   z-index: 1000;
   top: calc(82px + env(safe-area-inset-top));
   right: 16px;
-  width: 152px;
-  padding: 9px 10px;
+  display: grid;
+  grid-template-columns: auto 116px auto;
+  align-items: center;
+  gap: 8px;
+  width: 300px;
+  min-height: 44px;
+  padding: 6px 9px;
   border: 1px solid rgba(154, 168, 255, 0.42);
   border-left: 3px solid #9aa8ff;
   border-radius: 16px;
@@ -350,8 +355,7 @@ body.status-expanded .status-panel { width: min(190px, calc(100vw - 32px)); }
 }
 
 .time-control label {
-  display: block;
-  margin-bottom: 5px;
+  margin: 0;
   color: #bdc5ff;
   font-size: 9px;
   font-weight: 700;
@@ -361,7 +365,7 @@ body.status-expanded .status-panel { width: min(190px, calc(100vw - 32px)); }
 
 .time-control select {
   width: 100%;
-  padding: 6px 8px;
+  padding: 5px 8px;
   border: 1px solid var(--line);
   border-radius: 9px;
   color: #fff;
@@ -371,21 +375,21 @@ body.status-expanded .status-panel { width: min(190px, calc(100vw - 32px)); }
 }
 
 .time-control time {
-  display: block;
-  margin-top: 6px;
+  margin: 0;
   color: #bdc5ff;
   font-size: 10px;
   line-height: 1.3;
+  white-space: nowrap;
 }
 
 .access-panel {
   position: fixed;
   z-index: 1000;
-  top: calc(180px + env(safe-area-inset-top));
+  top: var(--access-panel-top, calc(140px + env(safe-area-inset-top)));
   right: 16px;
-  width: 190px;
+  width: 215px;
   max-height: 260px;
-  padding: 10px;
+  padding: 0 8px;
   overflow-y: auto;
   border: 1px solid rgba(115, 230, 162, 0.42);
   border-left: 3px solid #73e6a2;
@@ -397,17 +401,22 @@ body.status-expanded .status-panel { width: min(190px, calc(100vw - 32px)); }
 .access-heading {
   position: sticky;
   z-index: 1;
-  top: -10px;
+  top: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin: -10px -10px 7px;
-  padding: 10px;
-  border-bottom: 1px solid var(--line);
+  min-height: 42px;
+  margin: 0;
+  padding: 6px 2px;
+  border-bottom: 0;
   background: rgba(11, 39, 35, 0.98);
   text-align: left;
 }
+
+.access-heading .eyebrow { display: none; }
+body.access-expanded .access-heading { margin-bottom: 7px; border-bottom: 1px solid var(--line); }
+body.access-expanded .access-panel { padding-bottom: 8px; }
 
 .access-heading h2 {
   margin: 2px 0 0;
@@ -1681,7 +1690,9 @@ body[data-learning-lesson="3"] .learning-explanation p { font-size: 11px; }
   .app-tab { padding: 6px 7px; font-size: 9px; }
   .topbar-actions .icon-button { width: 34px; height: 34px; }
   body.status-expanded .status-panel { width: min(168px, calc(100vw - 32px)); }
-  .time-control { right: 8px; width: 145px; }
+  .time-control { right: 8px; grid-template-columns: 1fr; width: 145px; }
+  .time-control label,
+  .time-control time { display: none; }
   .access-panel { right: 8px; width: 154px; }
   .access-heading .eyebrow,
   .access-heading .elevation-mask { display: none; }
