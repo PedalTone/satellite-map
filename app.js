@@ -46,6 +46,9 @@ for (const longitudeOffset of [-360, 0, 360]) {
 }
 
 const elements = {
+  statusPanel: document.querySelector("#status-panel"),
+  mapOverlays: document.querySelector(".map-overlays"),
+  detailPanel: document.querySelector("#detail-panel"),
   statusText: document.querySelector("#status-text"),
   statusDot: document.querySelector("#status-dot"),
   summaryToggle: document.querySelector("#summary-toggle"),
@@ -162,6 +165,18 @@ const elements = {
   learningPanel: document.querySelector("#learning-panel"),
   learningClose: document.querySelector("#learning-close"),
 };
+
+function updateLeftPanelLayout() {
+  const statusBottom = elements.statusPanel.getBoundingClientRect().bottom;
+  document.documentElement.style.setProperty("--map-overlays-top", `${Math.ceil(statusBottom + 14)}px`);
+  const overlaysBottom = elements.mapOverlays.getBoundingClientRect().bottom;
+  document.documentElement.style.setProperty("--detail-panel-top", `${Math.ceil(overlaysBottom + 14)}px`);
+}
+
+const leftPanelObserver = new ResizeObserver(() => requestAnimationFrame(updateLeftPanelLayout));
+leftPanelObserver.observe(elements.statusPanel);
+leftPanelObserver.observe(elements.mapOverlays);
+window.addEventListener("resize", updateLeftPanelLayout);
 
 const learningElements = {
   lessonButtons: [...document.querySelectorAll("[data-learning-lesson]")],
