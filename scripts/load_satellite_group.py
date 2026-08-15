@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import hashlib
 import json
 import re
 import subprocess
@@ -13,10 +14,12 @@ OUTPUT_FILE = ROOT / "data" / "satellite-data.json"
 GP_URL = "https://celestrak.org/NORAD/elements/gp.php"
 SATCAT_URL = "https://celestrak.org/satcat/records.php"
 MAX_SATELLITES = 100
+STARLINK_SAMPLE_SIZE = 25
 
 
-def fetch_records(base_url, common_name):
-    query = urllib.parse.urlencode({"NAME": common_name, "FORMAT": "JSON"})
+def fetch_records(base_url, query_key, query_value, **options):
+    parameters = {query_key: query_value, "FORMAT": "JSON", **options}
+    query = urllib.parse.urlencode(parameters)
     result = subprocess.run(
         [
             "curl",
@@ -39,6 +42,17 @@ def fetch_records(base_url, common_name):
     return records
 
 
+def stable_sample(satellites, sample_size, seed):
+    def sample_order(satellite):
+        catalog_number = satellite["noradId"]
+        return hashlib.sha256(f"{seed}:{catalog_number}".encode()).digest()
+
+    return sorted(
+        sorted(satellites, key=sample_order)[:sample_size],
+        key=lambda satellite: int(satellite["noradId"]),
+    )
+
+
 def numeric_label(object_name, catalog_number):
     numbers = re.findall(r"\d+", object_name or "")
     return numbers[-1] if numbers else catalog_number
@@ -54,8 +68,12 @@ def validate_common_name(raw_value):
 
 
 def build_group(common_name):
-    omm_records = fetch_records(GP_URL, common_name)
-    catalog_records = fetch_records(SATCAT_URL, common_name)
+    is_starlink = common_name.casefold() == "starlink"
+    query_key = "GROUP" if is_starlink else "NAME"
+    query_value = "STARLINK" if is_starlink else common_name
+    omm_records = fetch_records(GP_URL, query_key, query_value)
+    catalog_options = {"ACTIVE": "1"} if is_starlink else {}
+    catalog_records = fetch_records(SATCAT_URL, query_key, query_value, **catalog_options)
     catalog_by_id = {
         str(record.get("NORAD_CAT_ID")): record
         for record in catalog_records
@@ -84,6 +102,8 @@ def build_group(common_name):
 
     if not satellites:
         raise RuntimeError(f'No active payloads with GP data matched "{common_name}"')
+    if is_starlink:
+        return stable_sample(satellites, STARLINK_SAMPLE_SIZE, "STARLINK")
     if len(satellites) > MAX_SATELLITES:
         raise RuntimeError(
             f'"{common_name}" matched {len(satellites)} active payloads; '
@@ -112,7 +132,13 @@ def main():
     common_name = validate_common_name(sys.argv[1])
     satellites = build_group(common_name)
     write_outputs(common_name, satellites)
-    print(f'Loaded {len(satellites)} active payloads matching "{common_name}"')
+    if common_name.casefold() == "starlink":
+        print(
+            f'Loaded a stable sample of {len(satellites)} active payloads '
+            f'from the CelesTrak STARLINK group'
+        )
+    else:
+        print(f'Loaded {len(satellites)} active payloads matching "{common_name}"')
 
 
 if __name__ == "__main__":

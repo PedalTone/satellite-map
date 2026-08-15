@@ -17,12 +17,12 @@ Labels are optional. Separate the number and label with a comma, tab, or spaces.
 
 ## Load a group by common name
 
-On the Map screen, choose **Load by common name** and enter a specific shared name used by CelesTrak, such as `PRAETORIAN`. The app opens a prefilled GitHub issue; submit that request while signed in as the repository owner.
+On the Map screen, choose **Load by common name** and enter a shared name used by CelesTrak, such as `PRAETORIAN` or `STARLINK`. The app opens a prefilled GitHub issue; submit that request while signed in as the repository owner.
 
 The owner-only `Load satellite group` workflow then:
 
 1. Queries CelesTrak once for matching current GP/OMM records and once for matching SATCAT metadata.
-2. Keeps active payloads, creates numeric display labels from their names, and rejects searches returning more than 100 satellites.
+2. Keeps active payloads and creates numeric display labels from their names. `STARLINK` uses CelesTrak's optimized group feed and loads a stable 25-satellite sample; other searches returning more than 100 satellites are rejected.
 3. Replaces `satellites.txt` and `data/satellite-data.json`.
 4. Pushes the result, deploys GitHub Pages, comments on the request, and closes it.
 
