@@ -12,9 +12,42 @@
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Widgets/widgets.css">
-    <link rel="stylesheet" href="styles.css?v=time-under-loaded-1">
+    <link rel="stylesheet" href="styles.css?v=satellite-loader-1">
   </head>
-  <body data-app-tab="map" data-view-mode="2d">
+  <body data-app-tab="map" data-view-mode="2d" class="awaiting-satellite-load">
+    <section id="satellite-loader" class="satellite-loader" role="dialog" aria-modal="true" aria-labelledby="satellite-loader-title">
+      <div class="satellite-loader-card">
+        <div class="loader-orbit-visual" aria-hidden="true">
+          <span class="loader-earth"></span>
+          <span class="loader-orbit loader-orbit-one"><i></i></span>
+          <span class="loader-orbit loader-orbit-two"><i></i></span>
+        </div>
+        <div class="satellite-loader-copy">
+          <p class="eyebrow">Live orbital view</p>
+          <h1 id="satellite-loader-title">Which satellites do you want to explore?</h1>
+          <p>Choose a ready-to-load set. The map will fetch current packaged orbital elements and place each satellite in its position now.</p>
+        </div>
+        <form id="satellite-loader-form" class="satellite-loader-form">
+          <label for="satellite-preset-select">Satellite set</label>
+          <select id="satellite-preset-select" name="satellite-preset">
+            <option value="data/presets/essentials.json" data-description="Six recognizable spacecraft across human spaceflight, astronomy, weather, and Earth observation.">Space essentials · 6 satellites</option>
+            <option value="data/presets/human-spaceflight.json" data-description="The International Space Station and China’s Tiangong space station.">Human spaceflight · 2 satellites</option>
+            <option value="data/presets/earth-observation.json" data-description="A compact set of well-known weather and Earth-imaging missions.">Earth observation · 7 satellites</option>
+            <option value="data/presets/gps.json" data-description="The operational GPS constellation for comparing orbital planes and coverage.">GPS operational constellation</option>
+            <option value="data/presets/starlink.json" data-description="A stable 25-satellite sample that keeps the map readable.">Starlink sample · 25 satellites</option>
+            <option value="data/satellite-data.json" data-description="The currently published owner-managed set.">Current published set</option>
+          </select>
+          <p id="satellite-preset-description" class="satellite-preset-description">Six recognizable spacecraft across human spaceflight, astronomy, weather, and Earth observation.</p>
+          <button id="satellite-loader-submit" class="satellite-loader-submit" type="submit">Load satellites</button>
+        </form>
+        <div id="satellite-loader-progress" class="satellite-loader-progress" aria-live="polite" hidden>
+          <div><strong id="satellite-loader-status">Preparing satellite data…</strong><span id="satellite-loader-percent">0%</span></div>
+          <progress id="satellite-loader-progress-bar" max="100" value="0"></progress>
+        </div>
+        <p id="satellite-loader-error" class="satellite-loader-error" role="alert" hidden></p>
+        <p class="satellite-loader-note">Orbital data is refreshed regularly. Positions are educational estimates, not operational guidance.</p>
+      </div>
+    </section>
     <main>
       <div id="map" aria-label="Live satellite map"></div>
       <div id="globe" aria-label="Live 3D satellite globe" hidden></div>
@@ -48,6 +81,7 @@
           <div class="ephemeris-control">
             <a class="ephemeris-request" href="https://github.com/PedalTone/satellite-map/actions/workflows/refresh-satellite-data.yml" target="_blank" rel="noopener noreferrer">Request / Update Ephemeris</a>
             <button id="group-search-open" class="ephemeris-request" type="button">Load by common name</button>
+            <button id="satellite-set-change" class="ephemeris-request" type="button">Choose another set</button>
             <button id="refresh-button" class="ephemeris-request refresh-data-button" type="button">Check for new satellites</button>
             <time id="ephemeris-epoch">Elements: loading…</time>
             <span id="satellite-set-label" class="satellite-set-label">Set: packaged list</span>
@@ -433,6 +467,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Cesium.js"></script>
-  <script type="module" src="app.js?v=ground-contact-horizon-2"></script>
+  <script type="module" src="app.js?v=satellite-loader-1"></script>
   </body>
 </html>

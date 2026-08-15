@@ -29,13 +29,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Fetch current CelesTrak data
-        run: python3 scripts/update_satellite_data.py
+        run: |
+          python3 scripts/update_satellite_data.py
+          python3 scripts/build_preset_data.py
 
       - name: Commit refreshed data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/satellite-data.json
+          git add data/satellite-data.json data/presets
           if git diff --cached --quiet; then
             echo "Satellite data is unchanged"
           else

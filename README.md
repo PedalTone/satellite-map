@@ -2,6 +2,12 @@
 
 A mobile-friendly live map for a personal list of satellites. The site reads current OMM orbital elements from CelesTrak, propagates positions in the browser with SGP4, and deploys as a static GitHub Pages site.
 
+## Choose a satellite set
+
+Every visit begins with a satellite-set chooser rather than loading the owner-managed list automatically. Visitors can load the current published set or a packaged preset for space essentials, human spaceflight, Earth observation, the operational GPS constellation, or a readable 25-satellite Starlink sample. A progress bar stays visible while the selected orbital records, map positions, ground tracks, and access calculations are prepared.
+
+Preset data lives in `data/presets/` and is rebuilt by `scripts/build_preset_data.py`. The scheduled refresh workflow updates the current published set and every preset before deployment. If a preset refresh temporarily fails, the last packaged version is preserved.
+
 ## Edit the satellite list
 
 Edit `satellites.txt` with one satellite per line:
@@ -84,6 +90,7 @@ Then visit `http://localhost:8000`. Opening `index.html` directly will not work 
 ## Data behavior
 
 - The deployed workflow refreshes orbital data after owner list changes and every six hours.
+- The entry screen waits for the visitor to choose a packaged satellite set and shows staged loading progress before revealing the map.
 - A main-screen common-name loader can replace the set through an owner-only GitHub request without exposing credentials in the public website.
 - The webpage recalculates current positions continuously without repeatedly contacting CelesTrak.
 - Simulation speeds of real time, 10×, 50×, and 100× make orbital motion easier to compare.

@@ -78,6 +78,17 @@ for (const longitudeOffset of [-360, 0, 360]) {
 }
 
 const elements = {
+  satelliteLoader: document.querySelector("#satellite-loader"),
+  satelliteLoaderForm: document.querySelector("#satellite-loader-form"),
+  satellitePresetSelect: document.querySelector("#satellite-preset-select"),
+  satellitePresetDescription: document.querySelector("#satellite-preset-description"),
+  satelliteLoaderSubmit: document.querySelector("#satellite-loader-submit"),
+  satelliteLoaderProgress: document.querySelector("#satellite-loader-progress"),
+  satelliteLoaderStatus: document.querySelector("#satellite-loader-status"),
+  satelliteLoaderPercent: document.querySelector("#satellite-loader-percent"),
+  satelliteLoaderProgressBar: document.querySelector("#satellite-loader-progress-bar"),
+  satelliteLoaderError: document.querySelector("#satellite-loader-error"),
+  main: document.querySelector("main"),
   statusPanel: document.querySelector("#status-panel"),
   statusPanelContent: document.querySelector("#status-panel-content"),
   mapOverlays: document.querySelector(".map-overlays"),
@@ -118,6 +129,7 @@ const elements = {
   groupSearchClose: document.querySelector("#group-search-close"),
   groupSearchTerm: document.querySelector("#group-search-term"),
   groupSearchError: document.querySelector("#group-search-error"),
+  satelliteSetChange: document.querySelector("#satellite-set-change"),
   clearSelection: document.querySelector("#clear-selection"),
   groundTrackToggle: document.querySelector("#ground-track-toggle"),
   footprintToggle: document.querySelector("#footprint-toggle"),
@@ -262,6 +274,7 @@ const learningElements = {
 };
 
 let trackedSatellites = [];
+let currentSatelliteDataUrl = elements.satellitePresetSelect.value;
 let selectedIds = [];
 let updateTimer;
 let groundTrackTimer;
@@ -2026,35 +2039,54 @@ function updateDetailPanel() {
   }
 }
 
-async function loadSatellites() {
-  clearInterval(updateTimer);
-  clearInterval(groundTrackTimer);
-  clearRecommendationVisualization(false);
-  globeController?.clear();
-  for (const item of trackedSatellites) {
-    item.marker?.remove();
-    removeFootprintLayers(item);
-    item.accessLineHalo?.remove();
-    item.accessLine?.remove();
-    for (const layers of item.trackLayers ?? []) {
-      layers.halo.remove();
-      layers.color.remove();
-    }
-  }
-  trackedSatellites = [];
-  selectedIds = [];
+function setLoaderProgress(value, message) {
+  const normalizedValue = Math.max(0, Math.min(100, Math.round(value)));
+  elements.satelliteLoaderProgressBar.value = normalizedValue;
+  elements.satelliteLoaderPercent.textContent = `${normalizedValue}%`;
+  elements.satelliteLoaderStatus.textContent = message;
+}
+
+function updatePresetDescription() {
+  const selectedOption = elements.satellitePresetSelect.selectedOptions[0];
+  elements.satellitePresetDescription.textContent = selectedOption?.dataset.description ?? "Choose a satellite set to explore.";
+}
+
+function showSatelliteLoader() {
+  elements.satelliteLoader.hidden = false;
+  elements.satelliteLoaderError.hidden = true;
+  elements.satelliteLoaderProgress.hidden = true;
+  elements.satellitePresetSelect.disabled = false;
+  elements.satelliteLoaderSubmit.disabled = false;
+  elements.satelliteLoaderSubmit.textContent = trackedSatellites.length ? "Load selected set" : "Load satellites";
+  document.body.classList.add("awaiting-satellite-load");
+  elements.main.setAttribute("inert", "");
+  window.setTimeout(() => elements.satellitePresetSelect.focus(), 0);
+}
+
+function hideSatelliteLoader() {
+  elements.satelliteLoader.hidden = true;
+  document.body.classList.remove("awaiting-satellite-load");
+  elements.main.removeAttribute("inert");
+  window.setTimeout(() => map.invalidateSize(), 0);
+}
+
+async function loadSatellites(dataUrl = currentSatelliteDataUrl, onProgress = () => {}) {
   setStatus("Loading satellite data…");
   elements.statusCount.textContent = "Loading…";
+  onProgress(8, "Connecting to the satellite library…");
 
   try {
-    const response = await fetch(`data/satellite-data.json?t=${Date.now()}`, { cache: "no-store" });
+    const requestUrl = new URL(dataUrl, window.location.href);
+    requestUrl.searchParams.set("t", String(Date.now()));
+    const response = await fetch(requestUrl, { cache: "no-store" });
     if (!response.ok) throw new Error(`Data request returned ${response.status}`);
+    onProgress(38, "Satellite data received…");
     const payload = await response.json();
-    elements.satelliteSetLabel.textContent = payload.sourceQuery
-      ? `Set: ${payload.sourceQuery}`
-      : "Set: satellites.txt";
-
-    trackedSatellites = payload.satellites.map((entry, index) => ({
+    if (!Array.isArray(payload.satellites) || payload.satellites.length === 0) {
+      throw new Error("The selected set does not contain any satellites");
+    }
+    onProgress(56, `Preparing ${payload.satellites.length} orbital records…`);
+    const nextSatellites = payload.satellites.map((entry, index) => ({
       ...entry,
       id: String(entry.noradId),
       color: trackColors[index % trackColors.length],
@@ -2068,6 +2100,28 @@ async function loadSatellites() {
       accessLine: null,
       nextAccess: null,
     }));
+
+    clearInterval(updateTimer);
+    clearInterval(groundTrackTimer);
+    clearRecommendationVisualization(false);
+    globeController?.clear();
+    for (const item of trackedSatellites) {
+      item.marker?.remove();
+      removeFootprintLayers(item);
+      item.accessLineHalo?.remove();
+      item.accessLine?.remove();
+      for (const layers of item.trackLayers ?? []) {
+        layers.halo.remove();
+        layers.color.remove();
+      }
+    }
+    trackedSatellites = nextSatellites;
+    selectedIds = [];
+    currentSatelliteDataUrl = dataUrl;
+    const selectedOption = [...elements.satellitePresetSelect.options].find((option) => option.value === dataUrl);
+    const setName = payload.presetName || payload.sourceQuery || selectedOption?.textContent || "Packaged list";
+    elements.satelliteSetLabel.textContent = `Set: ${setName}`;
+    onProgress(72, "Placing satellites on the map…");
     elements.loadedNoradOptions.replaceChildren(...trackedSatellites.map((item) => {
       const option = document.createElement("option");
       option.value = item.id;
@@ -2078,6 +2132,7 @@ async function loadSatellites() {
     updatePositions();
     updateEphemerisEpochDisplay(trackedSatellites);
     updateSatelliteSummary();
+    onProgress(88, "Calculating ground paths and access…");
     updateGroundTracks();
     updateAccessWindows();
     elements.scenarioRun.disabled = trackedSatellites.length < 3;
@@ -2090,14 +2145,41 @@ async function loadSatellites() {
     const suffix = missingCount ? ` · ${missingCount} unavailable` : "";
     setStatus(`${trackedSatellites.length} satellites · updated ${new Date(payload.generatedAt).toLocaleString()}${suffix}`);
     elements.statusCount.textContent = `${trackedSatellites.length} loaded`;
+    onProgress(100, `${trackedSatellites.length} satellites ready`);
     return true;
   } catch (error) {
     console.error(error);
-    setStatus("Satellite data is not ready. Run the updater or GitHub Action.", true);
-    elements.statusCount.textContent = "Unavailable";
+    setStatus(trackedSatellites.length
+      ? "The selected set could not be loaded. The previous set is still available."
+      : "Satellite data is not ready. Try another set or try again.", true);
+    elements.statusCount.textContent = trackedSatellites.length ? `${trackedSatellites.length} loaded` : "Unavailable";
     return false;
   }
 }
+
+elements.satellitePresetSelect.addEventListener("change", updatePresetDescription);
+elements.satelliteLoaderForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  elements.satelliteLoaderError.hidden = true;
+  elements.satelliteLoaderProgress.hidden = false;
+  elements.satellitePresetSelect.disabled = true;
+  elements.satelliteLoaderSubmit.disabled = true;
+  elements.satelliteLoaderSubmit.textContent = "Loading…";
+  setLoaderProgress(0, "Preparing satellite data…");
+  const selectedDataUrl = elements.satellitePresetSelect.value;
+  const loaded = await loadSatellites(selectedDataUrl, setLoaderProgress);
+  if (loaded) {
+    window.setTimeout(hideSatelliteLoader, 350);
+    return;
+  }
+  elements.satelliteLoaderError.textContent = "That satellite set could not be loaded. Check your connection, choose another set, or try again.";
+  elements.satelliteLoaderError.hidden = false;
+  elements.satellitePresetSelect.disabled = false;
+  elements.satelliteLoaderSubmit.disabled = false;
+  elements.satelliteLoaderSubmit.textContent = "Try loading again";
+  elements.satelliteLoaderProgress.hidden = true;
+});
+elements.satelliteSetChange.addEventListener("click", showSatelliteLoader);
 
 elements.refreshButton.addEventListener("click", async () => {
   elements.refreshButton.disabled = true;
@@ -2232,4 +2314,7 @@ elements.accessAnalysisStartDate.value = formatLocalDateInput(new Date());
 setAnalysisTool("access");
 applyViewMode();
 
-loadSatellites();
+updatePresetDescription();
+elements.main.setAttribute("inert", "");
+setStatus("Choose a satellite set to begin.");
+elements.statusCount.textContent = "Not loaded";
