@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Widgets/widgets.css">
-    <link rel="stylesheet" href="styles.css?v=loaded-satellites-1">
+    <link rel="stylesheet" href="styles.css?v=details-on-selection-1">
   </head>
   <body data-app-tab="map" data-view-mode="2d">
     <main>
@@ -149,17 +149,14 @@
         </div>
       </section>
 
-      <section id="detail-panel" class="detail-panel" aria-live="polite">
+      <section id="detail-panel" class="detail-panel" aria-live="polite" hidden>
         <div class="detail-handle"></div>
         <div class="detail-heading">
           <div>
             <p class="eyebrow">Selected satellite</p>
-            <h2 id="detail-name">Tap a satellite</h2>
+            <h2 id="detail-name">—</h2>
           </div>
           <button id="clear-selection" class="text-button" type="button">Clear</button>
-        </div>
-        <div id="empty-detail" class="empty-detail">
-          Select one satellite for details, or two to compare their separation.
         </div>
         <div id="satellite-detail" class="metrics" hidden>
           <div><span>Altitude</span><strong id="detail-altitude">—</strong></div>
@@ -436,6 +433,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Cesium.js"></script>
-  <script type="module" src="app.js?v=loaded-satellites-1"></script>
+  <script type="module" src="app.js?v=details-on-selection-1"></script>
   </body>
 </html>

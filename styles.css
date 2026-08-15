@@ -648,6 +648,7 @@ body[data-view-mode="3d"] .footprint-control { display: none; }
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
   backdrop-filter: blur(20px);
 }
+.detail-panel[hidden] { display: none; }
 
 .detail-handle {
   display: none;
@@ -675,17 +676,10 @@ body[data-view-mode="3d"] .footprint-control { display: none; }
   font-size: 10px;
 }
 
-.empty-detail, .data-age {
+.data-age {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.4;
-}
-
-.empty-detail { margin-top: 12px; }
-
-.detail-panel .empty-detail {
-  margin-top: 8px;
-  font-size: 11px;
 }
 
 .metrics {

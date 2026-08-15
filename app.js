@@ -61,7 +61,6 @@ const elements = {
   summaryRaan: document.querySelector("#summary-raan"),
   launchBreakdown: document.querySelector("#launch-breakdown"),
   detailName: document.querySelector("#detail-name"),
-  emptyDetail: document.querySelector("#empty-detail"),
   satelliteDetail: document.querySelector("#satellite-detail"),
   separationDetail: document.querySelector("#separation-detail"),
   separationLabel: document.querySelector("#separation-label"),
@@ -1885,7 +1884,7 @@ function updateSatelliteSummary() {
 
 function updateDetailPanel() {
   const selected = selectedSatellites();
-  elements.emptyDetail.hidden = selected.length > 0;
+  elements.detailPanel.hidden = selected.length === 0;
   elements.satelliteDetail.hidden = selected.length === 0;
   elements.separationDetail.hidden = selected.length !== 2;
 
@@ -1895,7 +1894,7 @@ function updateDetailPanel() {
   }
 
   if (selected.length === 0) {
-    elements.detailName.textContent = "Tap a satellite";
+    elements.detailName.textContent = "—";
     elements.dataAge.textContent = "";
     return;
   }
