@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Widgets/widgets.css">
-    <link rel="stylesheet" href="styles.css?v=satellite-loader-3">
+    <link rel="stylesheet" href="styles.css?v=satellite-roster-1">
   </head>
   <body data-app-tab="map" data-view-mode="2d" class="awaiting-satellite-load">
     <section id="satellite-loader" class="satellite-loader" role="dialog" aria-modal="true" aria-labelledby="satellite-loader-title">
@@ -78,6 +78,15 @@
         </button>
         <div id="status-panel-content" class="status-panel-content" hidden>
           <p id="status-text" class="status-message">Loading satellites…</p>
+          <section class="loaded-satellite-roster" aria-live="off" aria-labelledby="loaded-satellite-roster-title">
+            <div class="loaded-satellite-roster-heading">
+              <strong id="loaded-satellite-roster-title">Satellites in this set</strong>
+              <span id="loaded-satellite-roster-count">0</span>
+            </div>
+            <ul id="loaded-satellite-list" class="loaded-satellite-list">
+              <li class="loaded-satellite-empty">Choose a satellite set to begin.</li>
+            </ul>
+          </section>
           <div class="ephemeris-control">
             <a class="ephemeris-request" href="https://github.com/PedalTone/satellite-map/actions/workflows/refresh-satellite-data.yml" target="_blank" rel="noopener noreferrer">Request / Update Ephemeris</a>
             <button id="group-search-open" class="ephemeris-request" type="button">Load by common name</button>
@@ -467,6 +476,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Cesium.js"></script>
-  <script type="module" src="app.js?v=satellite-loader-1"></script>
+  <script type="module" src="app.js?v=satellite-roster-1"></script>
   </body>
 </html>

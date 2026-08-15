@@ -101,6 +101,8 @@ const elements = {
   statusDot: document.querySelector("#status-dot"),
   summaryToggle: document.querySelector("#summary-toggle"),
   satelliteSummary: document.querySelector("#satellite-summary"),
+  loadedSatelliteRosterCount: document.querySelector("#loaded-satellite-roster-count"),
+  loadedSatelliteList: document.querySelector("#loaded-satellite-list"),
   summaryLaunchCount: document.querySelector("#summary-launch-count"),
   summaryAltitude: document.querySelector("#summary-altitude"),
   summaryInclination: document.querySelector("#summary-inclination"),
@@ -1966,6 +1968,30 @@ function updateSatelliteSummary() {
   elements.summaryRaan.textContent = raanValues.length
     ? `${Math.min(...raanValues).toFixed(2)}–${Math.max(...raanValues).toFixed(2)}°`
     : "Unavailable";
+  elements.loadedSatelliteRosterCount.textContent = String(trackedSatellites.length);
+  elements.loadedSatelliteList.replaceChildren(
+    ...trackedSatellites.map((item) => {
+      const row = document.createElement("li");
+      row.className = "loaded-satellite-row";
+
+      const color = document.createElement("i");
+      color.className = "loaded-satellite-color";
+      color.style.setProperty("--satellite-list-color", item.color);
+
+      const copy = document.createElement("span");
+      const name = document.createElement("strong");
+      const fullName = item.omm.OBJECT_NAME || item.catalog?.OBJECT_NAME || item.label;
+      name.textContent = fullName;
+      name.title = fullName;
+      const metadata = document.createElement("small");
+      metadata.textContent = item.label && item.label !== fullName
+        ? `${item.label} · NORAD ${item.id}`
+        : `NORAD ${item.id}`;
+      copy.append(name, metadata);
+      row.append(color, copy);
+      return row;
+    })
+  );
   elements.launchBreakdown.replaceChildren(
     ...[...launchGroups.entries()]
       .sort(([firstDate], [secondDate]) => firstDate.localeCompare(secondDate))
