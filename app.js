@@ -1,7 +1,7 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
 import tzLookup from "https://cdn.jsdelivr.net/npm/tz-lookup@6.1.25/+esm";
 import { initializeLearningLab } from "./learning-lab.js?v=learning-beta-angle-2";
-import { initializeGlobeView } from "./globe-view.js?v=station-contacts-1";
+import { initializeGlobeView } from "./globe-view.js?v=contrast-ground-paths-1";
 
 const map = L.map("map", {
   center: [18, 0],
@@ -16,6 +16,17 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 8,
   attribution: "&copy; OpenStreetMap contributors",
 }).addTo(map);
+
+for (const [paneName, zIndex] of [
+  ["groundTrackHaloPane", 350],
+  ["groundTrackColorPane", 351],
+  ["footprintHaloPane", 360],
+  ["footprintColorPane", 361],
+]) {
+  const pane = map.createPane(paneName);
+  pane.style.zIndex = String(zIndex);
+  pane.style.pointerEvents = "none";
+}
 
 const groundStation = {
   name: "Central Alaska",
@@ -477,7 +488,10 @@ function markerIcon(item, selected = false) {
 }
 
 function removeFootprintLayers(item) {
-  for (const layer of item.footprintLayers ?? []) layer.remove();
+  for (const layers of item.footprintLayers ?? []) {
+    layers.halo.remove();
+    layers.color.remove();
+  }
   item.footprintLayers = [];
 }
 
@@ -494,22 +508,37 @@ function updateFootprintLayers(item) {
   const radiusMeters = footprintDiameterKm * 500;
   if (item.footprintLayers.length !== centers.length) {
     removeFootprintLayers(item);
-    item.footprintLayers = centers.map((center) => L.circle(center, {
-      className: "live-footprint",
-      radius: radiusMeters,
-      color: item.color,
-      weight: 1.5,
-      opacity: 0.8,
-      fillColor: item.color,
-      fillOpacity: 0.1,
-      interactive: false,
-    }).addTo(map));
+    item.footprintLayers = centers.map((center) => ({
+      halo: L.circle(center, {
+        pane: "footprintHaloPane",
+        className: "live-footprint-halo",
+        radius: radiusMeters,
+        color: "#071421",
+        weight: 4,
+        opacity: 0.8,
+        fill: false,
+        interactive: false,
+      }).addTo(map),
+      color: L.circle(center, {
+        pane: "footprintColorPane",
+        className: "live-footprint",
+        radius: radiusMeters,
+        color: item.color,
+        weight: 2.2,
+        opacity: 1,
+        fillColor: item.color,
+        fillOpacity: 0.12,
+        interactive: false,
+      }).addTo(map),
+    }));
     return;
   }
 
-  item.footprintLayers.forEach((layer, index) => {
-    layer.setLatLng(centers[index]);
-    layer.setRadius(radiusMeters);
+  item.footprintLayers.forEach((layers, index) => {
+    layers.halo.setLatLng(centers[index]);
+    layers.halo.setRadius(radiusMeters);
+    layers.color.setLatLng(centers[index]);
+    layers.color.setRadius(radiusMeters);
   });
 }
 
@@ -633,7 +662,10 @@ function updateGroundTracks() {
   const start = currentSimulationDate();
 
   for (const item of trackedSatellites) {
-    for (const layer of item.trackLayers ?? []) layer.remove();
+    for (const layers of item.trackLayers ?? []) {
+      layers.halo.remove();
+      layers.color.remove();
+    }
     item.trackLayers = [];
 
     const meanMotion = Number(item.omm.MEAN_MOTION);
@@ -652,21 +684,34 @@ function updateGroundTracks() {
     item.trackPoints = points;
 
     item.trackLayers = splitAtDateLine(points).map((segment) => {
-      const layer = L.polyline(segment, {
-        className: "live-ground-track",
-        color: item.color,
-        weight: 2,
-        opacity: 0.72,
-        dashArray: "5 6",
-        interactive: false,
-      });
-      if (groundTracksVisible) layer.addTo(map);
-      return layer;
+      const layers = {
+        halo: L.polyline(segment, {
+          pane: "groundTrackHaloPane",
+          className: "live-ground-track-halo",
+          color: "#071421",
+          weight: 4.5,
+          opacity: 0.72,
+          dashArray: "5 7",
+          lineCap: "butt",
+          interactive: false,
+        }),
+        color: L.polyline(segment, {
+          pane: "groundTrackColorPane",
+          className: "live-ground-track",
+          color: item.color,
+          weight: 2,
+          opacity: 1,
+          dashArray: "5 7",
+          lineCap: "butt",
+          interactive: false,
+        }),
+      };
+      if (groundTracksVisible) {
+        layers.halo.addTo(map);
+        layers.color.addTo(map);
+      }
+      return layers;
     });
-
-    if (groundTracksVisible) {
-      for (const layer of item.trackLayers) layer.bringToBack();
-    }
   }
 }
 
@@ -675,9 +720,11 @@ function setGroundTrackVisibility(visible) {
   localStorage.setItem("groundTracksVisible", String(visible));
 
   for (const item of trackedSatellites) {
-    for (const layer of item.trackLayers ?? []) {
-      if (visible && !map.hasLayer(layer)) layer.addTo(map).bringToBack();
-      if (!visible && map.hasLayer(layer)) layer.remove();
+    for (const layers of item.trackLayers ?? []) {
+      if (visible && !map.hasLayer(layers.halo)) layers.halo.addTo(map);
+      if (visible && !map.hasLayer(layers.color)) layers.color.addTo(map);
+      if (!visible && map.hasLayer(layers.halo)) layers.halo.remove();
+      if (!visible && map.hasLayer(layers.color)) layers.color.remove();
     }
   }
   globeController?.update(trackedSatellites, {
@@ -1986,7 +2033,10 @@ async function loadSatellites() {
     removeFootprintLayers(item);
     item.accessLineHalo?.remove();
     item.accessLine?.remove();
-    for (const layer of item.trackLayers ?? []) layer.remove();
+    for (const layers of item.trackLayers ?? []) {
+      layers.halo.remove();
+      layers.color.remove();
+    }
   }
   trackedSatellites = [];
   selectedIds = [];

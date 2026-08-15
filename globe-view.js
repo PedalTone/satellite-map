@@ -148,33 +148,43 @@ export function initializeGlobeView(container, { onSelect, onGroundStationSelect
         entity.label.text = `${item.label} · ${Math.round(item.position.altitude).toLocaleString()} km`;
       }
 
-      let trackEntity = trackEntities.get(item.id);
+      let trackPair = trackEntities.get(item.id);
       if (groundTracksVisible && item.trackPoints?.length > 1) {
-        if (!trackEntity) {
-          trackEntity = activeViewer.entities.add({
-            name: `${item.label} ground path`,
+        if (!trackPair) {
+          const halo = activeViewer.entities.add({
+            name: `${item.label} ground path outline`,
             polyline: {
               positions: [],
               width: 5,
-              material: new Cesium.PolylineGlowMaterialProperty({
-                color: colorFromCss(item.color, Cesium.Color.CYAN).withAlpha(0.96),
-                glowPower: 0.18,
-                taperPower: 0.8,
-              }),
+              material: colorFromCss("#071421", Cesium.Color.BLACK).withAlpha(0.8),
               arcType: Cesium.ArcType.GEODESIC,
             },
           });
-          trackEntities.set(item.id, trackEntity);
+          const color = activeViewer.entities.add({
+            name: `${item.label} ground path`,
+            polyline: {
+              positions: [],
+              width: 2.5,
+              material: colorFromCss(item.color, Cesium.Color.CYAN),
+              arcType: Cesium.ArcType.GEODESIC,
+            },
+          });
+          trackPair = { halo, color };
+          trackEntities.set(item.id, trackPair);
         }
-        trackEntity.show = true;
+        trackPair.halo.show = true;
+        trackPair.color.show = true;
         if (trackSources.get(item.id) !== item.trackPoints) {
-          trackEntity.polyline.positions = Cesium.Cartesian3.fromDegreesArrayHeights(
+          const positions = Cesium.Cartesian3.fromDegreesArrayHeights(
             item.trackPoints.flatMap(([latitude, longitude]) => [longitude, latitude, 5_000])
           );
+          trackPair.halo.polyline.positions = positions;
+          trackPair.color.polyline.positions = positions;
           trackSources.set(item.id, item.trackPoints);
         }
-      } else if (trackEntity) {
-        trackEntity.show = false;
+      } else if (trackPair) {
+        trackPair.halo.show = false;
+        trackPair.color.show = false;
       }
 
       let accessPair = accessEntities.get(item.id);
@@ -219,8 +229,11 @@ export function initializeGlobeView(container, { onSelect, onGroundStationSelect
       if (activeIds.has(id)) continue;
       activeViewer.entities.remove(entity);
       entities.delete(id);
-      const trackEntity = trackEntities.get(id);
-      if (trackEntity) activeViewer.entities.remove(trackEntity);
+      const trackPair = trackEntities.get(id);
+      if (trackPair) {
+        activeViewer.entities.remove(trackPair.halo);
+        activeViewer.entities.remove(trackPair.color);
+      }
       trackEntities.delete(id);
       trackSources.delete(id);
       const accessPair = accessEntities.get(id);
@@ -253,7 +266,10 @@ export function initializeGlobeView(container, { onSelect, onGroundStationSelect
   function clear() {
     if (viewer) {
       for (const entity of entities.values()) viewer.entities.remove(entity);
-      for (const entity of trackEntities.values()) viewer.entities.remove(entity);
+      for (const pair of trackEntities.values()) {
+        viewer.entities.remove(pair.halo);
+        viewer.entities.remove(pair.color);
+      }
       for (const pair of accessEntities.values()) {
         viewer.entities.remove(pair.halo);
         viewer.entities.remove(pair.line);
