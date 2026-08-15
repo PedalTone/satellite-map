@@ -8,7 +8,7 @@ function colorFromCss(value, fallback) {
   }
 }
 
-export function initializeGlobeView(container, { onSelect, groundStation }) {
+export function initializeGlobeView(container, { onSelect, onGroundStationSelect, groundStation }) {
   let viewer;
   let visible = false;
   const entities = new Map();
@@ -53,7 +53,7 @@ export function initializeGlobeView(container, { onSelect, groundStation }) {
     viewer.camera.setView({
       destination: Cesium.Cartesian3.fromDegrees(-110, 38, 22_000_000),
     });
-    viewer.entities.add({
+    const groundStationEntity = viewer.entities.add({
       name: `${groundStation.name} Ground Station`,
       position: Cesium.Cartesian3.fromDegrees(groundStation.longitude, groundStation.latitude, 0),
       point: {
@@ -76,10 +76,12 @@ export function initializeGlobeView(container, { onSelect, groundStation }) {
         disableDepthTestDistance: 0,
       },
     });
+    groundStationEntity.groundStationMarker = true;
     viewer.screenSpaceEventHandler.setInputAction((movement) => {
       const picked = viewer.scene.pick(movement.position);
       const satelliteId = picked?.id?.satelliteId;
       if (satelliteId) onSelect(String(satelliteId));
+      else if (picked?.id?.groundStationMarker) onGroundStationSelect();
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     return viewer;
   }

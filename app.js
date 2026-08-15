@@ -1,7 +1,7 @@
 import * as satellite from "https://cdn.jsdelivr.net/npm/satellite.js@7.0.1/+esm";
 import tzLookup from "https://cdn.jsdelivr.net/npm/tz-lookup@6.1.25/+esm";
 import { initializeLearningLab } from "./learning-lab.js?v=learning-beta-angle-2";
-import { initializeGlobeView } from "./globe-view.js?v=map-3d-sunlight-1";
+import { initializeGlobeView } from "./globe-view.js?v=station-contacts-1";
 
 const map = L.map("map", {
   center: [18, 0],
@@ -30,7 +30,7 @@ const observerGeodetic = {
 };
 
 for (const longitudeOffset of [-360, 0, 360]) {
-  L.circleMarker([groundStation.latitude, groundStation.longitude + longitudeOffset], {
+  const stationMarker = L.circleMarker([groundStation.latitude, groundStation.longitude + longitudeOffset], {
     className: "live-ground-station",
     radius: 6,
     color: "#ffffff",
@@ -39,10 +39,31 @@ for (const longitudeOffset of [-360, 0, 360]) {
     fillOpacity: 1,
   }).addTo(map).bindTooltip("Central Alaska GS · 10° mask", {
     permanent: true,
+    interactive: true,
     direction: "right",
     className: "station-tooltip",
     offset: [8, 0],
   });
+  stationMarker.on("click", () => setGroundAccessPanelVisible(true));
+  const enableStationTooltipInteraction = () => {
+    const tooltipElement = stationMarker.getTooltip()?.getElement();
+    if (!tooltipElement || tooltipElement.dataset.contactsEnabled) return;
+    tooltipElement.dataset.contactsEnabled = "true";
+    tooltipElement.setAttribute("role", "button");
+    tooltipElement.setAttribute("tabindex", "0");
+    tooltipElement.setAttribute("aria-label", "Show Central Alaska ground contacts");
+    L.DomEvent.on(tooltipElement, "click", (event) => {
+      L.DomEvent.stop(event);
+      setGroundAccessPanelVisible(true);
+    });
+    tooltipElement.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      setGroundAccessPanelVisible(true);
+    });
+  };
+  stationMarker.on("tooltipopen", enableStationTooltipInteraction);
+  enableStationTooltipInteraction();
 }
 
 const elements = {
@@ -100,7 +121,7 @@ const elements = {
   speedSelect: document.querySelector("#speed-select"),
   simulationTime: document.querySelector("#simulation-time"),
   accessList: document.querySelector("#access-list"),
-  accessToggle: document.querySelector("#access-toggle"),
+  accessClose: document.querySelector("#access-close"),
   scenarioButton: document.querySelector("#scenario-button"),
   learningButton: document.querySelector("#learning-button"),
   mapButton: document.querySelector('[data-tab="map"]'),
@@ -189,6 +210,12 @@ function updateRightPanelLayout() {
 const rightPanelObserver = new ResizeObserver(() => requestAnimationFrame(updateRightPanelLayout));
 rightPanelObserver.observe(elements.timeControl);
 window.addEventListener("resize", updateRightPanelLayout);
+
+function setGroundAccessPanelVisible(visible) {
+  elements.accessPanel.hidden = !visible;
+  document.body.classList.toggle("access-expanded", visible);
+  if (visible) updateAccessPanel(currentSimulationDate());
+}
 
 const learningElements = {
   lessonButtons: [...document.querySelectorAll("[data-learning-lesson]")],
@@ -340,6 +367,7 @@ function setAnalysisTool(tool) {
 function showAppTab(tab) {
   elements.scenarioPanel.hidden = tab !== "analysis";
   elements.learningPanel.hidden = tab !== "learning";
+  if (tab !== "map") setGroundAccessPanelVisible(false);
   document.body.dataset.appTab = tab;
   applyViewMode();
   learningLabController?.setActive(tab === "learning");
@@ -2116,10 +2144,7 @@ elements.summaryToggle.addEventListener("click", () => {
   const expanded = elements.summaryToggle.getAttribute("aria-expanded") !== "true";
   setPanelExpanded(elements.summaryToggle, elements.statusPanelContent, expanded, "status-expanded");
 });
-elements.accessToggle.addEventListener("click", () => {
-  const expanded = elements.accessToggle.getAttribute("aria-expanded") !== "true";
-  setPanelExpanded(elements.accessToggle, elements.accessList, expanded, "access-expanded");
-});
+elements.accessClose.addEventListener("click", () => setGroundAccessPanelVisible(false));
 elements.speedSelect.addEventListener("change", (event) => {
   setSimulationSpeed(Number(event.target.value));
 });
@@ -2147,7 +2172,11 @@ elements.clearSelection.addEventListener("click", () => {
   updatePositions();
 });
 
-globeController = initializeGlobeView(elements.globe, { onSelect: toggleSelection, groundStation });
+globeController = initializeGlobeView(elements.globe, {
+  onSelect: toggleSelection,
+  onGroundStationSelect: () => setGroundAccessPanelVisible(true),
+  groundStation,
+});
 learningLabController = initializeLearningLab(learningElements, { map, leaflet: L });
 syncAccessAnalysisStationInputs();
 elements.accessAnalysisStartDate.value = formatLocalDateInput(new Date());

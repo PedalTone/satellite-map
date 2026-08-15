@@ -397,6 +397,7 @@ body.status-expanded .status-panel { width: min(190px, calc(100vw - 32px)); }
   background: var(--panel-access);
   backdrop-filter: blur(16px);
 }
+.access-panel[hidden] { display: none; }
 
 .access-heading {
   position: sticky;
@@ -414,9 +415,22 @@ body.status-expanded .status-panel { width: min(190px, calc(100vw - 32px)); }
   text-align: left;
 }
 
-.access-heading .eyebrow { display: none; }
+.access-heading .eyebrow { display: block; }
 body.access-expanded .access-heading { margin-bottom: 7px; border-bottom: 1px solid var(--line); }
 body.access-expanded .access-panel { padding-bottom: 8px; }
+
+.access-close {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border: 1px solid rgba(115, 230, 162, 0.42);
+  border-radius: 50%;
+  color: #dfffea;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
 
 .access-heading h2 {
   margin: 2px 0 0;
@@ -479,6 +493,7 @@ body.access-expanded .access-panel { padding-bottom: 8px; }
   font-size: 10px;
   font-weight: 700;
 }
+.station-tooltip { cursor: pointer; pointer-events: auto !important; }
 
 .station-tooltip::before { display: none; }
 

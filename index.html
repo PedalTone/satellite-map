@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Widgets/widgets.css">
-    <link rel="stylesheet" href="styles.css?v=compact-right-panels-1">
+    <link rel="stylesheet" href="styles.css?v=station-contacts-1">
   </head>
   <body data-app-tab="map" data-view-mode="2d">
     <main>
@@ -105,16 +105,16 @@
         <time id="simulation-time">—</time>
       </section>
 
-      <section class="access-panel" aria-label="Central Alaska ground station access">
-        <button id="access-toggle" class="access-heading panel-toggle" type="button" aria-expanded="false" aria-controls="access-list">
+      <section class="access-panel" aria-label="Central Alaska ground station access" hidden>
+        <div class="access-heading">
           <div>
             <p class="eyebrow">Central Alaska</p>
-            <h2>Ground Access</h2>
+            <h2>Ground Contacts</h2>
           </div>
           <span class="elevation-mask">≥10°</span>
-          <span class="panel-chevron" aria-hidden="true">⌄</span>
-        </button>
-        <div id="access-list" class="access-list" hidden>Calculating passes…</div>
+          <button id="access-close" class="access-close" type="button" aria-label="Close ground contacts">×</button>
+        </div>
+        <div id="access-list" class="access-list">Calculating passes…</div>
       </section>
 
       <section class="map-overlays" aria-label="Map overlays">
@@ -433,6 +433,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Cesium.js"></script>
-  <script type="module" src="app.js?v=compact-right-panels-1"></script>
+  <script type="module" src="app.js?v=station-contacts-1"></script>
   </body>
 </html>
