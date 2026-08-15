@@ -47,9 +47,11 @@ for (const longitudeOffset of [-360, 0, 360]) {
 
 const elements = {
   statusPanel: document.querySelector("#status-panel"),
+  statusPanelContent: document.querySelector("#status-panel-content"),
   mapOverlays: document.querySelector(".map-overlays"),
   detailPanel: document.querySelector("#detail-panel"),
   statusText: document.querySelector("#status-text"),
+  statusCount: document.querySelector("#status-count"),
   statusDot: document.querySelector("#status-dot"),
   summaryToggle: document.querySelector("#summary-toggle"),
   satelliteSummary: document.querySelector("#satellite-summary"),
@@ -1955,6 +1957,7 @@ async function loadSatellites() {
   trackedSatellites = [];
   selectedIds = [];
   setStatus("Loading satellite data…");
+  elements.statusCount.textContent = "Loading…";
 
   try {
     const response = await fetch(`data/satellite-data.json?t=${Date.now()}`, { cache: "no-store" });
@@ -1999,10 +2002,12 @@ async function loadSatellites() {
     const missingCount = payload.missing?.length ?? 0;
     const suffix = missingCount ? ` · ${missingCount} unavailable` : "";
     setStatus(`${trackedSatellites.length} satellites · updated ${new Date(payload.generatedAt).toLocaleString()}${suffix}`);
+    elements.statusCount.textContent = `${trackedSatellites.length} loaded`;
     return true;
   } catch (error) {
     console.error(error);
     setStatus("Satellite data is not ready. Run the updater or GitHub Action.", true);
+    elements.statusCount.textContent = "Unavailable";
     return false;
   }
 }
@@ -2099,7 +2104,7 @@ elements.scenarioRaanTolerance.addEventListener("input", invalidateScenarioResul
 elements.recommendationMapClear.addEventListener("click", returnToRealTime);
 elements.summaryToggle.addEventListener("click", () => {
   const expanded = elements.summaryToggle.getAttribute("aria-expanded") !== "true";
-  setPanelExpanded(elements.summaryToggle, elements.satelliteSummary, expanded, "summary-expanded");
+  setPanelExpanded(elements.summaryToggle, elements.statusPanelContent, expanded, "status-expanded");
 });
 elements.accessToggle.addEventListener("click", () => {
   const expanded = elements.accessToggle.getAttribute("aria-expanded") !== "true";

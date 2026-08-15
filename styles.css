@@ -148,8 +148,8 @@ button { font: inherit; }
   z-index: 1000;
   top: calc(78px + env(safe-area-inset-top));
   left: 16px;
-  width: min(150px, calc(100vw - 32px));
-  padding: 10px 12px;
+  width: min(168px, calc(100vw - 32px));
+  padding: 8px 10px;
   border: 1px solid rgba(102, 224, 255, 0.4);
   border-top: 3px solid #66e0ff;
   border-radius: 18px;
@@ -158,6 +158,8 @@ button { font: inherit; }
   font-size: 12px;
   backdrop-filter: blur(16px);
 }
+
+body.status-expanded .status-panel { width: min(190px, calc(100vw - 32px)); }
 
 .status-line {
   display: flex;
@@ -168,6 +170,13 @@ button { font: inherit; }
   line-height: 1.35;
   text-align: left;
 }
+
+.status-heading { display: grid; min-width: 0; gap: 1px; text-align: left; }
+.status-heading strong { color: #fff; font-size: 12px; line-height: 1.2; white-space: nowrap; }
+.status-heading small { color: #aeeeff; font-size: 9px; line-height: 1.2; }
+.status-panel-content[hidden] { display: none; }
+.status-message { margin: 9px 0 0; padding-top: 8px; border-top: 1px solid var(--line); color: #dbe6f6; font-size: 10px; line-height: 1.35; }
+.status-message + .ephemeris-control { margin-top: 7px; padding-top: 0; border-top: 0; }
 
 .panel-toggle {
   border: 0;
@@ -1677,6 +1686,12 @@ body[data-learning-lesson="3"] .learning-explanation p { font-size: 11px; }
   .topbar-actions { gap: 5px; }
   .app-tab { padding: 6px 7px; font-size: 9px; }
   .topbar-actions .icon-button { width: 34px; height: 34px; }
+  body.status-expanded .status-panel { width: min(168px, calc(100vw - 32px)); }
+  .time-control { right: 8px; width: 145px; }
+  .access-panel { right: 8px; width: 154px; }
+  .access-heading .eyebrow,
+  .access-heading .elevation-mask { display: none; }
+  .access-heading h2 { font-size: 12px; }
   .learning-controls { grid-template-columns: repeat(2, 1fr); }
   .learning-control-card {
     top: calc(72px + env(safe-area-inset-top));

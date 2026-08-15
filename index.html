@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Widgets/widgets.css">
-    <link rel="stylesheet" href="styles.css?v=mode-navigation-2">
+    <link rel="stylesheet" href="styles.css?v=loaded-satellites-1">
   </head>
   <body data-app-tab="map" data-view-mode="2d">
     <main>
@@ -35,36 +35,42 @@
       </header>
 
       <section id="status-panel" class="status-panel" aria-live="polite">
-        <button id="summary-toggle" class="status-line panel-toggle" type="button" aria-expanded="false" aria-controls="satellite-summary">
+        <button id="summary-toggle" class="status-line panel-toggle" type="button" aria-expanded="false" aria-controls="status-panel-content">
           <span id="status-dot" class="status-dot"></span>
-          <span id="status-text">Loading satellites…</span>
+          <span class="status-heading">
+            <strong>Loaded Satellites</strong>
+            <small id="status-count">Loading…</small>
+          </span>
           <span class="panel-chevron" aria-hidden="true">⌄</span>
         </button>
-        <div class="ephemeris-control">
-          <a class="ephemeris-request" href="https://github.com/PedalTone/satellite-map/actions/workflows/refresh-satellite-data.yml" target="_blank" rel="noopener noreferrer">Request / Update Ephemeris</a>
-          <button id="group-search-open" class="ephemeris-request" type="button">Load by common name</button>
-          <button id="refresh-button" class="ephemeris-request refresh-data-button" type="button">Check for new satellites</button>
-          <time id="ephemeris-epoch">Elements: loading…</time>
-          <span id="satellite-set-label" class="satellite-set-label">Set: packaged list</span>
-        </div>
-        <div id="satellite-summary" class="satellite-summary" hidden>
-          <div class="summary-stat">
-            <span>Launches</span>
-            <strong id="summary-launch-count">—</strong>
+        <div id="status-panel-content" class="status-panel-content" hidden>
+          <p id="status-text" class="status-message">Loading satellites…</p>
+          <div class="ephemeris-control">
+            <a class="ephemeris-request" href="https://github.com/PedalTone/satellite-map/actions/workflows/refresh-satellite-data.yml" target="_blank" rel="noopener noreferrer">Request / Update Ephemeris</a>
+            <button id="group-search-open" class="ephemeris-request" type="button">Load by common name</button>
+            <button id="refresh-button" class="ephemeris-request refresh-data-button" type="button">Check for new satellites</button>
+            <time id="ephemeris-epoch">Elements: loading…</time>
+            <span id="satellite-set-label" class="satellite-set-label">Set: packaged list</span>
           </div>
-          <div class="summary-stat">
-            <span>Altitude spread</span>
-            <strong id="summary-altitude">—</strong>
+          <div id="satellite-summary" class="satellite-summary">
+            <div class="summary-stat">
+              <span>Launches</span>
+              <strong id="summary-launch-count">—</strong>
+            </div>
+            <div class="summary-stat">
+              <span>Altitude spread</span>
+              <strong id="summary-altitude">—</strong>
+            </div>
+            <div class="summary-stat">
+              <span>Inclination</span>
+              <strong id="summary-inclination">—</strong>
+            </div>
+            <div class="summary-stat">
+              <span>RAAN</span>
+              <strong id="summary-raan">—</strong>
+            </div>
+            <div id="launch-breakdown" class="launch-breakdown"></div>
           </div>
-          <div class="summary-stat">
-            <span>Inclination</span>
-            <strong id="summary-inclination">—</strong>
-          </div>
-          <div class="summary-stat">
-            <span>RAAN</span>
-            <strong id="summary-raan">—</strong>
-          </div>
-          <div id="launch-breakdown" class="launch-breakdown"></div>
         </div>
       </section>
 
@@ -430,6 +436,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Cesium.js"></script>
-  <script type="module" src="app.js?v=panel-stack-1"></script>
+  <script type="module" src="app.js?v=loaded-satellites-1"></script>
   </body>
 </html>
