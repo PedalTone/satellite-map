@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://tile.openstreetmap.org">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Widgets/widgets.css">
-    <link rel="stylesheet" href="styles.css?v=station-contacts-1">
+    <link rel="stylesheet" href="styles.css?v=time-under-loaded-1">
   </head>
   <body data-app-tab="map" data-view-mode="2d">
     <main>
@@ -94,8 +94,7 @@
       </dialog>
 
       <section class="time-control" aria-label="Simulation time controls">
-        <label for="speed-select">Time speed</label>
-        <select id="speed-select">
+        <select id="speed-select" aria-label="Time speed">
           <option value="1" selected>1× Real time</option>
           <option value="0">Paused</option>
           <option value="10">10×</option>
@@ -433,6 +432,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.143/Build/Cesium/Cesium.js"></script>
-  <script type="module" src="app.js?v=station-contacts-1"></script>
+  <script type="module" src="app.js?v=time-under-loaded-1"></script>
   </body>
 </html>

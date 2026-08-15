@@ -192,24 +192,18 @@ const elements = {
 
 function updateLeftPanelLayout() {
   const statusBottom = elements.statusPanel.getBoundingClientRect().bottom;
-  document.documentElement.style.setProperty("--map-overlays-top", `${Math.ceil(statusBottom + 14)}px`);
+  document.documentElement.style.setProperty("--time-control-top", `${Math.ceil(statusBottom + 14)}px`);
+  const timeBottom = elements.timeControl.getBoundingClientRect().bottom;
+  document.documentElement.style.setProperty("--map-overlays-top", `${Math.ceil(timeBottom + 14)}px`);
   const overlaysBottom = elements.mapOverlays.getBoundingClientRect().bottom;
   document.documentElement.style.setProperty("--detail-panel-top", `${Math.ceil(overlaysBottom + 14)}px`);
 }
 
 const leftPanelObserver = new ResizeObserver(() => requestAnimationFrame(updateLeftPanelLayout));
 leftPanelObserver.observe(elements.statusPanel);
+leftPanelObserver.observe(elements.timeControl);
 leftPanelObserver.observe(elements.mapOverlays);
 window.addEventListener("resize", updateLeftPanelLayout);
-
-function updateRightPanelLayout() {
-  const timeBottom = elements.timeControl.getBoundingClientRect().bottom;
-  document.documentElement.style.setProperty("--access-panel-top", `${Math.ceil(timeBottom + 14)}px`);
-}
-
-const rightPanelObserver = new ResizeObserver(() => requestAnimationFrame(updateRightPanelLayout));
-rightPanelObserver.observe(elements.timeControl);
-window.addEventListener("resize", updateRightPanelLayout);
 
 function setGroundAccessPanelVisible(visible) {
   elements.accessPanel.hidden = !visible;

@@ -338,13 +338,13 @@ body.status-expanded .status-panel { width: min(190px, calc(100vw - 32px)); }
 .time-control {
   position: fixed;
   z-index: 1000;
-  top: calc(82px + env(safe-area-inset-top));
-  right: 16px;
+  top: var(--time-control-top, calc(140px + env(safe-area-inset-top)));
+  left: 16px;
   display: grid;
-  grid-template-columns: auto 116px auto;
+  grid-template-columns: 116px auto;
   align-items: center;
   gap: 8px;
-  width: 300px;
+  width: 235px;
   min-height: 44px;
   padding: 6px 9px;
   border: 1px solid rgba(154, 168, 255, 0.42);
@@ -385,7 +385,7 @@ body.status-expanded .status-panel { width: min(190px, calc(100vw - 32px)); }
 .access-panel {
   position: fixed;
   z-index: 1000;
-  top: var(--access-panel-top, calc(140px + env(safe-area-inset-top)));
+  top: calc(82px + env(safe-area-inset-top));
   right: 16px;
   width: 215px;
   max-height: 260px;
@@ -1705,8 +1705,7 @@ body[data-learning-lesson="3"] .learning-explanation p { font-size: 11px; }
   .app-tab { padding: 6px 7px; font-size: 9px; }
   .topbar-actions .icon-button { width: 34px; height: 34px; }
   body.status-expanded .status-panel { width: min(168px, calc(100vw - 32px)); }
-  .time-control { right: 8px; grid-template-columns: 1fr; width: 145px; }
-  .time-control label,
+  .time-control { left: 16px; grid-template-columns: 1fr; width: 168px; }
   .time-control time { display: none; }
   .access-panel { right: 8px; width: 154px; }
   .access-heading .eyebrow,
