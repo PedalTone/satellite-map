@@ -4,7 +4,7 @@ A mobile-friendly live map for a personal list of satellites. The site reads cur
 
 ## Choose a satellite set
 
-Every visit begins with a satellite-set chooser rather than loading the owner-managed list automatically. Visitors can load the current published set or a packaged preset for space essentials, human spaceflight, Earth observation, the operational GPS constellation, or a readable 25-satellite Starlink sample. A progress bar stays visible while the selected orbital records, map positions, ground tracks, and access calculations are prepared.
+Every visit begins with a satellite-set chooser rather than loading an owner-managed list automatically. Visitors can load a packaged preset for space essentials, human spaceflight, Earth observation, the operational GPS constellation, or a readable 25-satellite Starlink sample, or enter custom NORAD IDs. A progress bar stays visible while the selected orbital records, map positions, ground tracks, and access calculations are prepared.
 
 Preset data lives in `data/presets/` and is rebuilt by `scripts/build_preset_data.py`. The scheduled refresh workflow updates the current published set and every preset before deployment. If a preset refresh temporarily fails, the last packaged version is preserved.
 
