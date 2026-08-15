@@ -2,7 +2,7 @@ name: Load satellite group
 
 on:
   issues:
-    types: [opened]
+    types: [opened, labeled]
 
 permissions:
   actions: write
@@ -15,7 +15,12 @@ concurrency:
 
 jobs:
   load-group:
-    if: github.event.issue.user.login == github.repository_owner && startsWith(github.event.issue.title, '[Satellite Group] ')
+    if: >-
+      startsWith(github.event.issue.title, '[Satellite Group] ') &&
+      (
+        (github.event.action == 'opened' && github.event.issue.user.login == github.repository_owner) ||
+        (github.event.action == 'labeled' && github.event.label.name == 'approved' && github.event.sender.login == github.repository_owner)
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
