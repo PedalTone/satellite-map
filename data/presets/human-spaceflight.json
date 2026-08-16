@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-16T03:29:17.790339Z",
+  "generatedAt": "2026-08-16T07:49:09.326881Z",
   "presetName": "Human spaceflight",
   "satellites": [
     {
@@ -20,7 +20,7 @@
         "NORAD_CAT_ID": 25544,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 58099,
-        "BSTAR": 0.000101,
+        "BSTAR": 0.00010100141,
         "MEAN_MOTION_DOT": 5.207e-05,
         "MEAN_MOTION_DDOT": 0
       },
@@ -50,9 +50,9 @@
       "omm": {
         "OBJECT_NAME": "CSS (TIANHE)",
         "OBJECT_ID": "2021-035A",
-        "EPOCH": "2026-08-15T17:46:49.484928",
+        "EPOCH": "2026-08-15T17:46:49.485792",
         "MEAN_MOTION": 15.59020376,
-        "ECCENTRICITY": 0.0001117,
+        "ECCENTRICITY": 0.00011171,
         "INCLINATION": 41.4707,
         "RA_OF_ASC_NODE": 320.4913,
         "ARG_OF_PERICENTER": 254.0275,
@@ -62,7 +62,7 @@
         "NORAD_CAT_ID": 48274,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 30246,
-        "BSTAR": 5.2035e-06,
+        "BSTAR": 5.20354e-06,
         "MEAN_MOTION_DOT": 8.4e-07,
         "MEAN_MOTION_DDOT": 0
       },
