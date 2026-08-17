@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-16T19:04:58.492660Z",
+  "generatedAt": "2026-08-17T03:30:18.302105Z",
   "presetName": "Space essentials",
   "satellites": [
     {
@@ -76,7 +76,7 @@
         "LAUNCH_DATE": "1990-04-24",
         "LAUNCH_SITE": "AFETR",
         "DECAY_DATE": "",
-        "PERIOD": 94.04,
+        "PERIOD": 94.03,
         "INCLINATION": 28.47,
         "APOGEE": 473,
         "PERIGEE": 470,
