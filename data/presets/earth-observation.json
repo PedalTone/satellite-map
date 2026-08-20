@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-19T19:36:16.287233Z",
+  "generatedAt": "2026-08-20T03:15:40.710343Z",
   "presetName": "Earth observation",
   "satellites": [
     {
@@ -161,7 +161,7 @@
         "LAUNCH_SITE": "FRGUI",
         "DECAY_DATE": "",
         "PERIOD": 100.64,
-        "INCLINATION": 98.57,
+        "INCLINATION": 98.56,
         "APOGEE": 790,
         "PERIGEE": 788,
         "RCS": 2.5119,
