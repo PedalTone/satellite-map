@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-21T19:34:38.222296Z",
+  "generatedAt": "2026-08-22T03:11:45.299243Z",
   "satellites": [
     {
       "noradId": "65565",
@@ -301,9 +301,9 @@
       "omm": {
         "OBJECT_NAME": "PRAETORIAN SDA_609",
         "OBJECT_ID": "2025-203H",
-        "EPOCH": "2026-08-21T11:55:18.776640",
+        "EPOCH": "2026-08-21T11:55:18.775776",
         "MEAN_MOTION": 13.84214753,
-        "ECCENTRICITY": 0.00071471,
+        "ECCENTRICITY": 0.0007147,
         "INCLINATION": 81.3067,
         "RA_OF_ASC_NODE": 310.3238,
         "ARG_OF_PERICENTER": 25.6694,
@@ -313,7 +313,7 @@
         "NORAD_CAT_ID": 65572,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 4773,
-        "BSTAR": 0.00011706091,
+        "BSTAR": 0.00011706,
         "MEAN_MOTION_DOT": 1.42e-06,
         "MEAN_MOTION_DDOT": 0
       },
@@ -595,9 +595,9 @@
       "omm": {
         "OBJECT_NAME": "PRAETORIAN SDA_616",
         "OBJECT_ID": "2025-203Q",
-        "EPOCH": "2026-08-21T12:23:02.142528",
+        "EPOCH": "2026-08-21T12:23:02.141664",
         "MEAN_MOTION": 13.83271977,
-        "ECCENTRICITY": 0.00056285,
+        "ECCENTRICITY": 0.0005629,
         "INCLINATION": 81.3074,
         "RA_OF_ASC_NODE": 310.6997,
         "ARG_OF_PERICENTER": 36.8057,
@@ -607,7 +607,7 @@
         "NORAD_CAT_ID": 65579,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 4771,
-        "BSTAR": 0.00012290707,
+        "BSTAR": 0.00012291,
         "MEAN_MOTION_DOT": 1.47e-06,
         "MEAN_MOTION_DDOT": 0
       },
@@ -763,9 +763,9 @@
       "omm": {
         "OBJECT_NAME": "PRAETORIAN SDA_620",
         "OBJECT_ID": "2025-203U",
-        "EPOCH": "2026-08-21T12:00:26.288928",
-        "MEAN_MOTION": 13.8321022,
-        "ECCENTRICITY": 0.00076032,
+        "EPOCH": "2026-08-21T12:00:26.288064",
+        "MEAN_MOTION": 13.83210219,
+        "ECCENTRICITY": 0.0007603,
         "INCLINATION": 81.3047,
         "RA_OF_ASC_NODE": 310.4163,
         "ARG_OF_PERICENTER": 21.2272,
@@ -775,7 +775,7 @@
         "NORAD_CAT_ID": 65583,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 4772,
-        "BSTAR": 0.00013710349,
+        "BSTAR": 0.0001371,
         "MEAN_MOTION_DOT": 1.62e-06,
         "MEAN_MOTION_DDOT": 0
       },
