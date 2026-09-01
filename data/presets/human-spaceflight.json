@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-01T16:41:56.239662Z",
+  "generatedAt": "2026-09-01T21:03:48.930414Z",
   "presetName": "Human spaceflight",
   "satellites": [
     {
@@ -8,19 +8,19 @@
       "omm": {
         "OBJECT_NAME": "ISS (ZARYA)",
         "OBJECT_ID": "1998-067A",
-        "EPOCH": "2026-09-01T11:57:51.488640",
+        "EPOCH": "2026-09-01T11:57:51.489504",
         "MEAN_MOTION": 15.48958602,
-        "ECCENTRICITY": 0.0005055,
+        "ECCENTRICITY": 0.00050553,
         "INCLINATION": 51.6312,
         "RA_OF_ASC_NODE": 282.3953,
         "ARG_OF_PERICENTER": 96.474,
-        "MEAN_ANOMALY": 263.6824,
+        "MEAN_ANOMALY": 263.6825,
         "EPHEMERIS_TYPE": 0,
         "CLASSIFICATION_TYPE": "U",
         "NORAD_CAT_ID": 25544,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 58358,
-        "BSTAR": 7.9223e-05,
+        "BSTAR": 7.9223149e-05,
         "MEAN_MOTION_DOT": 3.91e-05,
         "MEAN_MOTION_DDOT": 0
       },
@@ -50,9 +50,9 @@
       "omm": {
         "OBJECT_NAME": "CSS (TIANHE)",
         "OBJECT_ID": "2021-035A",
-        "EPOCH": "2026-09-01T09:27:31.669056",
+        "EPOCH": "2026-09-01T09:27:31.669920",
         "MEAN_MOTION": 15.59489997,
-        "ECCENTRICITY": 0.0002052,
+        "ECCENTRICITY": 0.00020522,
         "INCLINATION": 41.468,
         "RA_OF_ASC_NODE": 219.3818,
         "ARG_OF_PERICENTER": 254.4567,
@@ -62,7 +62,7 @@
         "NORAD_CAT_ID": 48274,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 30506,
-        "BSTAR": 0.00018122,
+        "BSTAR": 0.00018121965,
         "MEAN_MOTION_DOT": 0.00014475,
         "MEAN_MOTION_DDOT": 0
       },
