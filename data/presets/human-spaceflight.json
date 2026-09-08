@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-08T16:40:31.197569Z",
+  "generatedAt": "2026-09-08T21:11:13.927408Z",
   "presetName": "Human spaceflight",
   "satellites": [
     {
@@ -8,20 +8,20 @@
       "omm": {
         "OBJECT_NAME": "ISS (ZARYA)",
         "OBJECT_ID": "1998-067A",
-        "EPOCH": "2026-09-07T16:36:29.498976",
-        "MEAN_MOTION": 15.49021131,
-        "ECCENTRICITY": 0.00049803,
-        "INCLINATION": 51.6306,
-        "RA_OF_ASC_NODE": 251.7517,
-        "ARG_OF_PERICENTER": 116.5212,
-        "MEAN_ANOMALY": 243.6288,
+        "EPOCH": "2026-09-08T11:11:17.177856",
+        "MEAN_MOTION": 15.49040812,
+        "ECCENTRICITY": 0.00049298,
+        "INCLINATION": 51.6295,
+        "RA_OF_ASC_NODE": 247.9233,
+        "ARG_OF_PERICENTER": 112.8116,
+        "MEAN_ANOMALY": 247.3394,
         "EPHEMERIS_TYPE": 0,
         "CLASSIFICATION_TYPE": "U",
         "NORAD_CAT_ID": 25544,
         "ELEMENT_SET_NO": 999,
-        "REV_AT_EPOCH": 58454,
-        "BSTAR": 0.00011253134,
-        "MEAN_MOTION_DOT": 5.759e-05,
+        "REV_AT_EPOCH": 58466,
+        "BSTAR": 4.26478e-05,
+        "MEAN_MOTION_DOT": 1.902e-05,
         "MEAN_MOTION_DDOT": 0
       },
       "catalog": {
@@ -62,7 +62,7 @@
         "NORAD_CAT_ID": 48274,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 30613,
-        "BSTAR": 0.00025755518,
+        "BSTAR": 0.00025756,
         "MEAN_MOTION_DOT": 0.00020895,
         "MEAN_MOTION_DDOT": 0
       },
