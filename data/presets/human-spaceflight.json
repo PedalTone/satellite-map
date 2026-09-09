@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-09T16:41:19.548364Z",
+  "generatedAt": "2026-09-09T20:57:44.362989Z",
   "presetName": "Human spaceflight",
   "satellites": [
     {
@@ -10,9 +10,9 @@
         "OBJECT_ID": "1998-067A",
         "EPOCH": "2026-09-09T10:24:45.971424",
         "MEAN_MOTION": 15.49058283,
-        "ECCENTRICITY": 0.0004949,
+        "ECCENTRICITY": 0.00049486,
         "INCLINATION": 51.6299,
-        "RA_OF_ASC_NODE": 243.1336,
+        "RA_OF_ASC_NODE": 243.1337,
         "ARG_OF_PERICENTER": 117.3535,
         "MEAN_ANOMALY": 242.7957,
         "EPHEMERIS_TYPE": 0,
@@ -20,7 +20,7 @@
         "NORAD_CAT_ID": 25544,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 58481,
-        "BSTAR": 0.00013619,
+        "BSTAR": 0.00013619044,
         "MEAN_MOTION_DOT": 7.076e-05,
         "MEAN_MOTION_DDOT": 0
       },
