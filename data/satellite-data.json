@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-10T04:45:30.058031Z",
+  "generatedAt": "2026-09-10T11:22:23.422370Z",
   "satellites": [
     {
       "noradId": "65565",
@@ -303,7 +303,7 @@
         "OBJECT_ID": "2025-203H",
         "EPOCH": "2026-09-09T20:50:33.156384",
         "MEAN_MOTION": 13.8421723,
-        "ECCENTRICITY": 0.00063295,
+        "ECCENTRICITY": 0.0006329,
         "INCLINATION": 81.3022,
         "RA_OF_ASC_NODE": 292.3886,
         "ARG_OF_PERICENTER": 331.3158,
@@ -313,7 +313,7 @@
         "NORAD_CAT_ID": 65572,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 5041,
-        "BSTAR": 0.00015424193,
+        "BSTAR": 0.00015424,
         "MEAN_MOTION_DOT": 1.84e-06,
         "MEAN_MOTION_DDOT": 0
       },
