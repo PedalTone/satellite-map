@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-15T04:57:19.797133Z",
+  "generatedAt": "2026-09-15T11:46:29.062893Z",
   "presetName": "Human spaceflight",
   "satellites": [
     {
@@ -76,7 +76,7 @@
         "LAUNCH_DATE": "2021-04-29",
         "LAUNCH_SITE": "WSC",
         "DECAY_DATE": "",
-        "PERIOD": 92.32,
+        "PERIOD": 92.31,
         "INCLINATION": 41.47,
         "APOGEE": 390,
         "PERIGEE": 386,
