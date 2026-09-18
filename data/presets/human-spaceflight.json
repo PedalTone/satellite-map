@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-18T11:17:54.215348Z",
+  "generatedAt": "2026-09-18T16:26:11.189380Z",
   "presetName": "Human spaceflight",
   "satellites": [
     {
@@ -10,7 +10,7 @@
         "OBJECT_ID": "1998-067A",
         "EPOCH": "2026-09-18T03:25:38.782272",
         "MEAN_MOTION": 15.49160218,
-        "ECCENTRICITY": 0.0004823,
+        "ECCENTRICITY": 0.00048228,
         "INCLINATION": 51.6307,
         "RA_OF_ASC_NODE": 200.0361,
         "ARG_OF_PERICENTER": 152.4527,
@@ -20,7 +20,7 @@
         "NORAD_CAT_ID": 25544,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 58616,
-        "BSTAR": 0.00011125,
+        "BSTAR": 0.00011125122,
         "MEAN_MOTION_DOT": 5.718e-05,
         "MEAN_MOTION_DDOT": 0
       },
@@ -50,20 +50,20 @@
       "omm": {
         "OBJECT_NAME": "CSS (TIANHE)",
         "OBJECT_ID": "2021-035A",
-        "EPOCH": "2026-09-17T23:27:49.552704",
-        "MEAN_MOTION": 15.60059383,
-        "ECCENTRICITY": 0.0002645,
+        "EPOCH": "2026-09-18T07:08:44.680704",
+        "MEAN_MOTION": 15.6006867,
+        "ECCENTRICITY": 0.00026259,
         "INCLINATION": 41.4677,
-        "RA_OF_ASC_NODE": 118.6156,
-        "ARG_OF_PERICENTER": 286.8283,
-        "MEAN_ANOMALY": 73.2265,
+        "RA_OF_ASC_NODE": 116.6699,
+        "ARG_OF_PERICENTER": 287.9042,
+        "MEAN_ANOMALY": 72.151,
         "EPHEMERIS_TYPE": 0,
         "CLASSIFICATION_TYPE": "U",
         "NORAD_CAT_ID": 48274,
         "ELEMENT_SET_NO": 999,
-        "REV_AT_EPOCH": 30765,
-        "BSTAR": 0.0002259,
-        "MEAN_MOTION_DOT": 0.0001854,
+        "REV_AT_EPOCH": 30770,
+        "BSTAR": 0.00020658515,
+        "MEAN_MOTION_DOT": 0.00016929,
         "MEAN_MOTION_DDOT": 0
       },
       "catalog": {
