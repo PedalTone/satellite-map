@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T11:26:56.176262Z",
+  "generatedAt": "2026-09-20T16:09:03.643125Z",
   "presetName": "GPS operational constellation",
   "satellites": [
     {
@@ -386,13 +386,13 @@
       "omm": {
         "OBJECT_NAME": "GPS BIIRM-6 (PRN 07)",
         "OBJECT_ID": "2008-012A",
-        "EPOCH": "2026-09-19T20:49:24.527136",
-        "MEAN_MOTION": 2.00552843,
-        "ECCENTRICITY": 0.02114905,
+        "EPOCH": "2026-09-19T20:49:24.559104",
+        "MEAN_MOTION": 2.00552855,
+        "ECCENTRICITY": 0.0211483,
         "INCLINATION": 54.5044,
         "RA_OF_ASC_NODE": 146.1407,
-        "ARG_OF_PERICENTER": 248.5929,
-        "MEAN_ANOMALY": 109.208,
+        "ARG_OF_PERICENTER": 248.5888,
+        "MEAN_ANOMALY": 109.2123,
         "EPHEMERIS_TYPE": 0,
         "CLASSIFICATION_TYPE": "U",
         "NORAD_CAT_ID": 32711,
