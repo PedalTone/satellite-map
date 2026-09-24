@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-24T17:13:30.356186Z",
+  "generatedAt": "2026-09-24T21:32:49.705402Z",
   "presetName": "Human spaceflight",
   "satellites": [
     {
@@ -78,7 +78,7 @@
         "DECAY_DATE": "",
         "PERIOD": 92.29,
         "INCLINATION": 41.47,
-        "APOGEE": 389,
+        "APOGEE": 388,
         "PERIGEE": 385,
         "RCS": null,
         "DATA_STATUS_CODE": "",
