@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T21:12:08.732595Z",
+  "generatedAt": "2026-09-27T05:21:00.716200Z",
   "presetName": "Human spaceflight",
   "satellites": [
     {
@@ -8,20 +8,20 @@
       "omm": {
         "OBJECT_NAME": "ISS (ZARYA)",
         "OBJECT_ID": "1998-067A",
-        "EPOCH": "2026-09-26T09:35:46.494816",
-        "MEAN_MOTION": 15.48664613,
-        "ECCENTRICITY": 0.00070199,
-        "INCLINATION": 51.6292,
-        "RA_OF_ASC_NODE": 159.1757,
-        "ARG_OF_PERICENTER": 184.2024,
-        "MEAN_ANOMALY": 175.8906,
+        "EPOCH": "2026-09-26T20:26:13.869024",
+        "MEAN_MOTION": 15.48656208,
+        "ECCENTRICITY": 0.00070582,
+        "INCLINATION": 51.6312,
+        "RA_OF_ASC_NODE": 156.9417,
+        "ARG_OF_PERICENTER": 191.1476,
+        "MEAN_ANOMALY": 168.9357,
         "EPHEMERIS_TYPE": 0,
         "CLASSIFICATION_TYPE": "U",
         "NORAD_CAT_ID": 25544,
         "ELEMENT_SET_NO": 999,
-        "REV_AT_EPOCH": 58744,
-        "BSTAR": 0.00059036179,
-        "MEAN_MOTION_DOT": 0.00031849,
+        "REV_AT_EPOCH": 58751,
+        "BSTAR": 0.00014781219,
+        "MEAN_MOTION_DOT": 7.609e-05,
         "MEAN_MOTION_DDOT": 0
       },
       "catalog": {
@@ -34,9 +34,9 @@
         "LAUNCH_DATE": "1998-11-20",
         "LAUNCH_SITE": "TYMSC",
         "DECAY_DATE": "",
-        "PERIOD": 92.95,
+        "PERIOD": 92.98,
         "INCLINATION": 51.63,
-        "APOGEE": 422,
+        "APOGEE": 425,
         "PERIGEE": 416,
         "RCS": 399.0524,
         "DATA_STATUS_CODE": "",
@@ -62,7 +62,7 @@
         "NORAD_CAT_ID": 48274,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 30898,
-        "BSTAR": 9.2856669e-05,
+        "BSTAR": 9.285666e-05,
         "MEAN_MOTION_DOT": 7.476e-05,
         "MEAN_MOTION_DDOT": 0
       },
