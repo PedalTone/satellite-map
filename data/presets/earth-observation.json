@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-09T13:20:20.565653Z",
+  "generatedAt": "2026-10-09T22:40:32.719587Z",
   "presetName": "Earth observation",
   "satellites": [
     {
@@ -78,7 +78,7 @@
         "DECAY_DATE": "",
         "PERIOD": 98.83,
         "INCLINATION": 98.22,
-        "APOGEE": 704,
+        "APOGEE": 703,
         "PERIGEE": 702,
         "RCS": null,
         "DATA_STATUS_CODE": "",
@@ -204,7 +204,7 @@
         "DECAY_DATE": "",
         "PERIOD": 98.55,
         "INCLINATION": 97.93,
-        "APOGEE": 690,
+        "APOGEE": 691,
         "PERIGEE": 688,
         "RCS": 12.444,
         "DATA_STATUS_CODE": "",
