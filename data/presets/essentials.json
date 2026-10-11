@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-11T12:53:10.946040Z",
+  "generatedAt": "2026-10-11T21:59:57.720376Z",
   "presetName": "Space essentials",
   "satellites": [
     {
@@ -34,7 +34,7 @@
         "LAUNCH_DATE": "1998-11-20",
         "LAUNCH_SITE": "TYMSC",
         "DECAY_DATE": "",
-        "PERIOD": 92.98,
+        "PERIOD": 92.97,
         "INCLINATION": 51.63,
         "APOGEE": 425,
         "PERIGEE": 416,

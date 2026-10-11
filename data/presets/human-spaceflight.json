@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-11T12:53:11.803203Z",
+  "generatedAt": "2026-10-11T21:59:59.608524Z",
   "presetName": "Human spaceflight",
   "satellites": [
     {
@@ -34,7 +34,7 @@
         "LAUNCH_DATE": "1998-11-20",
         "LAUNCH_SITE": "TYMSC",
         "DECAY_DATE": "",
-        "PERIOD": 92.98,
+        "PERIOD": 92.97,
         "INCLINATION": 51.63,
         "APOGEE": 425,
         "PERIGEE": 416,
@@ -76,9 +76,9 @@
         "LAUNCH_DATE": "2021-04-29",
         "LAUNCH_SITE": "WSC",
         "DECAY_DATE": "",
-        "PERIOD": 92.28,
+        "PERIOD": 92.27,
         "INCLINATION": 41.47,
-        "APOGEE": 387,
+        "APOGEE": 386,
         "PERIGEE": 386,
         "RCS": null,
         "DATA_STATUS_CODE": "",
