@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-14T21:42:46.690257Z",
+  "generatedAt": "2026-10-15T04:42:40.516525Z",
   "presetName": "Human spaceflight",
   "satellites": [
     {
@@ -37,7 +37,7 @@
         "PERIOD": 92.97,
         "INCLINATION": 51.63,
         "APOGEE": 425,
-        "PERIGEE": 416,
+        "PERIGEE": 415,
         "RCS": 399.0524,
         "DATA_STATUS_CODE": "",
         "ORBIT_CENTER": "EA",
@@ -76,7 +76,7 @@
         "LAUNCH_DATE": "2021-04-29",
         "LAUNCH_SITE": "WSC",
         "DECAY_DATE": "",
-        "PERIOD": 92.27,
+        "PERIOD": 92.26,
         "INCLINATION": 41.47,
         "APOGEE": 386,
         "PERIGEE": 385,
