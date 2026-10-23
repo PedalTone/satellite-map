@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-23T11:41:56.464198Z",
+  "generatedAt": "2026-10-23T17:18:03.523155Z",
   "presetName": "Human spaceflight",
   "satellites": [
     {
@@ -10,7 +10,7 @@
         "OBJECT_ID": "1998-067A",
         "EPOCH": "2026-10-22T23:36:04.393152",
         "MEAN_MOTION": 15.49006294,
-        "ECCENTRICITY": 0.0006864,
+        "ECCENTRICITY": 0.00068639,
         "INCLINATION": 51.6334,
         "RA_OF_ASC_NODE": 27.6879,
         "ARG_OF_PERICENTER": 297.6388,
@@ -20,7 +20,7 @@
         "NORAD_CAT_ID": 25544,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 59156,
-        "BSTAR": 0.00018356,
+        "BSTAR": 0.00018355787,
         "MEAN_MOTION_DOT": 9.682e-05,
         "MEAN_MOTION_DDOT": 0
       },
@@ -52,7 +52,7 @@
         "OBJECT_ID": "2021-035A",
         "EPOCH": "2026-10-23T04:15:54.796320",
         "MEAN_MOTION": 15.61115044,
-        "ECCENTRICITY": 0.0002449,
+        "ECCENTRICITY": 0.00024489,
         "INCLINATION": 41.4687,
         "RA_OF_ASC_NODE": 264.5088,
         "ARG_OF_PERICENTER": 201.7188,
@@ -62,7 +62,7 @@
         "NORAD_CAT_ID": 48274,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 31315,
-        "BSTAR": 0.00024161,
+        "BSTAR": 0.0002416108,
         "MEAN_MOTION_DOT": 0.00020691,
         "MEAN_MOTION_DDOT": 0
       },
