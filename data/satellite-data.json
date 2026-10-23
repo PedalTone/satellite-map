@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-23T17:17:19.778677Z",
+  "generatedAt": "2026-10-23T21:26:55.099577Z",
   "satellites": [
     {
       "noradId": "65565",
@@ -49,9 +49,9 @@
       "omm": {
         "OBJECT_NAME": "PRAETORIAN SDA_603",
         "OBJECT_ID": "2025-203B",
-        "EPOCH": "2026-10-23T03:48:59.742720",
+        "EPOCH": "2026-10-23T03:48:59.743584",
         "MEAN_MOTION": 13.83968693,
-        "ECCENTRICITY": 0.0009103,
+        "ECCENTRICITY": 0.00091026,
         "INCLINATION": 81.3019,
         "RA_OF_ASC_NODE": 252.2192,
         "ARG_OF_PERICENTER": 199.1341,
@@ -61,7 +61,7 @@
         "NORAD_CAT_ID": 65566,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 5640,
-        "BSTAR": 1.5314e-05,
+        "BSTAR": 1.5313984e-05,
         "MEAN_MOTION_DOT": 2.9e-07,
         "MEAN_MOTION_DDOT": 0
       },
@@ -93,7 +93,7 @@
         "OBJECT_ID": "2025-203C",
         "EPOCH": "2026-10-22T23:21:03.145248",
         "MEAN_MOTION": 13.83059462,
-        "ECCENTRICITY": 0.0004845,
+        "ECCENTRICITY": 0.00048454,
         "INCLINATION": 81.3033,
         "RA_OF_ASC_NODE": 253.0068,
         "ARG_OF_PERICENTER": 204.8153,
@@ -103,7 +103,7 @@
         "NORAD_CAT_ID": 65567,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 5634,
-        "BSTAR": 2.5304e-05,
+        "BSTAR": 2.5303873e-05,
         "MEAN_MOTION_DOT": 4e-07,
         "MEAN_MOTION_DDOT": 0
       },
@@ -637,9 +637,9 @@
       "omm": {
         "OBJECT_NAME": "PRAETORIAN SDA_617",
         "OBJECT_ID": "2025-203R",
-        "EPOCH": "2026-10-22T23:17:40.716960",
+        "EPOCH": "2026-10-22T23:17:40.717824",
         "MEAN_MOTION": 13.83159712,
-        "ECCENTRICITY": 0.0006865,
+        "ECCENTRICITY": 0.00068653,
         "INCLINATION": 81.3018,
         "RA_OF_ASC_NODE": 252.7772,
         "ARG_OF_PERICENTER": 196.9745,
@@ -649,7 +649,7 @@
         "NORAD_CAT_ID": 65580,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 5635,
-        "BSTAR": 2.0043e-05,
+        "BSTAR": 2.0042846e-05,
         "MEAN_MOTION_DOT": 3.4e-07,
         "MEAN_MOTION_DDOT": 0
       },
@@ -847,9 +847,9 @@
       "omm": {
         "OBJECT_NAME": "PRAETORIAN SDA_601",
         "OBJECT_ID": "2025-203W",
-        "EPOCH": "2026-10-23T04:01:09.453792",
+        "EPOCH": "2026-10-23T04:01:09.454656",
         "MEAN_MOTION": 13.83177273,
-        "ECCENTRICITY": 0.0004804,
+        "ECCENTRICITY": 0.00048038,
         "INCLINATION": 81.3019,
         "RA_OF_ASC_NODE": 252.7039,
         "ARG_OF_PERICENTER": 208.8515,
@@ -859,7 +859,7 @@
         "NORAD_CAT_ID": 65585,
         "ELEMENT_SET_NO": 999,
         "REV_AT_EPOCH": 5637,
-        "BSTAR": -0.00050667,
+        "BSTAR": -0.00050667348,
         "MEAN_MOTION_DOT": -5.43e-06,
         "MEAN_MOTION_DDOT": 0
       },
