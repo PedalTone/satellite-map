@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-24T20:52:20.298271Z",
+  "generatedAt": "2026-10-25T04:44:30.032788Z",
   "presetName": "Earth observation",
   "satellites": [
     {
@@ -205,7 +205,7 @@
         "PERIOD": 98.55,
         "INCLINATION": 97.93,
         "APOGEE": 691,
-        "PERIGEE": 688,
+        "PERIGEE": 687,
         "RCS": 12.444,
         "DATA_STATUS_CODE": "",
         "ORBIT_CENTER": "EA",

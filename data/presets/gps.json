@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-24T20:52:20.865199Z",
+  "generatedAt": "2026-10-25T04:44:30.813256Z",
   "presetName": "GPS operational constellation",
   "satellites": [
     {
@@ -289,7 +289,7 @@
         "PERIOD": 717.67,
         "INCLINATION": 54.91,
         "APOGEE": 20407,
-        "PERIGEE": 19943,
+        "PERIGEE": 19942,
         "RCS": 4.8064,
         "DATA_STATUS_CODE": "",
         "ORBIT_CENTER": "EA",
