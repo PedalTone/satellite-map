@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-27T18:03:52.999025Z",
+  "generatedAt": "2026-10-27T22:16:45.549422Z",
   "presetName": "Earth observation",
   "satellites": [
     {
@@ -36,7 +36,7 @@
         "DECAY_DATE": "",
         "PERIOD": 98.83,
         "INCLINATION": 98.22,
-        "APOGEE": 704,
+        "APOGEE": 703,
         "PERIGEE": 702,
         "RCS": 7.1149,
         "DATA_STATUS_CODE": "",
@@ -77,7 +77,7 @@
         "LAUNCH_SITE": "AFWTR",
         "DECAY_DATE": "",
         "PERIOD": 98.83,
-        "INCLINATION": 98.22,
+        "INCLINATION": 98.21,
         "APOGEE": 703,
         "PERIGEE": 702,
         "RCS": null,
