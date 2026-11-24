@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-24T09:57:36.293187Z",
+  "generatedAt": "2026-11-24T22:29:06.406344Z",
   "presetName": "Space essentials",
   "satellites": [
     {
@@ -118,9 +118,9 @@
         "LAUNCH_DATE": "2016-11-19",
         "LAUNCH_SITE": "AFETR",
         "DECAY_DATE": "",
-        "PERIOD": 1436.11,
-        "INCLINATION": 0.73,
-        "APOGEE": 35799,
+        "PERIOD": 1436.12,
+        "INCLINATION": 0.74,
+        "APOGEE": 35800,
         "PERIGEE": 35774,
         "RCS": 13.1623,
         "DATA_STATUS_CODE": "",
